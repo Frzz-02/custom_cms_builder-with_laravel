@@ -40,6 +40,26 @@
                 </a>
             </li>
 
+            <!-- Product Categories -->
+            <li>
+                <a href="{{ route('backend.product-categories.index') }}" class="flex items-center p-3 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-200 {{ request()->routeIs('backend.product-categories.*') ? 'bg-slate-700 text-white' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    Product Categories
+                </a>
+            </li>
+
+            <!-- Products -->
+            <li>
+                <a href="{{ route('backend.products.index') }}" class="flex items-center p-3 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-200 {{ request()->routeIs('backend.products.*') ? 'bg-slate-700 text-white' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    Products
+                </a>
+            </li>
+
             <!-- Users -->
             <li>
                 <a href="{{ route('backend.users.index') }}" class="flex items-center p-3 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-200 {{ request()->routeIs('backend.users.*') ? 'bg-slate-700 text-white' : '' }}">

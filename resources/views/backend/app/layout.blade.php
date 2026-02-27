@@ -8,6 +8,10 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('assets/apex favicon.jpeg') }}">
+
+    <!-- CDN Font Awesome 6 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
