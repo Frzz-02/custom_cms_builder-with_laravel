@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-slate-800">Pages</h1>
             <p class="text-slate-600 mt-1">Manage your website pages</p>
         </div>
-        <a href="{{ route('backend.pages.create') }}" 
+        <a href="{{ route('backend.pages.initiate') }}" 
            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-lg hover:shadow-xl flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -114,7 +114,7 @@
                                 </svg>
                                 <p class="text-slate-500 text-lg font-medium">No pages found</p>
                                 <p class="text-slate-400 mt-1">Create your first page to get started</p>
-                                <a href="{{ route('backend.pages.create') }}" 
+                                <a href="{{ route('backend.pages.initiate') }}" 
                                    class="inline-flex items-center gap-2 mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -127,6 +127,13 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination -->
+        @if($pages->hasPages())
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50">
+                {{ $pages->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection
