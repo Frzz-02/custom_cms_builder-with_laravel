@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             'id' => 0,
             'name' => 'Kaito Kid',
             'email' => 'kaito.kid@gmail.com',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('12345678'),
             'role' => 'superadmin',
             'email_verified_at' => now(),
         ]);
