@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             SectionAboutSeeder::class,
             SectionBrandSeeder::class,
             SectionHeroSeeder::class,
+            SectionTestimonialsSeeder::class,
         ]);
     }
 }

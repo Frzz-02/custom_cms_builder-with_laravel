@@ -15,13 +15,13 @@ class FooterSeeder extends Seeder
     {
         DB::table('footer_content')->insert([
             // Company Info
-            'company_name' => 'LANYARD KENDAL',
-            'company_tagline' => 'BOGOR',
+            'company_name' => 'APEX WORKS',
+            'company_tagline' => 'YOGYAKARTA',
             'company_address' => 'Jl. Cifor Batuhulung No.Rt.03/02, Bogor, Jawa Barat 16116',
             'company_phone' => '+62 813-1650-9191',
-            'company_email' => 'contact@lanyardkendal.com',
+            'company_email' => 'contact@apexworks.com',
             'company_whatsapp' => '+62 813-1650-9191',
-            'company_website' => 'lanyardkendal.com',
+            'company_website' => 'apexWorks.com',
             
             // Contact Column
             'contact_column_title' => 'Hubungi Kami',
@@ -62,8 +62,8 @@ class FooterSeeder extends Seeder
             'legal_whatsapp_label' => 'WA',
             'legal_whatsapp_number' => '+62 813-1650-9191',
             'legal_whatsapp_url' => 'https://wa.me/6281316509191',
-            'legal_website_label' => 'lanyardkendal.com',
-            'legal_website_url' => 'https://lanyardkendal.com',
+            'legal_website_label' => 'apexworks.com',
+            'legal_website_url' => 'https://apexworks.com',
             
             // Social Media
             'facebook_url' => 'https://facebook.com/lanyardkendal',
@@ -88,9 +88,9 @@ class FooterSeeder extends Seeder
             'whatsapp_float_position' => 'bottom-right',
             
             // Copyright
-            'copyright_text' => 'LanyardKendal © 2026',
+            'copyright_text' => 'ApexWorks © 2026',
             'copyright_year' => 2026,
-            'copyright_credit' => 'by LanyardKendal Team',
+            'copyright_credit' => 'by ApexWorks Team',
             
             // Styling
             'footer_background_color' => '#0a0e27',
