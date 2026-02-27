@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SectionBrand;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class BrandController extends Controller
 {
@@ -24,15 +23,10 @@ class BrandController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'url' => 'nullable|string|max:255',
+            'logo' => 'nullable|url|max:500',
+            'url' => 'nullable|url|max:500',
             'status' => 'required|in:active,inactive',
         ]);
-
-        // Handle logo upload
-        if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('brand_images', 'public');
-        }
 
         SectionBrand::create($validated);
 
@@ -49,24 +43,10 @@ class BrandController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'url' => 'nullable|string|max:255',
+            'logo' => 'nullable|url|max:500',
+            'url' => 'nullable|url|max:500',
             'status' => 'required|in:active,inactive',
         ]);
-
-        // Handle logo upload
-        if ($request->hasFile('logo')) {
-            // Delete old logo if exists
-            if ($brand->logo && Storage::disk('public')->exists($brand->logo)) {
-                Storage::disk('public')->delete($brand->logo);
-            }
-            $validated['logo'] = $request->file('logo')->store('brand_images', 'public');
-        }
-// Delete logo file if exists
-        if ($brand->logo && Storage::disk('public')->exists($brand->logo)) {
-            Storage::disk('public')->delete($brand->logo);
-        }
-
         
         $brand->update($validated);
 

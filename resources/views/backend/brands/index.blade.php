@@ -50,7 +50,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($brand->logo)
-                                    <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="h-12 w-auto object-contain">
+                                    <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" class="h-12 w-auto object-contain">
                                 @else
                                     <span class="text-gray-400 text-sm">No logo</span>
                                 @endif
