@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,46 +12,50 @@ class SectionCompleteCountSeeder extends Seeder
      */
     public function run(): void
     {
-        $data = [
+        $benefits = [
             [
-                'id'          => 2,
-                'title'       => 'Klien',
-                'icon'        => 'far fa-plus',
-                'amount'      => 1980,          // dari tampilan: 1.980 → tanpa titik
-                'status'      => 'active',
-                'created_at'  => Carbon::parse('2024-12-24 03:26:19'),
-                'updated_at'  => Carbon::parse('2025-05-09 14:06:06'),
+                'title'  => 'Pengiriman Cepat',
+                'icon'   => 'icon-feather-clock', // Menyesuaikan icon jam di gambar
+                'amount' => null,
+                'status' => 'active',
             ],
             [
-                'id'          => 3,
-                'title'       => 'Lembaga',
-                'icon'        => 'far fa-plus',
-                'amount'      => 876,
-                'status'      => 'active',
-                'created_at'  => Carbon::parse('2024-12-24 03:26:37'),
-                'updated_at'  => Carbon::parse('2025-05-09 14:04:46'),
+                'title'  => 'Gratis Ongkir*',
+                'icon'   => 'icon-feather-map-pin', // Menyesuaikan icon pin di gambar
+                'amount' => null,
+                'status' => 'active',
             ],
             [
-                'id'          => 4,
-                'title'       => 'Perusahaan',
-                'icon'        => 'far fa-plus',
-                'amount'      => 999,
-                'status'      => 'active',
-                'created_at'  => Carbon::parse('2024-12-24 03:26:51'),
-                'updated_at'  => Carbon::parse('2025-05-09 14:05:34'),
+                'title'  => 'Klien Puas',
+                'icon'   => 'icon-feather-users', // Menyesuaikan icon grup orang
+                'amount' => 1250, // Mengambil angka dari "1250+ Klien Puas"
+                'status' => 'active',
             ],
             [
-                'id'          => 5,
-                'title'       => 'Event',
-                'icon'        => 'far fa-plus',
-                'amount'      => 1550,          // 1.550 → tanpa titik
-                'status'      => 'active',
-                'created_at'  => Carbon::parse('2024-12-24 23:27:04'),
-                'updated_at'  => Carbon::parse('2025-05-09 14:05:23'),
+                'title'  => 'Garansi Resmi',
+                'icon'   => 'icon-feather-shield', // Menyesuaikan icon perisai
+                'amount' => null,
+                'status' => 'active',
+            ],
+            [
+                'title'  => 'Produk Original',
+                'icon'   => 'icon-feather-box', // Menyesuaikan icon kubus/paket
+                'amount' => null,
+                'status' => 'active',
+            ],
+            [
+                'title'  => 'Harga Kompetitif',
+                'icon'   => 'icon-feather-dollar-sign', // Menyesuaikan icon dollar
+                'amount' => null,
+                'status' => 'active',
             ],
         ];
 
-        // Cara 1: Pakai DB facade (paling aman untuk force ID)
-        DB::table('section_completecount')->insert($data);
+        foreach ($benefits as $benefit) {
+            DB::table('section_completecount')->insert(array_merge($benefit, [
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
+        }
     }
 }
