@@ -105,8 +105,11 @@
                 </div>
             </div>
         </section>
+
+        
+        
         
     @elseif ($shortcode->service_style == 'Style 2')
         
-    @endif
+    @endifs
 @endif

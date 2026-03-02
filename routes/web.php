@@ -13,6 +13,7 @@ use App\Http\Controllers\Backend\SectionAboutController;
 use App\Http\Controllers\Backend\HeaderController;
 use App\Http\Controllers\Backend\ProductCategoryController;
 use App\Http\Controllers\Backend\ProductController;
+use App\Http\Controllers\Backend\PageShortcodeController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
@@ -66,6 +67,20 @@ Route::middleware(['auth'])->group(function () {
         
         // Section About Routes
         Route::resource('section-about', SectionAboutController::class);
+        
+        // Testimonials Routes
+        Route::get('testimonials/list', [PageShortcodeController::class, 'getTestimonialsList'])->name('testimonials.list');
+        
+        // Services Routes
+        Route::get('services/list', [PageShortcodeController::class, 'getServicesList'])->name('services.list');
+        
+        // Newsletters Routes
+        Route::get('section-newsletters/list', [PageShortcodeController::class, 'getSectionNewslettersList'])->name('newsletters.list');
+        
+        // Page Shortcode Routes
+        Route::post('page-shortcode/store', [PageShortcodeController::class, 'store'])->name('page-shortcode.store');
+        Route::put('page-shortcode/update/{id}', [PageShortcodeController::class, 'update'])->name('page-shortcode.update');
+        Route::delete('page-shortcode/delete/{id}', [PageShortcodeController::class, 'destroy'])->name('page-shortcode.destroy');
         
         // Header/Navbar Routes
         Route::resource('header', HeaderController::class);
