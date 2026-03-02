@@ -15,7 +15,7 @@
 
         <!-- Scrollable Content -->
         <div class="flex-1 overflow-y-auto px-6 py-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
-            <form id="heroBannerForm" class="space-y-6">
+            <div class="space-y-6">
                 @csrf
                 <input type="hidden" id="hero_banner_id" name="hero_banner_id">
 
@@ -264,7 +264,7 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
             
         <!-- Modal Footer -->
