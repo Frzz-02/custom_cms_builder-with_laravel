@@ -79,17 +79,17 @@
                                 <div class="text-sm text-slate-600">{{ $user->email }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($user->role === 'superadmin')
+                                @if($user->role && $user->role->name === 'superadmin')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                                        Superadmin
+                                        {{ ucfirst($user->role->name) }}
                                     </span>
-                                @elseif($user->role === 'admin')
+                                @elseif($user->role && $user->role->name === 'admin')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Admin
+                                        {{ ucfirst($user->role->name) }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                                        Moderator
+                                        {{ $user->role ? ucfirst($user->role->name) : 'N/A' }}
                                     </span>
                                 @endif
                             </td>

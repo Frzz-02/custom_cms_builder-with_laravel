@@ -64,21 +64,23 @@
 
                 <!-- Role -->
                 <div class="mb-6">
-                    <label for="role" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <label for="role_id" class="block text-sm font-semibold text-slate-700 mb-2">
                         Role <span class="text-red-500">*</span>
                     </label>
                     <select 
-                        id="role" 
-                        name="role" 
-                        class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('role') border-red-500 @enderror"
+                        id="role_id" 
+                        name="role_id" 
+                        class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('role_id') border-red-500 @enderror"
                         required
                     >
                         <option value="">Select Role</option>
-                        <option value="superadmin" @selected(old('role', $user->role) == 'superadmin')>Superadmin</option>
-                        <option value="admin" @selected(old('role', $user->role) == 'admin')>Admin</option>
-                        <option value="moderator" @selected(old('role', $user->role) == 'moderator')>Moderator</option>
+                        @foreach($roles as $role)
+                        <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>
+                            {{ ucfirst($role->name) }}
+                        </option>
+                        @endforeach
                     </select>
-                    @error('role')
+                    @error('role_id')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
