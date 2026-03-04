@@ -1,0 +1,289 @@
+@extends('backend.app.layout')
+
+@section('title', 'Create Blog Post')
+
+@push('styles')
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
+<style>
+    trix-toolbar .trix-button-group { margin-bottom: 0; }
+    trix-editor { min-height: 300px; }
+</style>
+@endpush
+
+@section('content')
+<div class="p-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('backend.blogs.index') }}" 
+               class="text-slate-600 hover:text-slate-800 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Create New Blog Post</h1>
+                <p class="text-slate-600 mt-1">Add a new post to your blog</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form action="{{ route('backend.blogs.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Main Content -->
+            <div class="col-span-8">
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-6">
+                    <!-- Title -->
+                    <div>
+                        <label for="title" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               value="{{ old('title') }}"
+                               class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('title') border-red-500 @enderror"
+                               placeholder="Enter blog post title"
+                               required>
+                        @error('title')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Slug -->
+                    <div>
+                        <label for="slug" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Slug
+                        </label>
+                        <input type="text" 
+                               id="slug" 
+                               name="slug" 
+                               value="{{ old('slug') }}"
+                               class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('slug') border-red-500 @enderror"
+                               placeholder="Auto-generated from title">
+                        <p class="mt-1 text-xs text-slate-500">Leave empty to auto-generate from title</p>
+                        @error('slug')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Alternative Name
+                        </label>
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               value="{{ old('name') }}"
+                               class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="Optional alternative name">
+                    </div>
+
+                    <!-- Author -->
+                    <div>
+                        <label for="author" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Author
+                        </label>
+                        <input type="text" 
+                               id="author" 
+                               name="author" 
+                               value="{{ old('author', auth()->user()->name ?? '') }}"
+                               class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="Author name">
+                    </div>
+
+                    <!-- Content -->
+                    <div>
+                        <label for="content" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Content
+                        </label>
+                        <input id="content" type="hidden" name="content" value="{{ old('content') }}">
+                        <trix-editor input="content" class="border border-slate-300 rounded-lg" autofocus="false"></trix-editor>
+                        @error('content')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Images -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Regular Image -->
+                        <div>
+                            <label for="image" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Blog Image
+                            </label>
+                            <input type="file" 
+                                   id="image" 
+                                   name="image" 
+                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image') border-red-500 @enderror"
+                                   onchange="previewImage(this, 'imagePreview')">
+                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp)</p>
+                            @error('image')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <div id="imagePreview" class="mt-2 hidden">
+                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
+                            </div>
+                        </div>
+
+                        <!-- Featured Image -->
+                        <div>
+                            <label for="image_featured" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Featured Image
+                            </label>
+                            <input type="file" 
+                                   id="image_featured" 
+                                   name="image_featured" 
+                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image_featured') border-red-500 @enderror"
+                                   onchange="previewImage(this, 'featuredImagePreview')">
+                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp)</p>
+                            @error('image_featured')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <div id="featuredImagePreview" class="mt-2 hidden">
+                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEO Section -->
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">SEO Settings</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Meta Title -->
+                            <div>
+                                <label for="meta_title" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Meta Title
+                                </label>
+                                <input type="text" 
+                                       id="meta_title" 
+                                       name="meta_title" 
+                                       value="{{ old('meta_title') }}"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="SEO optimized title (60 characters max)">
+                            </div>
+
+                            <!-- Meta Description -->
+                            <div>
+                                <label for="meta_description" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Meta Description
+                                </label>
+                                <textarea id="meta_description" 
+                                          name="meta_description" 
+                                          rows="3"
+                                          class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                          placeholder="Brief description for search engines (160 characters max)">{{ old('meta_description') }}</textarea>
+                            </div>
+
+                            <!-- Meta Keywords -->
+                            <div>
+                                <label for="meta_keywords" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Meta Keywords
+                                </label>
+                                <input type="text" 
+                                       id="meta_keywords" 
+                                       name="meta_keywords" 
+                                       value="{{ old('meta_keywords') }}"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="keyword1, keyword2, keyword3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-span-4">
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-6 sticky top-24">
+                    <!-- Status -->
+                    <div>
+                        <label for="status" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <select id="status" 
+                                name="status" 
+                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                required>
+                            <option value="draft" {{ old('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="published" {{ old('status') === 'published' ? 'selected' : '' }}>Published</option>
+                        </select>
+                    </div>
+
+                    <!-- Is Featured -->
+                    <div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" 
+                                   name="is_featured" 
+                                   value="1" 
+                                   {{ old('is_featured') ? 'checked' : '' }}
+                                   class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm font-semibold text-slate-700">Mark as Featured</span>
+                        </label>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label for="blog_categories_id" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Category
+                        </label>
+                        <select id="blog_categories_id" 
+                                name="blog_categories_id" 
+                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Select Category</option>
+                            @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('blog_categories_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <hr class="border-slate-200">
+
+                    <!-- Actions -->
+                    <div class="space-y-3">
+                        <button type="submit" 
+                                class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Create Post
+                        </button>
+                        <a href="{{ route('backend.blogs.index') }}" 
+                           class="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors text-center block">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+@endsection
+
+@push('scripts')
+<script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+<script>
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.querySelector('img').src = e.target.result;
+            preview.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.classList.add('hidden');
+    }
+}
+</script>
+@endpush
