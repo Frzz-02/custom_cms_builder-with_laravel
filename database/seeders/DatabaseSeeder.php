@@ -3,19 +3,22 @@
 namespace Database\Seeders;
 
 use Database\Seeders\BlogCategorySeeder;
+use Database\Seeders\ContactSeeder;
 use Database\Seeders\FooterSeeder;
 use Database\Seeders\NavbarSeeder;
 use Database\Seeders\ProductCategorySeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\SectionAboutSeeder;
 use Database\Seeders\SectionBrandSeeder;
+use Database\Seeders\SectionCompleteCountSeeder;
 use Database\Seeders\SectionHeroSeeder;
+use Database\Seeders\SectionNewsletterSeeder;
 use Database\Seeders\SectionServiceSeeder;
 use Database\Seeders\SectionTestimonialsSeeder;
+use Database\Seeders\SettingSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\ContactSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,6 +30,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            roleSeeder::class,
             UserSeeder::class,
             FooterSeeder::class,
             NavbarSeeder::class,
@@ -40,8 +44,9 @@ class DatabaseSeeder extends Seeder
             BlogCategorySeeder::class,
             ContactSeeder::class,
             SectionNewsletterSeeder::class,
-            SectionCompleteCountSeeder::class,
-            
+            SectionCompleteCountSeeder::class,            
+            whatsappButtonSeeder::class,
+            SettingSeeder::class,
         ]);
     }
 }
