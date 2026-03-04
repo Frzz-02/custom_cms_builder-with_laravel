@@ -14,6 +14,16 @@ use App\Http\Controllers\Backend\HeaderController;
 use App\Http\Controllers\Backend\ProductCategoryController;
 use App\Http\Controllers\Backend\ProductController;
 use App\Http\Controllers\Backend\PageShortcodeController;
+use App\Http\Controllers\Backend\BlogController;
+use App\Http\Controllers\Backend\BlogCategoryController;
+use App\Http\Controllers\Backend\ContactController;
+use App\Http\Controllers\Backend\WhatsAppButtonController;
+use App\Http\Controllers\Backend\SectionTestimonialController;
+use App\Http\Controllers\Backend\SectionServiceController;
+use App\Http\Controllers\Backend\SectionNewsletterController;
+use App\Http\Controllers\Backend\NewsletterController;
+use App\Http\Controllers\Backend\SettingController;
+use App\Http\Controllers\Backend\ThemeEditorController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
@@ -63,10 +73,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('section-hero/store-ajax', [SectionHeroController::class, 'storeAjax'])->name('section-hero.store-ajax');
         Route::get('section-hero/show-ajax/{id}', [SectionHeroController::class, 'showAjax'])->name('section-hero.show-ajax');
         Route::delete('section-hero/delete-ajax/{id}', [SectionHeroController::class, 'deleteAjax'])->name('section-hero.delete-ajax');
-        Route::resource('section-hero', SectionHeroController::class);
         
-        // Section About Routes
-        Route::resource('section-about', SectionAboutController::class);
+        
         
         // Testimonials Routes
         Route::get('testimonials/list', [PageShortcodeController::class, 'getTestimonialsList'])->name('testimonials.list');
@@ -77,8 +85,12 @@ Route::middleware(['auth'])->group(function () {
         // Newsletters Routes
         Route::get('section-newsletters/list', [PageShortcodeController::class, 'getSectionNewslettersList'])->name('newsletters.list');
         
+        // Contacts Routes
+        Route::get('contacts/list', [PageShortcodeController::class, 'getContactsList'])->name('contacts.list');
+        
         // Page Shortcode Routes
         Route::post('page-shortcode/store', [PageShortcodeController::class, 'store'])->name('page-shortcode.store');
+        Route::get('page-shortcode/show/{id}', [PageShortcodeController::class, 'show'])->name('page-shortcode.show');
         Route::put('page-shortcode/update/{id}', [PageShortcodeController::class, 'update'])->name('page-shortcode.update');
         Route::delete('page-shortcode/delete/{id}', [PageShortcodeController::class, 'destroy'])->name('page-shortcode.destroy');
         
@@ -90,5 +102,43 @@ Route::middleware(['auth'])->group(function () {
         
         // Product Routes
         Route::resource('products', ProductController::class);
+        
+        // Blog Category Routes
+        Route::resource('blog-categories', BlogCategoryController::class);
+        
+        // Blog Routes
+        Route::resource('blogs', BlogController::class);
+        
+        // Contact Routes
+        Route::resource('contacts', ContactController::class);
+        
+        // WhatsApp Button Routes
+        Route::get('whatsapp-button', [WhatsAppButtonController::class, 'index'])->name('whatsapp-button.index');
+        Route::post('whatsapp-button', [WhatsAppButtonController::class, 'store'])->name('whatsapp-button.store');
+        
+        // Testimonials Routes
+        Route::resource('testimonials', SectionTestimonialController::class);
+        
+        // Services Routes
+        Route::resource('services', SectionServiceController::class);
+        
+        // Newsletter Settings Routes
+        Route::get('newsletter/settings', [SectionNewsletterController::class, 'index'])->name('newsletter.settings');
+        Route::post('newsletter/settings', [SectionNewsletterController::class, 'store'])->name('newsletter.settings.store');
+        
+        // Newsletter Subscribers Routes
+        Route::get('newsletter/subscribers', [NewsletterController::class, 'index'])->name('newsletter.subscribers');
+        Route::delete('newsletter/subscribers/{newsletter}', [NewsletterController::class, 'destroy'])->name('newsletter.subscribers.destroy');
+        
+        // Theme Editor Routes (Only for Superadmin)
+        Route::get('theme-editor', [ThemeEditorController::class, 'index'])->name('theme-editor.index');
+        Route::get('theme-editor/edit', [ThemeEditorController::class, 'edit'])->name('theme-editor.edit');
+        Route::post('theme-editor/update', [ThemeEditorController::class, 'update'])->name('theme-editor.update');
+        Route::get('theme-editor/files', [ThemeEditorController::class, 'getFiles'])->name('theme-editor.files');
+        
+        // Settings Routes
+        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('settings/remove-image', [SettingController::class, 'removeImage'])->name('settings.remove-image');
     });
 });
