@@ -46,7 +46,13 @@ let pendingLatestNewsBlockId = null;
 let cachedTestimonials = [];
 let cachedServices = [];
 let cachedNewsletters = [];
+let cachedContacts = [];
 let isDataLoaded = false;
+
+// Cache untuk data block yang sudah disave (optimasi performa)
+// Format: { 'block-1': { title: 'xxx', subtitle: 'yyy', ... }, 'block-2': { ... } }
+// Setiap block punya data sendiri-sendiri, meskipun tipenya sama
+let blockDataCache = {};
 
 // ===================================================================
 // BAGIAN 2: KONFIGURASI BLOCKS
@@ -114,6 +120,11 @@ const blockConfig = {
         name: 'Latest News & Blog', 
         icon: 'newspaper', 
         color: 'rose' 
+    },
+    'contact': { 
+        name: 'Contact', 
+        icon: 'phone', 
+        color: 'teal' 
     }
 };
 
@@ -355,7 +366,7 @@ function closeBlockLibrary() {
  * 
  * @param {string} blockId - ID dari block yang mau diedit
  */
-function openEditModal(blockId) {
+async function openEditModal(blockId) {
     // Simpan ID block yang sedang diedit ke variable global
     currentEditBlockId = blockId;
     
@@ -375,24 +386,145 @@ function openEditModal(blockId) {
     // dataset = cara mengakses attribute data-* di HTML
     // Contoh: <div data-type="hero"> → dataset.type = "hero"
     const blockType = block.dataset.type;
+    const shortcodeId = block.dataset.shortcodeId;
+    
+    // Cek cache dulu sebelum fetch dari database (lebih cepat!)
+    let shortcodeData = null;
+    
+    // Prioritas 1: Cek cache local (paling cepat)
+    if (blockDataCache[blockId]) {
+        console.log('📦 Loading from cache:', blockId);
+        shortcodeData = blockDataCache[blockId];
+    }
+    // Prioritas 2: Fetch dari database (untuk backward compatibility)
+    else if (shortcodeId) {
+        console.log('🔄 Loading from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                // Simpan ke cache untuk next time
+                blockDataCache[blockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading shortcode data:', error);
+        }
+    }
     
     // if...else if...else = percabangan (pilihan)
     // Buka modal yang sesuai dengan tipe block
     if (blockType === 'title') {
         // Untuk block title
         document.getElementById('editTitleModal').classList.remove('hidden');
+        // Populate form jika ada data
+        if (shortcodeData) {
+            document.getElementById('titleBlockId').value = shortcodeData.id || '';
+            document.getElementById('titleBlockTitle').value = shortcodeData.title || '';
+            document.getElementById('titleBlockSubtitle').value = shortcodeData.subtitle || '';
+            document.getElementById('titleBlockHeading').value = shortcodeData.heading || 'h3';
+        } else {
+            // Reset form jika tidak ada data
+            document.getElementById('titleBlockId').value = '';
+            document.getElementById('titleBlockTitle').value = '';
+            document.getElementById('titleBlockSubtitle').value = '';
+            document.getElementById('titleBlockHeading').value = 'h3';
+        }
     } else if (blockType === 'simple-text') {
         // Untuk block simple text
         document.getElementById('editSimpleTextModal').classList.remove('hidden');
+        // Populate form jika ada data
+        if (shortcodeData) {
+            document.getElementById('simpleTextBlockId').value = shortcodeData.id || '';
+            document.getElementById('simpleTextContent').value = shortcodeData.content || '';
+        } else {
+            // Reset form jika tidak ada data
+            document.getElementById('simpleTextBlockId').value = '';
+            document.getElementById('simpleTextContent').value = '';
+        }
     } else if (blockType === 'text-editor') {
         // Untuk block text editor
         document.getElementById('editTextEditorModal').classList.remove('hidden');
+        // Populate form jika ada data
+        if (shortcodeData) {
+            document.getElementById('textEditorBlockId').value = shortcodeData.id || '';
+            // Set content to Trix editor
+            const trixEditor = document.querySelector('trix-editor[input="textEditorContent"]');
+            if (trixEditor) {
+                trixEditor.editor.loadHTML(shortcodeData.content || '');
+            }
+        } else {
+            // Reset form jika tidak ada data
+            document.getElementById('textEditorBlockId').value = '';
+            const trixEditor = document.querySelector('trix-editor[input="textEditorContent"]');
+            if (trixEditor) {
+                trixEditor.editor.loadHTML('');
+            }
+        }
     } else if (blockType === 'brands') {
         // Untuk block brands
         document.getElementById('editBrandsModal').classList.remove('hidden');
+        // Populate form jika ada data
+        if (shortcodeData) {
+            document.getElementById('brandsBlockId').value = shortcodeData.id || '';
+            // Parse section_brand_id (bisa JSON string atau array) dan centang checkboxes yang sesuai
+            let selectedBrandIds = shortcodeData.section_brand_id || [];
+            // Jika masih string JSON, parse dulu
+            if (typeof selectedBrandIds === 'string') {
+                try {
+                    selectedBrandIds = JSON.parse(selectedBrandIds);
+                } catch (e) {
+                    console.error('Failed to parse section_brand_id:', e);
+                    selectedBrandIds = [];
+                }
+            }
+            // Reset semua checkboxes dulu
+            document.querySelectorAll('#brandsList input[type="checkbox"]').forEach(cb => {
+                // Convert checkbox value to string for comparison
+                cb.checked = selectedBrandIds.map(String).includes(cb.value);
+            });
+        } else {
+            // Reset form jika tidak ada data
+            document.getElementById('brandsBlockId').value = '';
+            document.querySelectorAll('#brandsList input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
     } else if (blockType === 'complete-counts') {
         // Untuk block complete counts
         document.getElementById('editCompleteCountsModal').classList.remove('hidden');
+        // Populate form jika ada data
+        if (shortcodeData) {
+            document.getElementById('completeCountsBlockId').value = shortcodeData.id || '';
+            document.getElementById('completeCountsTitle').value = shortcodeData.title || '';
+            document.getElementById('completeCountsSubtitle').value = shortcodeData.subtitle || '';
+            document.getElementById('completeCountsContent').value = shortcodeData.content || '';
+            // Parse section_completecount_id (bisa JSON string atau array) dan centang checkboxes yang sesuai
+            let selectedCountIds = shortcodeData.section_completecount_id || [];
+            // Jika masih string JSON, parse dulu
+            if (typeof selectedCountIds === 'string') {
+                try {
+                    selectedCountIds = JSON.parse(selectedCountIds);
+                } catch (e) {
+                    console.error('Failed to parse section_completecount_id:', e);
+                    selectedCountIds = [];
+                }
+            }
+            // Reset semua checkboxes dulu
+            document.querySelectorAll('#completeCountsList input[type="checkbox"]').forEach(cb => {
+                // Convert checkbox value to string for comparison
+                cb.checked = selectedCountIds.map(String).includes(cb.value);
+            });
+        } else {
+            // Reset form jika tidak ada data
+            document.getElementById('completeCountsBlockId').value = '';
+            document.getElementById('completeCountsTitle').value = '';
+            document.getElementById('completeCountsSubtitle').value = '';
+            document.getElementById('completeCountsContent').value = '';
+            document.querySelectorAll('#completeCountsList input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
     } else if (blockType === 'hero-banner') {
         // Untuk block hero banner (punya fungsi khusus)
         openEditHeroBannerModal();
@@ -411,6 +543,9 @@ function openEditModal(blockId) {
     } else if (blockType === 'latestnews') {
         // Untuk block latest news (punya fungsi khusus)
         openEditLatestNewsModal(blockId);
+    } else if (blockType === 'contact') {
+        // Untuk block contact (punya fungsi khusus)
+        openEditContactModal(blockId);
     } else {
         // Untuk block lainnya, gunakan modal default
         document.getElementById('editDefaultModal').classList.remove('hidden');
@@ -437,18 +572,128 @@ function closeEditTitleModal() {
 
 /**
  * Menyimpan perubahan title block
- * TODO: Fitur save ini belum diimplementasi (masih rencana)
  */
-function saveTitleBlock() {
-    // TODO: Implement save functionality
-    // TODO artinya: "To Do" = akan dikerjakan nanti
-    closeEditTitleModal();
+async function saveTitleBlock() {
+    if (!currentEditBlockId) return;
+    
+    // Ambil data dari form
+    const title = document.getElementById('titleBlockTitle').value;
+    const subtitle = document.getElementById('titleBlockSubtitle').value;
+    const heading = document.getElementById('titleBlockHeading').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
+    
+    // Extract sort_id dari block ID (block-1, block-2, etc)
+    // blockCounter adalah angka yang digunakan saat block dibuat
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
+    // Ambil element-element untuk loading state
+    const saveBtn = document.getElementById('saveTitleBtn');
+    const saveIconCheck = document.getElementById('saveTitleIconCheck');
+    const saveIconLoading = document.getElementById('saveTitleIconLoading');
+    const saveButtonText = document.getElementById('saveTitleButtonText');
+    
+    // Show loading state
+    saveBtn.disabled = true;
+    saveIconCheck.classList.add('hidden');
+    saveIconLoading.classList.remove('hidden');
+    saveButtonText.textContent = 'Saving...';
+    
+    try {
+        let response;
+        const data = {
+            pages_id: window.pageId,
+            type: 'title',
+            title: title,
+            subtitle: subtitle,
+            heading: heading,
+            sort_id: sortId
+        };
+        
+        if (shortcodeId) {
+            // Update existing shortcode
+            response = await fetch(`/bagoosh/page-shortcode/update/${shortcodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // Create new shortcode
+            response = await fetch('/bagoosh/page-shortcode/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update block dengan shortcode ID
+            if (result.shortcode_id) {
+                blockElement.dataset.shortcodeId = result.shortcode_id;
+            }
+            
+            // Simpan ke cache local untuk performa (tidak perlu fetch database lagi)
+            blockDataCache[currentEditBlockId] = {
+                id: result.shortcode_id || shortcodeId,
+                title: title,
+                subtitle: subtitle,
+                heading: heading,
+                type: 'title',
+                sort_id: sortId
+            };
+            
+            console.log('💾 Saved to cache:', currentEditBlockId, blockDataCache[currentEditBlockId]);
+            
+            // Update tampilan block
+            const titleEl = blockElement.querySelector('h3');
+            if (titleEl) {
+                titleEl.textContent = title || 'Title';
+            }
+            
+            // Reset button state
+            saveBtn.disabled = false;
+            saveIconCheck.classList.remove('hidden');
+            saveIconLoading.classList.add('hidden');
+            saveButtonText.textContent = 'Saved!';
+            
+            // Close modal after delay
+            setTimeout(() => {
+                saveButtonText.textContent = 'Save';
+                closeEditTitleModal();
+            }, 1000);
+        } else {
+            throw new Error(result.message || 'Failed to save');
+        }
+    } catch (error) {
+        console.error('Error saving title block:', error);
+        alert('Failed to save block: ' + error.message);
+        
+        // Reset button state
+        saveBtn.disabled = false;
+        saveIconCheck.classList.remove('hidden');
+        saveIconLoading.classList.add('hidden');
+        saveButtonText.textContent = 'Save';
+    }
 }
 
 /**
  * Menghapus title block
  */
-function deleteTitleBlock() {
+async function deleteTitleBlock() {
     // if (!currentEditBlockId) = jika tidak ada block yang sedang diedit
     // return = keluar dari fungsi
     if (!currentEditBlockId) return;
@@ -458,7 +703,8 @@ function deleteTitleBlock() {
     if (!confirm('Are you sure you want to delete this block?')) return;
 
     // getElementById = ambil element berdasarkan ID
-    const blockId = document.getElementById('titleBlockId').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
     
     // Ambil element-element untuk loading state
     const deleteBtn = document.getElementById('deleteTitleBtn');
@@ -474,10 +720,45 @@ function deleteTitleBlock() {
     deleteIconLoading.classList.remove('hidden'); // Tampilkan icon loading (spinning)
     deleteButtonText.textContent = 'Deleting...'; // Ubah text tombol
 
-    // if (blockId) = jika block sudah pernah disave ke database
-    if (blockId) {
-        // TODO: Implement API call to delete from database
-        // Nanti akan ada kode untuk menghapus dari database di sini
+    // if (shortcodeId) = jika block sudah pernah disave ke database
+    if (shortcodeId) {
+        console.log('🗑️ Deleting from database:', shortcodeId);
+        try {
+            // Delete dari database
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to delete');
+            }
+            
+            console.log('✅ Deleted from database');
+        } catch (error) {
+            console.error('Error deleting from database:', error);
+            alert('Failed to delete block: ' + error.message);
+            
+            // Reset button state
+            deleteBtn.disabled = false;
+            deleteIconTrash.classList.remove('hidden');
+            deleteIconLoading.classList.add('hidden');
+            deleteButtonText.textContent = 'Delete';
+            return;
+        }
+    } else {
+        console.log('ℹ️ Block was never saved, just removing from UI');
+    }
+    
+    // Hapus dari cache (baik sudah disave atau belum)
+    if (blockDataCache[currentEditBlockId]) {
+        delete blockDataCache[currentEditBlockId];
+        console.log('🧹 Removed from cache:', currentEditBlockId);
     }
 
     // Tutup modal dan hapus block dari tampilan
@@ -528,16 +809,113 @@ function closeEditSimpleTextModal() {
     });
 }
 
-function saveSimpleTextBlock() {
-    // TODO: Implement save functionality
-    closeEditSimpleTextModal();
+async function saveSimpleTextBlock() {
+    if (!currentEditBlockId) return;
+    
+    // Ambil data dari form
+    const content = document.getElementById('simpleTextContent').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
+    
+    // Extract sort_id dari block ID (block-1, block-2, etc)
+    // blockCounter adalah angka yang digunakan saat block dibuat
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
+    // Ambil element-element untuk loading state
+    const saveBtn = document.getElementById('saveSimpleTextBtn');
+    const saveIconCheck = document.getElementById('saveSimpleTextIconCheck');
+    const saveIconLoading = document.getElementById('saveSimpleTextIconLoading');
+    const saveButtonText = document.getElementById('saveSimpleTextButtonText');
+    
+    // Show loading state
+    saveBtn.disabled = true;
+    saveIconCheck.classList.add('hidden');
+    saveIconLoading.classList.remove('hidden');
+    saveButtonText.textContent = 'Saving...';
+    
+    try {
+        let response;
+        const data = {
+            pages_id: window.pageId,
+            type: 'simple-text',
+            content: content,
+            sort_id: sortId
+        };
+        
+        if (shortcodeId) {
+            // Update existing shortcode
+            response = await fetch(`/bagoosh/page-shortcode/update/${shortcodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // Create new shortcode
+            response = await fetch('/bagoosh/page-shortcode/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update block dengan shortcode ID
+            if (result.shortcode_id) {
+                blockElement.dataset.shortcodeId = result.shortcode_id;
+            }
+            
+            // Update tampilan block
+            const contentEl = blockElement.querySelector('p');
+            if (contentEl) {
+                contentEl.textContent = content || 'Simple text content';
+            }
+            
+            // Reset button state
+            saveBtn.disabled = false;
+            saveIconCheck.classList.remove('hidden');
+            saveIconLoading.classList.add('hidden');
+            saveButtonText.textContent = 'Saved!';
+            
+            // Close modal after delay
+            setTimeout(() => {
+                saveButtonText.textContent = 'Save';
+                closeEditSimpleTextModal();
+            }, 1000);
+        } else {
+            throw new Error(result.message || 'Failed to save');
+        }
+    } catch (error) {
+        console.error('Error saving simple text block:', error);
+        alert('Failed to save block: ' + error.message);
+        
+        // Reset button state
+        saveBtn.disabled = false;
+        saveIconCheck.classList.remove('hidden');
+        saveIconLoading.classList.add('hidden');
+        saveButtonText.textContent = 'Save';
+    }
 }
 
-function deleteSimpleTextBlock() {
+async function deleteSimpleTextBlock() {
     if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    const blockId = document.getElementById('simpleTextBlockId').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
     
     const deleteBtn = document.getElementById('deleteSimpleTextBtn');
     const deleteIconTrash = document.getElementById('deleteSimpleTextIconTrash');
@@ -549,8 +927,33 @@ function deleteSimpleTextBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
 
-    if (blockId) {
-        // TODO: Implement API call to delete from database
+    if (shortcodeId) {
+        try {
+            // Delete dari database
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to delete');
+            }
+        } catch (error) {
+            console.error('Error deleting from database:', error);
+            alert('Failed to delete block: ' + error.message);
+            
+            // Reset button state
+            deleteBtn.disabled = false;
+            deleteIconTrash.classList.remove('hidden');
+            deleteIconLoading.classList.add('hidden');
+            deleteButtonText.textContent = 'Delete';
+            return;
+        }
     }
 
     closeModalWithTransition('editSimpleTextModal', () => {
@@ -583,24 +986,108 @@ function closeEditTextEditorModal() {
     });
 }
 
-function saveTextEditorBlock() {
+async function saveTextEditorBlock() {
+    if (!currentEditBlockId) return;
+    
     // Ambil konten dari Trix editor
     // Trix = rich text editor (seperti Microsoft Word di browser)
     const content = document.getElementById('textEditorContent').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
     
-    // console.log = print/tampilkan data di console browser (untuk debugging)
-    // Buka browser → klik kanan → Inspect → tab Console
-    console.log('Text editor content:', content);
+    // Extract sort_id dari block ID (block-1, block-2, etc)
+    // blockCounter adalah angka yang digunakan saat block dibuat
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
     
-    // TODO: Implement save functionality
-    closeEditTextEditorModal();
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
+    // Ambil element-element untuk loading state
+    const saveBtn = document.getElementById('saveTextEditorBtn');
+    const saveIconCheck = document.getElementById('saveTextEditorIconCheck');
+    const saveIconLoading = document.getElementById('saveTextEditorIconLoading');
+    const saveButtonText = document.getElementById('saveTextEditorButtonText');
+    
+    // Show loading state
+    saveBtn.disabled = true;
+    saveIconCheck.classList.add('hidden');
+    saveIconLoading.classList.remove('hidden');
+    saveButtonText.textContent = 'Saving...';
+    
+    try {
+        let response;
+        const data = {
+            pages_id: window.pageId,
+            type: 'text-editor',
+            content: content,
+            sort_id: sortId
+        };
+        
+        if (shortcodeId) {
+            // Update existing shortcode
+            response = await fetch(`/bagoosh/page-shortcode/update/${shortcodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // Create new shortcode
+            response = await fetch('/bagoosh/page-shortcode/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update block dengan shortcode ID
+            if (result.shortcode_id) {
+                blockElement.dataset.shortcodeId = result.shortcode_id;
+            }
+            
+            // Reset button state
+            saveBtn.disabled = false;
+            saveIconCheck.classList.remove('hidden');
+            saveIconLoading.classList.add('hidden');
+            saveButtonText.textContent = 'Saved!';
+            
+            // Close modal after delay
+            setTimeout(() => {
+                saveButtonText.textContent = 'Save';
+                closeEditTextEditorModal();
+            }, 1000);
+        } else {
+            throw new Error(result.message || 'Failed to save');
+        }
+    } catch (error) {
+        console.error('Error saving text editor block:', error);
+        alert('Failed to save block: ' + error.message);
+        
+        // Reset button state
+        saveBtn.disabled = false;
+        saveIconCheck.classList.remove('hidden');
+        saveIconLoading.classList.add('hidden');
+        saveButtonText.textContent = 'Save';
+    }
 }
 
-function deleteTextEditorBlock() {
+async function deleteTextEditorBlock() {
     if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    const blockId = document.getElementById('textEditorBlockId').value;
+    const blockElement = document.getElementById(currentEditBlockId);
+    const shortcodeId = blockElement.dataset.shortcodeId;
     
     const deleteBtn = document.getElementById('deleteTextEditorBtn');
     const deleteIconTrash = document.getElementById('deleteTextEditorIconTrash');
@@ -612,8 +1099,33 @@ function deleteTextEditorBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
 
-    if (blockId) {
-        // TODO: Implement API call to delete from database
+    if (shortcodeId) {
+        try {
+            // Delete dari database
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to delete');
+            }
+        } catch (error) {
+            console.error('Error deleting from database:', error);
+            alert('Failed to delete block: ' + error.message);
+            
+            // Reset button state
+            deleteBtn.disabled = false;
+            deleteIconTrash.classList.remove('hidden');
+            deleteIconLoading.classList.add('hidden');
+            deleteButtonText.textContent = 'Delete';
+            return;
+        }
     }
 
     closeModalWithTransition('editTextEditorModal', () => {
@@ -646,28 +1158,123 @@ function closeEditBrandsModal() {
     });
 }
 
-function saveBrandsBlock() {
-    // querySelectorAll = ambil semua element yang cocok
-    // '#brandsList input[type="checkbox"]:checked' = semua checkbox yang dicentang
-    const checkboxes = document.querySelectorAll('#brandsList input[type="checkbox"]:checked');
+async function saveBrandsBlock() {
+    if (!currentEditBlockId) return;
     
-    // Array = daftar/list data
-    // Array.from() = ubah NodeList (hasil querySelectorAll) menjadi Array
-    // map() = ubah setiap item dalam array
-    // cb => cb.value = ambil value dari setiap checkbox
+    // Ambil semua checkbox yang dicentang
+    const checkboxes = document.querySelectorAll('#brandsList input[type="checkbox"]:checked');
     const selectedBrands = Array.from(checkboxes).map(cb => cb.value);
     
-    console.log('Selected brands:', selectedBrands);
+    // Validasi minimal harus pilih 1 brand
+    if (selectedBrands.length === 0) {
+        alert('Please select at least one brand');
+        return;
+    }
     
-    // TODO: Implement save functionality
-    closeEditBrandsModal();
+    // Extract sort_id dari block ID (block-1, block-2, dll)
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
+    const shortcodeId = document.getElementById('brandsBlockId').value;
+    const pageId = window.pageId;
+    
+    const saveBtn = document.getElementById('saveBrandsBtn');
+    const saveIconCheck = document.getElementById('saveBrandsIconCheck');
+    const saveIconLoading = document.getElementById('saveBrandsIconLoading');
+    const saveButtonText = document.getElementById('saveBrandsButtonText');
+    
+    // Disable button dan tampilkan loading
+    saveBtn.disabled = true;
+    saveIconCheck.classList.add('hidden');
+    saveIconLoading.classList.remove('hidden');
+    saveButtonText.textContent = 'Saving...';
+    
+    try {
+        const data = {
+            type: 'brands',
+            section_brand_id: selectedBrands,
+            pages_id: pageId,
+            sort_id: sortId
+        };
+        
+        // Tentukan endpoint (create atau update)
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        console.log('💾 Saving brands block:', { url, method, data });
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to save');
+        }
+        
+        // Update hidden input dengan ID baru (untuk update berikutnya)
+        if (result.data && result.data.id) {
+            document.getElementById('brandsBlockId').value = result.data.id;
+            
+            // Simpan ke cache
+            blockDataCache[currentEditBlockId] = {
+                id: result.data.id,
+                type: 'brands',
+                section_brand_id: selectedBrands,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+        }
+        
+        // Update tampilan block di UI dengan jumlah brands terpilih
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            const blockContent = block.querySelector('.block-content');
+            if (blockContent) {
+                blockContent.innerHTML = `
+                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>${selectedBrands.length} brand(s) selected</span>
+                    </div>
+                `;
+            }
+        }
+        
+        closeEditBrandsModal();
+        alert('Brands saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving brands:', error);
+        alert('Failed to save brands: ' + error.message);
+    } finally {
+        // Restore button state
+        saveBtn.disabled = false;
+        saveIconCheck.classList.remove('hidden');
+        saveIconLoading.classList.add('hidden');
+        saveButtonText.textContent = 'Save';
+    }
 }
 
-function deleteBrandsBlock() {
+async function deleteBrandsBlock() {
     if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    const blockId = document.getElementById('brandsBlockId').value;
+    const shortcodeId = document.getElementById('brandsBlockId').value;
     
     const deleteBtn = document.getElementById('deleteBrandsBtn');
     const deleteIconTrash = document.getElementById('deleteBrandsIconTrash');
@@ -679,28 +1286,63 @@ function deleteBrandsBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
 
-    if (blockId) {
-        // TODO: Implement API call to delete from database
-    }
-
-    closeModalWithTransition('editBrandsModal', () => {
-        const block = document.getElementById(currentEditBlockId);
-        if (block) {
-            block.style.transition = 'opacity 300ms ease-out';
-            block.style.opacity = '0';
-            setTimeout(() => {
-                block.remove();
-                checkEmptyState();
-                updateBlockOrder();
-            }, 300);
+    try {
+        // Hanya hapus dari database jika shortcodeId ada (sudah pernah di-save)
+        if (shortcodeId) {
+            console.log('🗑️ Deleting brands block from database:', shortcodeId);
+            
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.message || 'Failed to delete');
+            }
+            
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block belum disave, skip API call');
         }
-        currentEditBlockId = null;
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        closeModalWithTransition('editBrandsModal', () => {
+            const block = document.getElementById(currentEditBlockId);
+            if (block) {
+                block.style.transition = 'opacity 300ms ease-out';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
+            }
+            currentEditBlockId = null;
+            deleteBtn.disabled = false;
+            deleteIconTrash.classList.remove('hidden');
+            deleteIconLoading.classList.add('hidden');
+            deleteButtonText.textContent = 'Delete';
+            alert('Block deleted successfully!');
+        });
+        
+    } catch (error) {
+        console.error('Error deleting brands:', error);
+        alert('Failed to delete brands: ' + error.message);
+        
+        // Restore button state
         deleteBtn.disabled = false;
         deleteIconTrash.classList.remove('hidden');
         deleteIconLoading.classList.add('hidden');
         deleteButtonText.textContent = 'Delete';
-        alert('Block deleted successfully!');
-    });
+    }
 }
 
 // ===================================================================
@@ -713,9 +1355,205 @@ function closeEditCompleteCountsModal() {
     });
 }
 
-function saveCompleteCountsBlock() {
-    // TODO: Implement save functionality
-    closeEditCompleteCountsModal();
+async function saveCompleteCountsBlock() {
+    if (!currentEditBlockId) return;
+    
+    // Ambil data dari form
+    const title = document.getElementById('completeCountsTitle').value.trim();
+    const subtitle = document.getElementById('completeCountsSubtitle').value.trim();
+    const content = document.getElementById('completeCountsContent').value.trim();
+    
+    // Ambil semua checkbox yang dicentang
+    const checkboxes = document.querySelectorAll('#completeCountsList input[type="checkbox"]:checked');
+    const selectedCounts = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Validasi minimal harus pilih 1 complete count
+    if (selectedCounts.length === 0) {
+        alert('Please select at least one complete count');
+        return;
+    }
+    
+    // Extract sort_id dari block ID (block-1, block-2, dll)
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
+    const shortcodeId = document.getElementById('completeCountsBlockId').value;
+    const pageId = window.pageId;
+    
+    const saveBtn = document.getElementById('saveCompleteCountsBtn');
+    const saveIconCheck = document.getElementById('saveCompleteCountsIconCheck');
+    const saveIconLoading = document.getElementById('saveCompleteCountsIconLoading');
+    const saveButtonText = document.getElementById('saveCompleteCountsButtonText');
+    
+    // Disable button dan tampilkan loading
+    saveBtn.disabled = true;
+    saveIconCheck.classList.add('hidden');
+    saveIconLoading.classList.remove('hidden');
+    saveButtonText.textContent = 'Saving...';
+    
+    try {
+        const data = {
+            type: 'complete-counts',
+            title: title,
+            subtitle: subtitle,
+            content: content,
+            section_completecount_id: selectedCounts,
+            pages_id: pageId,
+            sort_id: sortId
+        };
+        
+        // Tentukan endpoint (create atau update)
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        console.log('💾 Saving complete counts block:', { url, method, data });
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to save');
+        }
+        
+        // Update hidden input dengan ID baru (untuk update berikutnya)
+        if (result.data && result.data.id) {
+            document.getElementById('completeCountsBlockId').value = result.data.id;
+            
+            // Simpan ke cache
+            blockDataCache[currentEditBlockId] = {
+                id: result.data.id,
+                type: 'complete-counts',
+                title: title,
+                subtitle: subtitle,
+                content: content,
+                section_completecount_id: selectedCounts,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+        }
+        
+        // Update tampilan block di UI
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            const blockContent = block.querySelector('.block-content');
+            if (blockContent) {
+                blockContent.innerHTML = `
+                    <div class="space-y-1">
+                        ${title ? `<div class="font-semibold text-slate-700">${title}</div>` : ''}
+                        <div class="flex items-center gap-2 text-sm text-slate-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>${selectedCounts.length} count(s) selected</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        closeEditCompleteCountsModal();
+        alert('Complete Counts saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving complete counts:', error);
+        alert('Failed to save complete counts: ' + error.message);
+    } finally {
+        // Restore button state
+        saveBtn.disabled = false;
+        saveIconCheck.classList.remove('hidden');
+        saveIconLoading.classList.add('hidden');
+        saveButtonText.textContent = 'Save';
+    }
+}
+
+async function deleteCompleteCountsBlock() {
+    if (!currentEditBlockId) return;
+    if (!confirm('Are you sure you want to delete this block?')) return;
+
+    const shortcodeId = document.getElementById('completeCountsBlockId').value;
+    
+    const deleteBtn = document.getElementById('deleteCompleteCountsBtn');
+    const deleteIconTrash = document.getElementById('deleteCompleteCountsIconTrash');
+    const deleteIconLoading = document.getElementById('deleteCompleteCountsIconLoading');
+    const deleteButtonText = document.getElementById('deleteCompleteCountsButtonText');
+    
+    deleteBtn.disabled = true;
+    deleteIconTrash.classList.add('hidden');
+    deleteIconLoading.classList.remove('hidden');
+    deleteButtonText.textContent = 'Deleting...';
+
+    try {
+        // Hanya hapus dari database jika shortcodeId ada (sudah pernah di-save)
+        if (shortcodeId) {
+            console.log('🗑️ Deleting complete counts block from database:', shortcodeId);
+            
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.message || 'Failed to delete');
+            }
+            
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block belum disave, skip API call');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        closeModalWithTransition('editCompleteCountsModal', () => {
+            const block = document.getElementById(currentEditBlockId);
+            if (block) {
+                block.style.transition = 'opacity 300ms ease-out';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
+            }
+            currentEditBlockId = null;
+            deleteBtn.disabled = false;
+            deleteIconTrash.classList.remove('hidden');
+            deleteIconLoading.classList.add('hidden');
+            deleteButtonText.textContent = 'Delete';
+            alert('Block deleted successfully!');
+        });
+        
+    } catch (error) {
+        console.error('Error deleting complete counts:', error);
+        alert('Failed to delete complete counts: ' + error.message);
+        
+        // Restore button state
+        deleteBtn.disabled = false;
+        deleteIconTrash.classList.remove('hidden');
+        deleteIconLoading.classList.add('hidden');
+        deleteButtonText.textContent = 'Delete';
+    }
 }
 
 // ===================================================================
@@ -1232,7 +2070,8 @@ function getBlockIcon(type) {
         'recent-product': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>',
         'featured-services': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
         'newsletter': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
-        'latestnews': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>'
+        'latestnews': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>',
+        'contact': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>'
     };
     
     // Return icon SVG path, atau empty string jika tidak ditemukan
@@ -1320,7 +2159,10 @@ function loadExistingBlocks() {
                  ${shortcode.section_newsletter_id ? `data-newsletter-id="${shortcode.section_newsletter_id}"` : ''}
                  ${shortcode.latestnews_title ? `data-title="${shortcode.latestnews_title}"` : ''}
                  ${shortcode.blog_limit ? `data-blog-limit="${shortcode.blog_limit}"` : ''}
-                 ${shortcode.latestnews_style ? `data-style="${shortcode.latestnews_style}"` : ''}>
+                 ${shortcode.latestnews_style ? `data-style="${shortcode.latestnews_style}"` : ''}
+                 ${shortcode.contact_title_1 ? `data-contact-title="${shortcode.contact_title_1}"` : ''}
+                 ${shortcode.contact_subtitle ? `data-contact-subtitle="${shortcode.contact_subtitle}"` : ''}
+                 ${shortcode.contact_id ? `data-contact-ids='${JSON.stringify(shortcode.contact_id)}'` : ''}>
                 <div class="flex items-center justify-between p-4">
                     <div class="flex items-center gap-3 flex-1">
                         <!-- Drag Handle -->
@@ -2415,10 +3257,15 @@ function saveNewsletterBlock() {
     // Berisi ID halaman yang sedang di-edit
     const pageId = window.pageId;
     
-    // Hitung sort_id (urutan block)
-    // querySelectorAll = ambil semua element
-    // .length = jumlah element
-    const sortId = document.querySelectorAll('.block-item').length;
+    // Extract sort_id dari block ID (block-1, block-2, etc)
+    // blockCounter adalah angka yang digunakan saat block dibuat
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
     
     // Object berisi data yang akan dikirim ke server
     const formData = {
@@ -3159,6 +4006,327 @@ function deleteLatestNewsBlock() {
         console.log('ℹ️ Block not saved yet, removing from UI only');
         block?.remove();
         closeEditLatestNewsModal();
+        checkEmptyState();
+        updateBlockOrder();
+    }
+}
+
+// ===================================================================
+// BAGIAN 31: CONTACT FUNCTIONS
+// ===================================================================
+
+/**
+ * Membuka modal edit contact
+ */
+function openEditContactModal(blockId) {
+    console.log('Opening Contact modal for block:', blockId);
+    
+    let block = document.getElementById(blockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${blockId}"]`);
+    }
+    
+    if (!block) {
+        console.error('Block not found:', blockId);
+        return;
+    }
+    
+    // Set current block ID
+    currentEditBlockId = blockId;
+    
+    // Ambil data dari block dataset
+    const title = block.dataset.contactTitle || '';
+    const subtitle = block.dataset.contactSubtitle || '';
+    let selectedContactIds = [];
+    
+    try {
+        if (block.dataset.contactIds) {
+            selectedContactIds = JSON.parse(block.dataset.contactIds);
+        }
+    } catch (e) {
+        console.error('Error parsing contact IDs:', e);
+    }
+    
+    console.log('Block data:', { title, subtitle, selectedContactIds });
+    
+    // Set nilai ke form
+    document.getElementById('contactTitle').value = title;
+    document.getElementById('contactSubtitle').value = subtitle;
+    
+    // Load contacts list dengan selected IDs
+    fetchContactsList(selectedContactIds);
+    
+    // Buka modal
+    document.getElementById('editContactModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Menutup modal edit contact
+ */
+function closeEditContactModal() {
+    closeModalWithTransition('editContactModal', () => {
+        currentEditBlockId = null;
+    });
+}
+
+/**
+ * Fetch dan tampilkan daftar contacts dengan checkbox
+ */
+function fetchContactsList(selectedIds = []) {
+    console.log('Fetching contacts list with selected IDs:', selectedIds);
+    
+    const container = document.getElementById('contactsCheckboxList');
+    const loadingState = document.getElementById('contactsListLoading');
+    const emptyState = document.getElementById('contactsEmptyState');
+    
+    // Tampilkan loading
+    loadingState?.classList.remove('hidden');
+    container?.classList.add('hidden');
+    emptyState?.classList.add('hidden');
+    
+    // Gunakan cached data jika tersedia
+    if (cachedContacts && cachedContacts.length > 0) {
+        console.log('Using cached contacts:', cachedContacts.length);
+        renderContactsList(cachedContacts, selectedIds);
+        return;
+    }
+    
+    // Fetch dari server jika cache kosong
+    fetch('/bagoosh/contacts/list')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Contacts fetched:', data.length);
+            cachedContacts = data;
+            renderContactsList(data, selectedIds);
+        })
+        .catch(error => {
+            console.error('Error fetching contacts:', error);
+            loadingState?.classList.add('hidden');
+            emptyState?.classList.remove('hidden');
+        });
+}
+
+/**
+ * Render contacts list dengan checkbox
+ */
+function renderContactsList(contacts, selectedIds = []) {
+    const container = document.getElementById('contactsCheckboxList');
+    const loadingState = document.getElementById('contactsListLoading');
+    const emptyState = document.getElementById('contactsEmptyState');
+    
+    // Sembunyikan loading
+    loadingState?.classList.add('hidden');
+    
+    if (!contacts || contacts.length === 0) {
+        emptyState?.classList.remove('hidden');
+        return;
+    }
+    
+    // Generate checkbox HTML
+    let html = '';
+    contacts.forEach(contact => {
+        const isChecked = selectedIds.includes(contact.id);
+        html += `
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-teal-50 cursor-pointer transition-colors border-2 border-transparent hover:border-teal-200">
+                <input type="checkbox" 
+                       value="${contact.id}" 
+                       ${isChecked ? 'checked' : ''}
+                       class="w-5 h-5 text-teal-600 border-slate-300 rounded focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 cursor-pointer">
+                <div class="flex-1">
+                    <p class="font-semibold text-slate-800">${contact.title || 'Untitled'}</p>
+                    ${contact.contact_1 ? `<p class="text-xs text-slate-500 mt-0.5">${contact.contact_1}</p>` : ''}
+                </div>
+            </label>
+        `;
+    });
+    
+    container.innerHTML = html;
+    container.classList.remove('hidden');
+    
+    console.log(`✅ Rendered ${contacts.length} contacts`);
+}
+
+/**
+ * Menyimpan contact block ke database
+ */
+function saveContactBlock() {
+    console.log('Saving Contact block...');
+    
+    // Validasi: pastikan ada block yang sedang diedit
+    if (!currentEditBlockId) {
+        alert('Error: No block selected');
+        return;
+    }
+    
+    // Ambil nilai dari form
+    const title = document.getElementById('contactTitle').value.trim();
+    const subtitle = document.getElementById('contactSubtitle').value.trim();
+    
+    // Ambil selected contact IDs
+    const selectedContactIds = [];
+    document.querySelectorAll('#contactsCheckboxList input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedContactIds.push(parseInt(checkbox.value));
+    });
+    
+    // Validasi input
+    if (!title) {
+        alert('Please enter a title');
+        document.getElementById('contactTitle').focus();
+        return;
+    }
+    
+    if (selectedContactIds.length === 0) {
+        alert('Please select at least one contact');
+        return;
+    }
+    
+    // Ambil block element
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
+    if (!block) {
+        console.error('Block not found:', currentEditBlockId);
+        return;
+    }
+    
+    const shortcodeId = block.dataset.shortcodeId || null;
+    
+    console.log('Form data:', { title, subtitle, selectedContactIds, shortcodeId });
+    
+    // Tampilkan loading state
+    document.getElementById('contactLoadingState').classList.remove('hidden');
+    document.getElementById('contactFormContent').classList.add('hidden');
+    
+    // Siapkan data untuk dikirim ke server
+    const formData = {
+        pages_id: window.pageId,
+        type: 'contact',
+        contact_title_1: title,
+        contact_subtitle: subtitle,
+        contact_id: selectedContactIds, // Laravel akan convert ke JSON
+        sort_id: Array.from(document.querySelectorAll('.block-item')).indexOf(block) + 1
+    };
+    
+    console.log('Sending data to server:', formData);
+    
+    // Tentukan URL dan method
+    const url = shortcodeId 
+        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+        : '/bagoosh/page-shortcode/store';
+    const method = shortcodeId ? 'PUT' : 'POST';
+    
+    // Kirim request ke server
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Save response:', data);
+        
+        if (data.success) {
+            // Simpan data ke block dataset
+            const savedId = data.id || data.shortcode_id;
+            if (savedId && block) {
+                block.dataset.shortcodeId = savedId;
+                block.dataset.contactTitle = title;
+                block.dataset.contactSubtitle = subtitle;
+                block.dataset.contactIds = JSON.stringify(selectedContactIds);
+                console.log('✅ Block updated with shortcode ID:', savedId);
+                console.log('✅ Selected contacts:', selectedContactIds);
+            } else {
+                console.warn('⚠️ No ID returned from server!', data);
+            }
+            
+            // Tutup modal
+            closeEditContactModal();
+            
+            // Tampilkan notifikasi sukses
+            alert('Contact block saved successfully!');
+        } else {
+            throw new Error(data.message || 'Failed to save');
+        }
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+        alert('Error saving Contact block: ' + error.message);
+    })
+    .finally(() => {
+        // Sembunyikan loading state
+        document.getElementById('contactLoadingState').classList.add('hidden');
+        document.getElementById('contactFormContent').classList.remove('hidden');
+    });
+}
+
+/**
+ * Menghapus contact block
+ */
+function deleteContactBlock() {
+    console.log('Deleting Contact block...');
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected for deletion');
+        return;
+    }
+    
+    // Konfirmasi penghapusan
+    if (!confirm('Are you sure you want to delete this Contact block?')) {
+        return;
+    }
+    
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
+    const shortcodeId = block?.dataset.shortcodeId;
+    
+    console.log('📋 Block element:', block);
+    console.log('📋 Shortcode ID:', shortcodeId);
+    
+    // Jika block sudah tersimpan di database, hapus dari database dulu
+    if (shortcodeId) {
+        console.log('📡 Sending DELETE request to server...');
+        
+        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📨 Delete response:', data);
+            
+            if (data.success) {
+                console.log('✅ Successfully deleted from database');
+                // Hapus block dari UI
+                block?.remove();
+                closeEditContactModal();
+                checkEmptyState();
+                updateBlockOrder();
+                alert('Contact block deleted successfully!');
+            } else {
+                throw new Error(data.message || 'Failed to delete');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Delete error:', error);
+            alert('Error deleting Contact block: ' + error.message);
+        });
+    } else {
+        // Jika belum tersimpan, langsung hapus dari UI
+        console.log('ℹ️ Block not saved yet, removing from UI only');
+        block?.remove();
+        closeEditContactModal();
         checkEmptyState();
         updateBlockOrder();
     }
