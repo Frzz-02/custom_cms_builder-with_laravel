@@ -118,18 +118,18 @@
         <div class="bg-white p-6 rounded-xl shadow-sm">
             <h3 class="text-lg font-bold text-gray-900 mb-5">🚀 Quick Actions</h3>
             <div class="space-y-3">
-                <a href="#" class="block bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-lg text-center font-medium transition-all duration-300 hover:shadow-lg">
+                <a href="{{ route('backend.pages.index') }}" class="block bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-lg text-center font-medium transition-all duration-300 hover:shadow-lg">
                     📄 Manage Pages
                 </a>
-                <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
+                <a href="{{ route('backend.users.index') }}" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
                     👥 Manage Users
                 </a>
                 <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
                     ⚙️ Settings
                 </a>
-                <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
+                {{-- <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
                     📊 Reports
-                </a>
+                </a> --}}
             </div>
         </div>
     </div>
