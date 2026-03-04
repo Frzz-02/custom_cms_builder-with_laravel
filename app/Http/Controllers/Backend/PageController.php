@@ -130,7 +130,7 @@ class PageController extends Controller
 
         $page->update($validated);
 
-        return redirect()->route('backend.pages.index')
+        return redirect()->route('backend.pages.edit', $page)
             ->with('success', 'Page updated successfully!');
     }
 

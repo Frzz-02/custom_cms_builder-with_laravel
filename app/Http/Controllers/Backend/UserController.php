@@ -12,13 +12,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::where('id', '!=', 0)->orderBy('created_at', 'desc')->get();
+        $users = User::with('role')->where('id', '!=', 0)->orderBy('created_at', 'desc')->get();
         return view('backend.users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('backend.users.create');
+        $roles = \App\Models\Role::all();
+        return view('backend.users.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -26,7 +27,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:superadmin,admin,moderator',
+            'role_id' => 'required|exists:roles,id',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -46,7 +47,8 @@ class UserController extends Controller
                 ->with('error', 'Cannot edit the superadmin user.');
         }
 
-        return view('backend.users.edit', compact('user'));
+        $roles = \App\Models\Role::all();
+        return view('backend.users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
@@ -60,7 +62,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => 'required|in:superadmin,admin,moderator',
+            'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 

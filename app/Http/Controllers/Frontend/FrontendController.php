@@ -22,7 +22,7 @@ class FrontendController extends Controller
                                 ->orderBy('panel_order')
                                 ->get();
         $brands = SectionBrand::where('status', 'active')->get();
-        $about = SectionAbout::where('is_active', true)->first();
+        
         
         // Get navbar items (top navigation)
         $navbarItems = Navbar::where('is_active', true)
@@ -49,11 +49,8 @@ class FrontendController extends Controller
     public function show($slug = null)
     {   
         $footer = Footer::where('is_active', true)->first();
-        $heroPanels = SectionHero::where('is_active', true)
-                                ->orderBy('panel_order')
-                                ->get();
+        
         $brands = SectionBrand::where('status', 'active')->get();
-        $about = SectionAbout::where('is_active', true)->first();
         
         // Get navbar items (top navigation)
         $navbarItems = Navbar::where('is_active', true)
@@ -89,7 +86,7 @@ class FrontendController extends Controller
             ->get();
         
         
-        dd([$footer, $heroPanels, $brands, $about, $navbarItems, $sidebarItems, $slug, $page, $shortcodes]);
+        dd([$footer, $brands, $navbarItems, $sidebarItems, $slug, $page, $shortcodes]);
         return view('frontend.pages.showPage', compact('footer', 'heroPanels', 'brands', 'about', 'navbarItems', 'sidebarItems', 'slug'));
     }
 

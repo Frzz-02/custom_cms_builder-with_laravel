@@ -1,0 +1,210 @@
+<?php
+
+namespace App\Http\Controllers\Backend;
+
+use App\Http\Controllers\Controller;
+use App\Models\Blog;
+use App\Models\BlogCategory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
+class BlogController extends Controller
+{
+    public function index()
+    {
+        $blogs = Blog::with('category')->orderBy('created_at', 'desc')->paginate(10);
+        return view('backend.blogs.index', compact('blogs'));
+    }
+
+    public function create()
+    {
+        $categories = BlogCategory::active()->get();
+        return view('backend.blogs.create', compact('categories'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|unique:blogs,slug',
+            'name' => 'nullable|string|max:255',
+            'blog_categories_id' => 'nullable|exists:blog_categories,id',
+            'author' => 'nullable|string|max:255',
+            'status' => 'required|in:draft,published',
+            'is_featured' => 'nullable|in:0,1',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image_featured' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
+        ]);
+
+        // Auto-generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
+        }
+
+        // Set is_featured to 0 if not checked
+        $validated['is_featured'] = $request->has('is_featured') ? '1' : '0';
+
+        // Auto-set publish_date when status is published
+        if ($validated['status'] === 'published') {
+            $validated['publish_date'] = now();
+        }
+
+        // Handle image upload and convert to WebP
+        if ($request->hasFile('image')) {
+            $validated['image'] = $this->convertToWebP($request->file('image'), 'blogs');
+        }
+
+        // Handle featured image upload and convert to WebP
+        if ($request->hasFile('image_featured')) {
+            $validated['image_featured'] = $this->convertToWebP($request->file('image_featured'), 'blogs/featured');
+        }
+
+        Blog::create($validated);
+
+        return redirect()->route('backend.blogs.index')
+            ->with('success', 'Blog post created successfully!');
+    }
+
+    public function edit(Blog $blog)
+    {
+        $categories = BlogCategory::active()->get();
+        return view('backend.blogs.edit', compact('blog', 'categories'));
+    }
+
+    public function update(Request $request, Blog $blog)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|unique:blogs,slug,' . $blog->id,
+            'name' => 'nullable|string|max:255',
+            'blog_categories_id' => 'nullable|exists:blog_categories,id',
+            'author' => 'nullable|string|max:255',
+            'status' => 'required|in:draft,published',
+            'is_featured' => 'nullable|in:0,1',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image_featured' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
+        ]);
+
+        // Auto-generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
+        }
+
+        // Set is_featured to 0 if not checked
+        $validated['is_featured'] = $request->has('is_featured') ? '1' : '0';
+
+        // Auto-set publish_date when changing from draft to published
+        if ($validated['status'] === 'published' && $blog->status === 'draft' && !$blog->publish_date) {
+            $validated['publish_date'] = now();
+        }
+
+        // Handle image upload and convert to WebP
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($blog->image) {
+                Storage::disk('public')->delete($blog->image);
+            }
+            $validated['image'] = $this->convertToWebP($request->file('image'), 'blogs');
+        }
+
+        // Handle featured image upload and convert to WebP
+        if ($request->hasFile('image_featured')) {
+            // Delete old featured image
+            if ($blog->image_featured) {
+                Storage::disk('public')->delete($blog->image_featured);
+            }
+            $validated['image_featured'] = $this->convertToWebP($request->file('image_featured'), 'blogs/featured');
+        }
+
+        $blog->update($validated);
+
+        return redirect()->route('backend.blogs.index')
+            ->with('success', 'Blog post updated successfully!');
+    }
+
+    public function destroy(Blog $blog)
+    {
+        // Delete images
+        if ($blog->image) {
+            Storage::disk('public')->delete($blog->image);
+        }
+        if ($blog->image_featured) {
+            Storage::disk('public')->delete($blog->image_featured);
+        }
+
+        $blog->delete();
+
+        return redirect()->route('backend.blogs.index')
+            ->with('success', 'Blog post deleted successfully!');
+    }
+
+    /**
+     * Convert uploaded image to WebP format
+     * 
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param string $directory
+     * @return string Path to the saved WebP image
+     */
+    private function convertToWebP($file, $directory)
+    {
+        // Generate unique filename
+        $filename = time() . '_' . uniqid() . '.webp';
+        $path = $directory . '/' . $filename;
+        $fullPath = storage_path('app/public/' . $path);
+        
+        // Ensure directory exists
+        $directoryPath = storage_path('app/public/' . $directory);
+        if (!file_exists($directoryPath)) {
+            mkdir($directoryPath, 0755, true);
+        }
+
+        // Get the uploaded file's temporary path
+        $sourcePath = $file->getRealPath();
+        $mimeType = $file->getMimeType();
+
+        // Create image resource based on mime type
+        switch ($mimeType) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $image = imagecreatefromjpeg($sourcePath);
+                break;
+            case 'image/png':
+                $image = imagecreatefrompng($sourcePath);
+                // Preserve transparency
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+                break;
+            case 'image/gif':
+                $image = imagecreatefromgif($sourcePath);
+                break;
+            case 'image/webp':
+                $image = imagecreatefromwebp($sourcePath);
+                break;
+            default:
+                // If format not supported, use regular storage
+                return $file->store($directory, 'public');
+        }
+
+        if (!$image) {
+            // If image creation failed, fallback to regular storage
+            return $file->store($directory, 'public');
+        }
+
+        // Convert to WebP with quality 85 (good balance between quality and size)
+        imagewebp($image, $fullPath, 85);
+        
+        // Free up memory
+        imagedestroy($image);
+
+        return $path;
+    }
+}

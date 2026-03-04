@@ -46,7 +46,7 @@ class AuthController extends Controller
 
             // Check if user has the correct role
             $user = Auth::user();
-            if (in_array($user->role, ['superadmin', 'moderator', 'admin'])) {
+            if (in_array($user->role->name, ['superadmin', 'moderator', 'admin'])) {
                 // Record login history
                 LoginHistory::create([
                     'user_id' => $user->id,
