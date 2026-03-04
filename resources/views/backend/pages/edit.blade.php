@@ -46,6 +46,37 @@
         @method('PUT')
         
         <div class="max-w-[1600px] mx-auto p-6">
+            <!-- Success Message -->
+            @if(session('success'))
+                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm animate-pulse">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-green-800 font-medium">{{ session('success') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Error Messages -->
+            @if($errors->any())
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-red-800 font-medium mb-2">There were some errors with your submission:</p>
+                            <ul class="list-disc list-inside text-red-700 text-sm space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
             <div class="grid grid-cols-12 gap-6">
                 <!-- Main Content Area - 8 columns -->
                 <div class="col-span-8 space-y-6">
@@ -300,10 +331,10 @@
                                         id="header_style" 
                                         class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                         required>
-                                    <option value="header style 1" {{ old('header_style', 'Header style 1') === 'Header style 1' ? 'selected' : '' }}>Header style 1</option>
-                                    <option value="header style 2" {{ old('header_style', $page->header_style) === 'Header style 2' ? 'selected' : '' }}>Header style 2</option>
-                                    <option value="header style 3" {{ old('header_style', $page->header_style) === 'Header style 3' ? 'selected' : '' }}>Header style 3</option>
-                                    <option value="header style 4" {{ old('header_style', $page->header_style) === 'Header style 4' ? 'selected' : '' }}>Header style 4</option>
+                                    <option value="header style 1" {{ old('header_style', $page->header_style) === 'header style 1' ? 'selected' : '' }}>Header Style 1</option>
+                                    <option value="header style 2" {{ old('header_style', $page->header_style) === 'header style 2' ? 'selected' : '' }}>Header Style 2</option>
+                                    <option value="header style 3" {{ old('header_style', $page->header_style) === 'header style 3' ? 'selected' : '' }}>Header Style 3</option>
+                                    <option value="header style 4" {{ old('header_style', $page->header_style) === 'header style 4' ? 'selected' : '' }}>Header Style 4</option>
                                 </select>
                                 @error('header_style')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -366,6 +397,7 @@
 @include('backend.pages.modals.edit-newsletter')
 @include('backend.pages.modals.select-latestnews-style')
 @include('backend.pages.modals.edit-latestnews')
+@include('backend.pages.modals.edit-contact')
 @include('backend.pages.modals.edit-default')
 
 
@@ -386,6 +418,83 @@
     // Variable global yang bisa diakses dari file page-builder.js
     // Digunakan saat menyimpan data block ke database
     window.pageId = {{ $page->id }};
+    
+    // Character counter and SEO preview
+    document.addEventListener('DOMContentLoaded', function() {
+        // Meta Title Character Counter
+        const metaTitleInput = document.getElementById('meta_title');
+        const metaTitleCount = document.getElementById('metaTitleCount');
+        
+        if (metaTitleInput && metaTitleCount) {
+            metaTitleInput.addEventListener('input', function() {
+                const length = this.value.length;
+                metaTitleCount.textContent = length + ' / 60';
+                
+                // Update SEO Preview
+                const previewTitle = document.getElementById('seoPreviewTitle');
+                if (previewTitle) {
+                    previewTitle.textContent = this.value || document.getElementById('title').value;
+                }
+            });
+        }
+        
+        // Meta Description Character Counter
+        const metaDescInput = document.getElementById('meta_description');
+        const metaDescCount = document.getElementById('metaDescCount');
+        
+        if (metaDescInput && metaDescCount) {
+            metaDescInput.addEventListener('input', function() {
+                const length = this.value.length;
+                metaDescCount.textContent = length + ' / 160';
+                
+                // Update SEO Preview
+                const previewDesc = document.getElementById('seoPreviewDesc');
+                if (previewDesc) {
+                    previewDesc.textContent = this.value || 'Your meta description will appear here...';
+                }
+            });
+        }
+        
+        // Update SEO Preview URL on slug change
+        const slugInput = document.getElementById('slug');
+        if (slugInput) {
+            slugInput.addEventListener('input', function() {
+                const previewUrl = document.getElementById('seoPreviewUrl');
+                if (previewUrl) {
+                    const baseUrl = '{{ url('/') }}';
+                    previewUrl.textContent = baseUrl + '/' + (this.value || 'your-page-slug');
+                }
+            });
+        }
+        
+        // Update SEO Preview Title on title change (if meta title is empty)
+        const titleInput = document.getElementById('title');
+        if (titleInput) {
+            titleInput.addEventListener('input', function() {
+                const previewTitle = document.getElementById('seoPreviewTitle');
+                const metaTitleInput = document.getElementById('meta_title');
+                if (previewTitle && (!metaTitleInput || !metaTitleInput.value)) {
+                    previewTitle.textContent = this.value;
+                }
+                
+                // Auto-generate slug if slug is empty
+                const slugInput = document.getElementById('slug');
+                if (slugInput && !slugInput.value) {
+                    const slug = this.value.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    slugInput.value = slug;
+                    
+                    // Update preview URL
+                    const previewUrl = document.getElementById('seoPreviewUrl');
+                    if (previewUrl) {
+                        const baseUrl = '{{ url('/') }}';
+                        previewUrl.textContent = baseUrl + '/' + (slug || 'your-page-slug');
+                    }
+                }
+            });
+        }
+    });
 </script>
 
 <!-- File JavaScript Utama untuk Page Builder -->

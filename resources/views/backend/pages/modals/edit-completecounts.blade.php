@@ -13,8 +13,46 @@
         
         <!-- Modal Body (Scrollable) -->
         <div class="p-6 overflow-y-auto flex-1">
+            <!-- Hidden ID field -->
+            <input type="hidden" id="completeCountsBlockId" value="">
+            
+            <!-- Title Input -->
+            <div class="mb-4">
+                <label for="completeCountsTitle" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Title
+                </label>
+                <input type="text" 
+                       id="completeCountsTitle" 
+                       placeholder="e.g., Our Achievements"
+                       class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+            </div>
+
+            <!-- Subtitle Input -->
+            <div class="mb-4">
+                <label for="completeCountsSubtitle" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Subtitle
+                </label>
+                <input type="text" 
+                       id="completeCountsSubtitle" 
+                       placeholder="e.g., Numbers that speak for themselves"
+                       class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+            </div>
+
+            <!-- Content Input -->
+            <div class="mb-5">
+                <label for="completeCountsContent" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Content / Description
+                </label>
+                <textarea id="completeCountsContent" 
+                          rows="3"
+                          placeholder="Enter a brief description..."
+                          class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"></textarea>
+            </div>
+
+            <hr class="my-5 border-slate-200">
+
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-3">Select Completecounts</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-3">Select Complete Counts</label>
                 
                 <!-- Complete Counts List -->
                 <div class="space-y-2" id="completeCountsList">
@@ -52,17 +90,25 @@
         
         <!-- Modal Footer (Fixed) -->
         <div class="bg-slate-50 px-6 py-4 flex gap-3 border-t border-slate-200 flex-shrink-0">
-            <button type="button" onclick="saveCompleteCountsBlock()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" id="saveCompleteCountsBtn" onclick="saveCompleteCountsBlock()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <svg id="saveCompleteCountsIconCheck" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
-                Save
+                <svg id="saveCompleteCountsIconLoading" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="saveCompleteCountsButtonText">Save</span>
             </button>
-            <button type="button" onclick="deleteCurrentBlock(); closeEditCompleteCountsModal();" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" id="deleteCompleteCountsBtn" onclick="deleteCompleteCountsBlock()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center gap-2">
+                <svg id="deleteCompleteCountsIconTrash" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
-                Delete
+                <svg id="deleteCompleteCountsIconLoading" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="deleteCompleteCountsButtonText">Delete</span>
             </button>
         </div>
     </div>
