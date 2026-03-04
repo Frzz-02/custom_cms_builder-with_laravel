@@ -1,4 +1,3 @@
-
 <footer class="bg-gray-950">
     <!-- Top Section - Logo, Address & Social -->
     <div class="border-b border-white/10">
