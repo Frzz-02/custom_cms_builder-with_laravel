@@ -201,8 +201,146 @@
         </section>
       
     
+        
+        
+        
+        
+        
+        
     @elseif ($shortcode->latestnews_style == 'Style 2')
 
+        <section class="w-full px-8 md:px-16 py-16 bg-gray-50/60 reveal">
+            @php
+                $blogs = [
+                    [
+                        'tag'     => 'Produk Lokal',
+                        'title'   => 'Mengenal Produk UMKM Malang yang Tembus Pasar Nasional',
+                        'date'    => '8 Maret 2026',
+                        'comments'=> 'Tanpa Komentar',
+                        'img'     => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop&q=80',
+                    ],
+                    [
+                        'tag'  => 'Kerajinan',
+                        'title'=> 'Kerajinan Gerabah Malang Kini Diekspor ke Eropa',
+                        'date' => '8 Maret 2026',
+                        'img'  => 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&auto=format&fit=crop&q=80',
+                    ],
+                    [
+                        'tag'  => 'Kuliner',
+                        'title'=> 'Kopi Arabika Malang: Cita Rasa Dunia dari Lereng Semeru',
+                        'date' => '8 Maret 2026',
+                        'img'  => 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&auto=format&fit=crop&q=80',
+                    ],
+                    [
+                        'tag'  => 'Fashion',
+                        'title'=> 'Batik Malangan Tampil di Panggung Mode Internasional',
+                        'date' => '8 Maret 2026',
+                        'img'  => 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&auto=format&fit=crop&q=80',
+                    ],
+                    [
+                        'tag'  => 'Wisata',
+                        'title'=> 'Wisata Edukasi UMKM Malang yang Wajib Dikunjungi',
+                        'date' => '7 Maret 2026',
+                        'img'  => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&auto=format&fit=crop&q=80',
+                    ],
+                    [
+                        'tag'  => 'Tips',
+                        'title'=> '5 Tips Memilih Produk Lokal Berkualitas dari Malang',
+                        'date' => '6 Maret 2026',
+                        'img'  => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&auto=format&fit=crop&q=80',
+                    ],
+                ];
+            @endphp
+
+            {{-- Section Header --}}
+            <div class="flex items-center justify-between mb-10">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <span class="inline-block w-1 h-8 bg-gray-400 rounded-full"></span>
+                    Info Terbaru Hari Ini
+                </h2>
+                <a href="{{ route('blog') }}"
+                class="text-xs font-bold text-gray-500 uppercase tracking-widest hover:text-red-600 transition-colors">
+                    Lihat Semua &rarr;
+                </a>
+            </div>
+
+            {{-- 3-Column Grid --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {{-- Col 1: Featured Large Card --}}
+                <div class="relative overflow-hidden h-[500px] cursor-pointer group card-hover">
+                    <img src="{{ $blogs[0]['img'] }}" alt="{{ $blogs[0]['title'] }}"
+                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <span class="inline-block bg-gray-400 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
+                            {{ $blogs[0]['tag'] }}
+                        </span>
+                        <h3 class="text-white font-bold text-base leading-snug mb-3">{{ $blogs[0]['title'] }}</h3>
+                        <div class="flex items-center gap-4 text-gray-300 text-xs">
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {{ $blogs[0]['date'] }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                {{ $blogs[0]['comments'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Col 2: 3 Small Horizontal Cards --}}
+                <div class="flex flex-col gap-4 h-[500px]">
+                    @foreach(array_slice($blogs, 1, 3) as $b)
+                    <a href="{{ route('blog') }}" class="flex items-center gap-4 bg-white rounded-sm p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer border border-gray-100 flex-1">
+                        <div class="w-24 h-24 overflow-hidden shrink-0">
+                            <img src="{{ $b['img'] }}" alt="{{ $b['title'] }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <span class="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full mb-1.5">
+                                {{ $b['tag'] }}
+                            </span>
+                            <h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 mb-1.5">{{ $b['title'] }}</h3>
+                            <p class="text-xs text-gray-400 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {{ $b['date'] }}
+                            </p>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+
+                {{-- Col 3: 2 Tall Cards --}}
+                <div class="flex flex-col gap-4 h-[500px]">
+                    @foreach(array_slice($blogs, 4, 2) as $b)
+                    <a href="{{ route('blog') }}" class="relative overflow-hidden flex-1 cursor-pointer group card-hover block">
+                        <img src="{{ $b['img'] }}" alt="{{ $b['title'] }}"
+                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-5">
+                            <span class="inline-block bg-gray-400 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
+                                {{ $b['tag'] }}
+                            </span>
+                            <h3 class="text-white font-bold text-sm leading-snug">{{ $b['title'] }}</h3>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+
+            </div>
+        </section>
+    
+        
+
+        
+        
+        
+        
+        
+    @elseif ($shortcode->latestnews_style == 'Style 2')
+    
         
 
     @endif
