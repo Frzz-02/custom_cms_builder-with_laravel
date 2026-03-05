@@ -83,6 +83,8 @@ class PageShortcodeController extends Controller
             'section_service_id.*' => 'integer',
             'section_brand_id' => 'nullable|array',
             'section_brand_id.*' => 'integer',
+            'section_completecount_id' => 'nullable|array',
+            'section_completecount_id.*' => 'integer',
             'section_newsletter_id' => 'nullable|integer',
             'latestnews_title' => 'nullable|string|max:255',
             'blog_limit' => 'nullable|integer',
@@ -174,10 +176,8 @@ class PageShortcodeController extends Controller
         if (isset($validated['section_brand_id']) && is_array($validated['section_brand_id'])) {
             $validated['section_brand_id'] = json_encode($validated['section_brand_id']);
         }
-                if (isset($validated['section_completecount_id']) && is_array($validated['section_completecount_id'])) {
-            $validated['section_completecount_id'] = json_encode($validated['section_completecount_id']);
-        }
-                if (isset($validated['section_completecount_id']) && is_array($validated['section_completecount_id'])) {
+        
+        if (isset($validated['section_completecount_id']) && is_array($validated['section_completecount_id'])) {
             $validated['section_completecount_id'] = json_encode($validated['section_completecount_id']);
         }
         
