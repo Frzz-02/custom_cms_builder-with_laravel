@@ -1,122 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="title" content="{{ $page->meta_title }}">
-    <meta name="keywords" content="{{ $page->meta_keywords }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#0094e2">
+    
+    <!-- SEO Meta Tags -->
+    <title>{{ $page->meta_title }}</title>
+    <meta name="title" content="{{ $page->meta_title }}">
     <meta name="description" content="{{ $page->meta_description }}">
+    <meta name="keywords" content="{{ $page->meta_keywords }}">
 
-    <!-- Open Graph / Facebookf -->
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    {{-- <meta property="og:url" content="site_url"> --}}
+    <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $page->meta_title }}">
     <meta property="og:description" content="{{ $page->meta_description }}">
-    {{-- <meta property="og:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
-
-    <!-- Twitter -->
-    {{-- <meta property="twitter:card" content="summary_large_image"> --}}
-    {{-- <meta property="twitter:url" content="https://site_url.com"> --}}
-    <meta property="twitter:title" content="{{ $page->meta_title }}">
-    <meta property="twitter:description" content="{{ $page->meta_description }}">
-    {{-- <meta property="twitter:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
-
-    <title>{{ $page->meta_title }}</title>
-
-    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
-
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/font-icons.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/theme-vendors.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/responsive.css') }}" />
-
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/settings.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/layers.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/navigation.css') }}">
-
-</head>
-
-<body>
-    <style>
-        .whatsapp-button {
-            position: fixed;
-            bottom: {{ old('offset_y', $whatsappButton->offset_y) }}px;
-
-            @if ($whatsappButton->position == 'right')
-                right: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @else
-                left: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @endif
-            background-color: #25D366;
-            border-radius: 50%;
-            padding: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .whatsapp-button img {
-            width: 45px;
-            height: 45px;
-            display: block;
-        }
-
-        .whatsapp-button:hover {
-            background-color: #128C7E;
-        }
-    </style>
-
-    @if ($whatsappButton && $whatsappButton->status == 'active')
-        <a href="https://api.whatsapp.com/send/?phone={{ $whatsappButton->phone_number }}&text={{ $whatsappButton->message }}&type=phone_number&app_absent=0"
-            class="whatsapp-button" target="_blank" aria-label="Chat with us on WhatsApp">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-        </a>
+    @if($settings->logo ?? null)
+    <meta property="og:image" content="{{ asset('storage/' . $settings->logo) }}">
     @endif
 
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="{{ $page->meta_title }}">
+    <meta property="twitter:description" content="{{ $page->meta_description }}">
+    @if($settings->logo ?? null)
+    <meta property="twitter:image" content="{{ asset('storage/' . $settings->logo) }}">
+    @endif
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
+
+    <!-- Fonts - Optimized Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome - Deferred Loading -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+          media="print" onload="this.media='all'; this.onload=null;">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
+    <!-- Alpine.js - Deferred -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        /* Lazy Loading Images */
+        img[data-src] {
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+        
+        img[data-src].loaded {
+            opacity: 1;
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #0094e2 0%, #0077b6 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 148, 226, 0.3);
+            z-index: 999;
+        }
+        
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0, 148, 226, 0.4);
+        }
+
+        /* Accessibility - Skip to Content */
+        .skip-to-content {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: #0094e2;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            z-index: 9999;
+        }
+        
+        .skip-to-content:focus {
+            top: 0;
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 antialiased">
+    <!-- Skip to Content Link for Accessibility -->
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+    <!-- Navigation Menu -->
     @include('frontend.layouts.navmenu')
 
-    {{-- @if ($breadcrumb->status === 'active')
-        <section class="page-title-area" style="background-color: {{ $breadcrumb->background_color }}">
-            <div class="container">
-                <div class="page-title-content text-center">
-                    <h1 class="page-title" style="color: {{ $breadcrumb->title_color }}">{{ $page->title }}</h1>
+    <!-- Main Content -->
+    <main id="main-content" class="min-h-screen pt-14 sm:pt-20">
+        @yield('content')
+    </main>
 
-                    <ul class="breadcrumb-nav">
-                        <li><a href="/" style="color: {{ $breadcrumb->hometext_color }}">Home</a></li>
-                        <li class="active" style="color: {{ $breadcrumb->pagetext_color }}">{{ $page->title }}</li>
-                    </ul>
-                </div>
-            </div>
-            @if ($breadcrumb->particle === 'active')
-                <div class="page-title-effect d-none d-md-block">
-                    <img class="particle-1 animate-zoom-fade" src="{{ asset('assets/img/particle/particle-1.png') }}"
-                        alt="particle One">
-                    <img class="particle-2 animate-rotate-me" src="{{ asset('assets/img/particle/particle-2.png') }}"
-                        alt="particle Two">
-                    <img class="particle-3 animate-float-bob-x"
-                        src="{{ asset('assets/img/particle/particle-3.png') }}" alt="particle Three">
-                    <img class="particle-4 animate-float-bob-y"
-                        src="{{ asset('assets/img/particle/particle-4.png') }}" alt="particle Four">
-                    <img class="particle-5 animate-float-bob-y"
-                        src="{{ asset('assets/img/particle/particle-5.png') }}" alt="particle Five">
-                </div>
-            @endif
-
-        </section>
-    @endif --}}
-
-    @yield('content')
-
+    <!-- Footer -->
     @include('frontend.layouts.footer')
 
-    <a class="scroll-top-arrow" href="javascript:void(0);"><i class="feather icon-feather-arrow-up"></i></a>
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
+    <!-- WhatsApp Button -->
+    <div id="whatsapp-container"></div>
+
+    <!-- SweetAlert2 for Notifications -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // SweetAlert Notifications
         @if ($errors->any())
             Swal.fire({
                 toast: true,
@@ -124,17 +161,15 @@
                 icon: "error",
                 title: "FAIL!",
                 html: `
-                <ul style="text-align: left; margin: 0;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            `,
+                    <ul style="text-align: left; margin: 0; padding-left: 20px;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                `,
                 showConfirmButton: false,
                 timer: 5000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
+                timerProgressBar: true
             });
         @elseif (session('success'))
             Swal.fire({
@@ -144,10 +179,8 @@
                 title: "SUCCESS",
                 text: "{{ session('success') }}",
                 showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
+                timer: 3000,
+                timerProgressBar: true
             });
         @elseif (session('error'))
             Swal.fire({
@@ -157,116 +190,97 @@
                 title: "FAIL!",
                 text: "{{ session('error') }}",
                 showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
+                timer: 3000,
+                timerProgressBar: true
             });
         @endif
     </script>
 
-    <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/theme-vendors.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/main.js') }}"></script>
-
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.tools.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.revolution.min.js') }}"></script>
-
-    <!-- slider revolution 5.0 extensions (load extensions only on local file systems ! the following part can be removed on server for on demand loading) -->
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.actions.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.carousel.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.kenburn.min.js') }}">
-    </script>
-    <script type="text/javascript"
-        src="{{ asset('revolution/js/extensions/revolution.extension.layeranimation.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.migration.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.navigation.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.parallax.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.slideanims.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.video.min.js') }}">
-    </script>
-
-    <script type="text/javascript">
-        var revapi349;
-        $(document).ready(function() {
-            if ($("#rev_slider_27_1").revolution === undefined) {
-                revslider_showDoubleJqueryError("#rev_slider_27_1");
-            } else {
-                revapi349 = $("#rev_slider_27_1").show().revolution({
-                    sliderType: "standard",
-                    jsFileLocation: "revolution/js/",
-                    sliderLayout: "fullscreen",
-                    dottedOverlay: "none",
-                    delay: 9000,
-                    navigation: {
-                        keyboardNavigation: "off",
-                        keyboard_direction: "horizontal",
-                        mouseScrollNavigation: "off",
-                        mouseScrollReverse: "reverse",
-                        onHoverStop: "off",
-                        arrows: {
-                            enable: true,
-                            style: "metis",
-                            hide_onmobile: false,
-                            hide_under: 0,
-                            hide_onleave: false,
-                            tmp: '',
-                            left: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 261,
-                            },
-                            right: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 193
-                            }
-                        },
-                        touch: {
-                            touchenabled: 'on',
-                            swipe_threshold: 20,
-                            swipe_min_touches: 1,
-                            swipe_direction: 'horizontal',
-                            drag_block_vertical: true
-
-                        }
-                    },
-                    responsiveLevels: [1240, 1025, 778, 480],
-                    visibilityLevels: [1240, 1025, 778, 480],
-                    gridwidth: [1240, 1024, 778, 480],
-                    gridheight: [950, 500, 560, 500],
-                    lazyType: "none",
-                    shadow: 0,
-                    spinner: "spinner3",
-                    stopLoop: "off",
-                    stopAfterLoops: -1,
-                    stopAtSlide: -1,
-                    shuffle: "off",
-                    autoHeight: "off",
-                    fullScreenAutoWidth: "on",
-                    fullScreenAlignForce: "off",
-                    fullScreenOffsetContainer: "",
-                    fullScreenOffset: "100px",
-                    hideThumbsOnMobile: "off",
-                    hideSliderAtLimit: 0,
-                    hideCaptionAtLimit: 0,
-                    hideAllCaptionAtLilmit: 0,
-                    debugMode: false,
-                    fallbacks: {
-                        simplifyAll: "off",
-                        nextSlideOnWindowFocus: "off",
-                        disableFocusListener: false
+    <script>
+        // Lazy Loading Images with Intersection Observer
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
                     }
                 });
+            }, {
+                rootMargin: '50px 0px',
+                threshold: 0.01
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        });
+
+        // Scroll to Top Button
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
             }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // WhatsApp Button - Dynamic Creation
+        @if ($whatsappButton && $whatsappButton->status == 'active')
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('whatsapp-container');
+            const position = '{{ $whatsappButton->position }}';
+            const offsetX = {{ $whatsappButton->offset_x ?? 20 }};
+            const offsetY = {{ $whatsappButton->offset_y ?? 20 }};
+            const phoneNumber = '{{ $whatsappButton->phone_number }}';
+            const message = '{{ $whatsappButton->message }}';
+            
+            const whatsappBtn = document.createElement('a');
+            whatsappBtn.href = `https://api.whatsapp.com/send/?phone=${phoneNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+            whatsappBtn.target = '_blank';
+            whatsappBtn.rel = 'noopener noreferrer';
+            whatsappBtn.setAttribute('aria-label', 'Chat with us on WhatsApp');
+            whatsappBtn.className = 'fixed z-[1000] transition-all duration-300 hover:scale-110';
+            whatsappBtn.style.cssText = `
+                ${position === 'right' ? 'right' : 'left'}: ${offsetX}px;
+                bottom: ${offsetY}px;
+            `;
+            
+            whatsappBtn.innerHTML = `
+                <div class="bg-[#25D366] rounded-full p-3 shadow-lg hover:bg-[#128C7E] transition-colors duration-300">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" 
+                         alt="WhatsApp" 
+                         class="w-10 h-10 sm:w-12 sm:h-12 block">
+                </div>
+            `;
+            
+            container.appendChild(whatsappBtn);
+        });
+        @endif
+
+        // Smooth Scroll for Anchor Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
 

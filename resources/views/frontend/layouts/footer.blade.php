@@ -52,13 +52,13 @@
                 <div class="flex flex-col sm:flex-row gap-5 sm:gap-20">
                     <div class="space-y-2 sm:space-y-4">
                         <a href="tel:+6281316509191" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Tel. +62 813-1650-9191</a>
-                        <a href="{{ route('tentang') }}" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Tentang Kami</a>
-                        <a href="{{ route('portfolio') }}" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Portfolio</a>
-                        <a href="{{ route('blog') }}" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Blog</a>
+                        <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Tentang Kami</a>
+                        <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Portfolio</a>
+                        <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Blog</a>
                     </div>
                     <div class="space-y-2 sm:space-y-4">
-                        <a href="{{ route('kontak') }}" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Hubungi Kami</a>
-                        <a href="{{ route('produk.index') }}" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Produk</a>
+                        <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Hubungi Kami</a>
+                        <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Produk</a>
                         <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">FAQ</a>
                         <a href="#" class="block text-gray-400 hover:text-white text-sm sm:text-lg transition-colors">Karir</a>
                     </div>
