@@ -1,15 +1,15 @@
 @if ($shortcode->type == 'title')
-    {{-- <{{ $shortcode->heading }}>{{ $shortcode->title }}</{{ $shortcode->heading }}>
-                <p>{{ $shortcode->subtitle }}</p> --}}
-    <div class="row justify-content-center mt-5">
-        <div class="col-lg-6">
-            <div class="common-heading tagline-boxed-two title-line m-b-70 text-center">
-                @if ($shortcode->subtitle)
-                    <span class="tagline">{{ $shortcode->subtitle }}</span>
-                @endif
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-3xl mx-auto text-center">
+            @if ($shortcode->subtitle)
+                <span class="inline-block px-4 py-2 mb-4 text-sm font-semibold tracking-wider text-blue-600 uppercase bg-blue-50 rounded-full">
+                    {{ $shortcode->subtitle }}
+                </span>
+            @endif
 
-                <h2 class="title">{{ $shortcode->title }}</h2>
-            </div>
+            <{{ $shortcode->heading }} class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                {{ $shortcode->title }}
+            </{{ $shortcode->heading }}>
         </div>
     </div>
 @endif

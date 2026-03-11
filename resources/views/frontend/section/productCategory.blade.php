@@ -146,9 +146,94 @@
         
         
         
+        
+        
     @elseif($shortcode->product_category_style == 'style 2')
     
+        <!-- kategori -->
+        <section class="py-20 bg-[#f8f8f8] max-md:py-14" id="categories">
+            <div class="container">
+                <div class="reveal text-center mb-12 max-md:mb-8">
+                    <div class="inline-block bg-[rgba(230,57,70,0.07)] text-[#e63946] text-[11px] font-bold tracking-[0.08em] uppercase py-[5px] px-[14px] rounded-[980px] mb-3">Kategori</div>
+                    <h2 class="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold tracking-[-0.03em] text-[#111] mb-[10px] max-md:text-[clamp(1.5rem,6vw,2rem)]">Temukan sesuai kebutuhan.</h2>
+                    <p class="text-[15px] text-[#888] max-w-[520px] mx-auto leading-[1.6]">Pilih dari berbagai kategori produk kantor yang lengkap dan terpercaya.</p>
+                </div>
 
+                <div class="grid grid-cols-3 gap-4 max-[900px]:grid-cols-2 max-md:gap-3 max-[500px]:grid-cols-1">
+                    <div class="group reveal reveal-d1 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#e63946] to-[#c1121f] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/atk-removebg-preview.png') }}" alt="ATK">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Perlengkapan Kantor</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">Alat Tulis<br>Kantor</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+
+                    <div class="group reveal reveal-d2 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#ffbe0b] to-[#fb5607] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/Alat_Kebersihan-removebg-preview.png') }}" alt="Kebersihan">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Kebersihan</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">Alat<br>Kebersihan</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+
+                    <div class="group reveal reveal-d3 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#3a86ff] to-[#0043ce] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/Alat_Kesehatan-removebg-preview.png') }}" alt="Kesehatan">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Kesehatan</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">Alat<br>Kesehatan</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+
+                    <div class="group reveal reveal-d4 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#4cc9f0] to-[#4361ee] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/Home_-removebg-preview.png') }}" alt="Home Appliances">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Peralatan Rumah</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">Home<br>Appliances</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+
+                    <div class="group reveal reveal-d5 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#2b2d42] to-[#1a1a2e] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/roombooking-removebg-preview.png') }}" alt="Furniture">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Interior Kantor</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">Furniture<br>Kantor</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+
+                    <div class="group reveal reveal-d6 rounded-[24px] overflow-hidden min-h-[320px] flex flex-col relative cursor-pointer transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(.4,0,.2,1)] shadow-[0_4px_20px_rgba(0,0,0,0.10)] bg-gradient-to-br from-[#7b2d8b] to-[#560bad] text-white hover:-translate-y-2 hover:scale-[1.01] hover:shadow-[0_24px_56px_rgba(0,0,0,0.18)] max-md:min-h-[220px] max-md:rounded-[18px] max-[480px]:min-h-[200px]">
+                        <div class="absolute inset-0 z-[1]">
+                            <img class="w-full h-full object-contain object-bottom px-4 pt-6 pb-0 drop-shadow-[0_-4px_24px_rgba(0,0,0,0.15)] transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08] group-hover:-translate-y-[6px]" src="{{ asset('img/kategori/IT_Hardware-removebg-preview.png') }}" alt="IT Hardware">
+                        </div>
+                        <div class="relative z-[2] mt-auto px-[22px] pb-[22px] pt-20 bg-gradient-to-t from-[rgba(0,0,0,0.55)] to-transparent">
+                            <div class="text-[10px] font-bold tracking-[0.1em] uppercase opacity-85 mb-1">Teknologi</div>
+                            <div class="text-[clamp(1.1rem,1.8vw,1.4rem)] font-extrabold tracking-[-0.02em] leading-[1.2] mb-3 max-md:text-[1rem]">IT Hardware<br>&amp; Software</div>
+                            <a href="/peralatan-kantor" class="inline-flex items-center gap-[6px] bg-[rgba(255,255,255,0.22)] backdrop-blur-[8px] border border-[rgba(255,255,255,0.35)] text-white text-[11px] font-semibold py-[6px] px-[14px] rounded-[980px] w-fit transition-colors duration-200 hover:bg-[rgba(255,255,255,0.42)]">Browse ›</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        
+        
+        
+        
+        
     
     @endif
 @endif
