@@ -150,7 +150,7 @@
                                     </div>
                                 </div>
                                 <button type="button" 
-                                        onclick="openBlockLibrary()"
+                                        id="openLibraryBtn"
                                         class="px-5 py-2.5 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-all font-semibold text-sm shadow-lg hover:shadow-xl flex items-center gap-2">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -177,7 +177,7 @@
                                     <h3 class="text-lg font-semibold text-slate-700 mb-2">No blocks added yet</h3>
                                     <p class="text-sm text-slate-500 mb-6">Start building your page by adding UI blocks</p>
                                     <button type="button" 
-                                            onclick="openBlockLibrary()"
+                                            id="addFirstBlockBtn"
                                             class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -389,9 +389,15 @@
 @include('backend.pages.modals.edit-completecounts')
 @include('backend.pages.modals.select-hero-style')
 @include('backend.pages.modals.edit-hero-banner')
+@include('backend.pages.modals.edit-hero-banner-style2')
+@include('backend.pages.modals.edit-hero-banner-style3')
+@include('backend.pages.modals.select-about-style')
+@include('backend.pages.modals.edit-about')
 @include('backend.pages.modals.select-testimonials-style')
 @include('backend.pages.modals.edit-testimonials')
 @include('backend.pages.modals.edit-recent-product')
+@include('backend.pages.modals.select-product-category-style')
+@include('backend.pages.modals.edit-product-category')
 @include('backend.pages.modals.select-service-style')
 @include('backend.pages.modals.edit-featured-services')
 @include('backend.pages.modals.edit-newsletter')
@@ -418,6 +424,13 @@
     // Variable global yang bisa diakses dari file page-builder.js
     // Digunakan saat menyimpan data block ke database
     window.pageId = {{ $page->id }};
+    
+    // ⭐ Existing shortcodes data dari database
+    // Data ini akan di-load saat halaman pertama kali dibuka
+    // Format: array of objects dengan semua field dari tabel page_shortcodes
+    window.existingShortcodes = @json($existingShortcodes);
+    
+    console.log('🔍 Existing shortcodes loaded:', window.existingShortcodes);
     
     // Character counter and SEO preview
     document.addEventListener('DOMContentLoaded', function() {

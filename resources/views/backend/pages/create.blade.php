@@ -326,6 +326,10 @@
 @include('backend.pages.modals.edit-completecounts')
 @include('backend.pages.modals.select-hero-style')
 @include('backend.pages.modals.edit-hero-banner')
+@include('backend.pages.modals.edit-hero-banner-style2')
+@include('backend.pages.modals.edit-hero-banner-style3')
+@include('backend.pages.modals.select-about-style')
+@include('backend.pages.modals.edit-about')
 @include('backend.pages.modals.edit-default')
 
 <!-- Trix Editor CSS -->
