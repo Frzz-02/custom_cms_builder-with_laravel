@@ -152,6 +152,7 @@
     <!-- SweetAlert2 for Notifications -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- WhatsApp Floating Button (pure JS) -->
     <script>
         // SweetAlert Notifications
         @if ($errors->any())
@@ -282,8 +283,27 @@
                 }
             });
         });
-    </script>
+   </script>
 
+    {{-- Flash / session messages --}}
+    @if ($errors->any())
+        <div id="js-flash" class="bg-red-600 text-white text-sm px-5 py-3 shadow-xl rounded-sm">
+            <p class="font-semibold mb-1">Terjadi kesalahan:</p>
+            <ul class="list-disc list-inside space-y-0.5">
+                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
+        </div>
+    @elseif (session('success'))
+        <div id="js-flash" class="bg-green-600 text-white text-sm px-5 py-3 shadow-xl rounded-sm">
+            ✓ {{ session('success') }}
+        </div>
+    @elseif (session('error'))
+        <div id="js-flash" class="bg-red-600 text-white text-sm px-5 py-3 shadow-xl rounded-sm">
+            ✕ {{ session('error') }}
+        </div>
+    @endif
+
+    @stack('scripts')
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -269,246 +270,234 @@
 </html>
 
 
-    <meta property="og:type" content="website">
-    {{-- <meta property="og:url" content="site_url"> --}}
-    <meta property="og:title" content="{{ $settings->site_title }}">
-    <meta property="og:description" content="{{ $settings->site_description }}">
-    {{-- <meta property="og:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="@yield('title', config('app.name'))">
+    <meta property="og:description" content="@yield('description', '')">
 
-    {{-- <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://site_url.com"> --}}
-    <meta property="twitter:title" content="{{ $settings->site_title }}">
-    <meta property="twitter:description" content="{{ $settings->site_description }}">
-    {{-- <meta property="twitter:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
+    <title>@yield('title', 'Coming Soon — ' . config('app.name'))</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/apex favicon.jpeg') }}">
 
-    <title>{{ $settings->site_title }}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
+    <!-- Tailwind & App Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/font-icons.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/theme-vendors.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/responsive.css') }}" />
-
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/settings.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/layers.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/navigation.css') }}">
-
-</head>
-
-<body>
     <style>
-        .whatsapp-button {
-            position: fixed;
-            bottom: {{ old('offset_y', $whatsappButton->offset_y) }}px;
+        * { font-family: 'DM Sans', sans-serif; }
 
-            @if ($whatsappButton->position == 'right')
-                right: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @else
-                left: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @endif
-            background-color: #25D366;
+        /* Page fade-in */
+        body { opacity: 0; transition: opacity 0.5s ease; }
+        body.ready { opacity: 1; }
+
+        /* Animated gradient background */
+        .bg-animated {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0c1445 65%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 14s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating particle dots */
+        .particle {
+            position: absolute;
             border-radius: 50%;
-            padding: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            background: rgba(255,255,255,0.07);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(-120px) scale(1); opacity: 0; }
         }
 
-        .whatsapp-button img {
-            width: 45px;
-            height: 45px;
-            display: block;
+        /* Countdown flip pulse */
+        .cd-pulse {
+            animation: countPulse 0.18s ease-out;
+        }
+        @keyframes countPulse {
+            0%   { transform: scale(1.2); opacity: 0.6; }
+            100% { transform: scale(1);   opacity: 1; }
         }
 
-        .whatsapp-button:hover {
-            background-color: #128C7E;
+        /* Staggered slide-up reveal */
+        .slide-up {
+            opacity: 0;
+            transform: translateY(36px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
         }
+        .slide-up.visible { opacity: 1; transform: translateY(0); }
     </style>
 
-    @if ($whatsappButton && $whatsappButton->status == 'active')
-        <a href="https://api.whatsapp.com/send/?phone={{ $whatsappButton->phone_number }}&text={{ $whatsappButton->message }}&type=phone_number&app_absent=0"
-            class="whatsapp-button" target="_blank" aria-label="Chat with us on WhatsApp">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-        </a>
-    @endif
+    @stack('styles')
+</head>
 
-    {{-- @include('frontend.layouts.navbar') --}}
+<body class="bg-animated min-h-screen flex items-center justify-center overflow-hidden relative">
 
-    {{-- @include('frontend.layouts.navmenu') --}}
+    <!-- Floating Particles (injected by JS) -->
+    <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
 
-    {{-- <div class="modal fade search-area" id="search-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form>
-                    <input type="text" placeholder="Search here...">
-                    <button class="search-btn"><i class="fa fa-search"></i></button>
-                </form>
+    <!-- Glowing orbs -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 w-full text-center px-6 max-w-3xl mx-auto py-10">
+
+        {{-- Child view can completely override via @section('content'),
+             or add extra content below the default hero via @section('extra_content') --}}
+        @hasSection('content')
+            @yield('content')
+        @else
+            <!-- Brand / Logo -->
+            <div class="slide-up mb-8">
+                <p class="text-xs tracking-[0.45em] text-indigo-300 uppercase mb-3">Coming Soon</p>
+                <h1 class="text-5xl sm:text-7xl font-bold text-white tracking-tight leading-none">
+                    {{ config('app.name') }}
+                </h1>
+                <div class="w-16 h-px bg-indigo-400 mx-auto mt-6"></div>
             </div>
-        </div>
-    </div> --}}
 
-    @yield('content')
+            <!-- Tagline -->
+            <p class="slide-up text-lg sm:text-xl text-gray-300 leading-relaxed mb-12"
+               data-delay="150">
+                Kami sedang mempersiapkan sesuatu yang luar biasa.<br class="hidden sm:block">
+                Nantikan peluncurannya!
+            </p>
 
-    {{-- @include('frontend.layouts.footer') --}}
+            <!-- Countdown -->
+            <div class="slide-up mb-12" data-delay="300">
+                <div id="countdown" class="flex justify-center gap-3 sm:gap-8">
+                    <div class="text-center">
+                        <div id="cd-days"    class="text-5xl sm:text-7xl font-bold text-white tabular-nums leading-none">00</div>
+                        <p class="text-xs tracking-[0.25em] text-gray-500 uppercase mt-2">Hari</p>
+                    </div>
+                    <span class="text-4xl sm:text-6xl font-bold text-indigo-500 self-start pt-0.5">:</span>
+                    <div class="text-center">
+                        <div id="cd-hours"   class="text-5xl sm:text-7xl font-bold text-white tabular-nums leading-none">00</div>
+                        <p class="text-xs tracking-[0.25em] text-gray-500 uppercase mt-2">Jam</p>
+                    </div>
+                    <span class="text-4xl sm:text-6xl font-bold text-indigo-500 self-start pt-0.5">:</span>
+                    <div class="text-center">
+                        <div id="cd-minutes" class="text-5xl sm:text-7xl font-bold text-white tabular-nums leading-none">00</div>
+                        <p class="text-xs tracking-[0.25em] text-gray-500 uppercase mt-2">Menit</p>
+                    </div>
+                    <span class="text-4xl sm:text-6xl font-bold text-indigo-500 self-start pt-0.5">:</span>
+                    <div class="text-center">
+                        <div id="cd-seconds" class="text-5xl sm:text-7xl font-bold text-white tabular-nums leading-none">00</div>
+                        <p class="text-xs tracking-[0.25em] text-gray-500 uppercase mt-2">Detik</p>
+                    </div>
+                </div>
+            </div>
 
-    <a class="scroll-top-arrow" href="javascript:void(0);"><i class="feather icon-feather-arrow-up"></i></a>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    {{-- <script>
-        @if ($errors->any())
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "error",
-                title: "FAIL!",
-                html: `
-                <ul style="text-align: left; margin: 0;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            `,
-                showConfirmButton: false,
-                timer: 5000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
-        @elseif (session('success'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "success",
-                title: "SUCCESS",
-                text: "{{ session('success') }}",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
-        @elseif (session('error'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "error",
-                title: "FAIL!",
-                text: "{{ session('error') }}",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
+            <!-- Email notify form -->
+            <div class="slide-up" data-delay="450">
+                <p class="text-sm text-gray-500 mb-4">Beritahu saya saat website live</p>
+                <form class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
+                      onsubmit="handleNotify(event)">
+                    <input type="email"
+                           placeholder="email@anda.com"
+                           class="w-full sm:flex-1 bg-white/10 border border-white/20 text-white placeholder-gray-600 px-5 py-3 text-sm focus:outline-none focus:border-indigo-400 transition-colors backdrop-blur-sm"
+                           required>
+                    <button type="submit"
+                            class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold tracking-wider px-8 py-3 transition-colors">
+                        NOTIFY ME
+                    </button>
+                </form>
+                <p id="notify-msg" class="mt-3 text-sm text-green-400 hidden">
+                    ✓ Terima kasih! Kami akan menghubungi Anda.
+                </p>
+            </div>
         @endif
-    </script> --}}
 
-    <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/theme-vendors.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/main.js') }}"></script>
+        @yield('extra_content')
+    </div>
 
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.tools.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.revolution.min.js') }}"></script>
+    <!-- Alpine.js (for child views that may need it) -->
+    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- slider revolution 5.0 extensions (load extensions only on local file systems ! the following part can be removed on server for on demand loading) -->
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.actions.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.carousel.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.kenburn.min.js') }}">
-    </script>
-    <script type="text/javascript"
-        src="{{ asset('revolution/js/extensions/revolution.extension.layeranimation.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.migration.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.navigation.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.parallax.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.slideanims.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.video.min.js') }}">
-    </script>
+    <!-- Pure JS: Page reveal + Particles + Countdown -->
+    <script>
+    // ── Page reveal ────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        document.body.classList.add('ready');
 
-    <script type="text/javascript">
-        var revapi349;
-        $(document).ready(function() {
-            if ($("#rev_slider_27_1").revolution === undefined) {
-                revslider_showDoubleJqueryError("#rev_slider_27_1");
-            } else {
-                revapi349 = $("#rev_slider_27_1").show().revolution({
-                    sliderType: "standard",
-                    jsFileLocation: "revolution/js/",
-                    sliderLayout: "fullscreen",
-                    dottedOverlay: "none",
-                    delay: 9000,
-                    navigation: {
-                        keyboardNavigation: "off",
-                        keyboard_direction: "horizontal",
-                        mouseScrollNavigation: "off",
-                        mouseScrollReverse: "reverse",
-                        onHoverStop: "off",
-                        arrows: {
-                            enable: true,
-                            style: "metis",
-                            hide_onmobile: false,
-                            hide_under: 0,
-                            hide_onleave: false,
-                            tmp: '',
-                            left: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 261,
-                            },
-                            right: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 193
-                            }
-                        },
-                        touch: {
-                            touchenabled: 'on',
-                            swipe_threshold: 20,
-                            swipe_min_touches: 1,
-                            swipe_direction: 'horizontal',
-                            drag_block_vertical: true
-
-                        }
-                    },
-                    responsiveLevels: [1240, 1025, 778, 480],
-                    visibilityLevels: [1240, 1025, 778, 480],
-                    gridwidth: [1240, 1024, 778, 480],
-                    gridheight: [950, 500, 560, 500],
-                    lazyType: "none",
-                    shadow: 0,
-                    spinner: "spinner3",
-                    stopLoop: "off",
-                    stopAfterLoops: -1,
-                    stopAtSlide: -1,
-                    shuffle: "off",
-                    autoHeight: "off",
-                    fullScreenAutoWidth: "on",
-                    fullScreenAlignForce: "off",
-                    fullScreenOffsetContainer: "",
-                    fullScreenOffset: "100px",
-                    hideThumbsOnMobile: "off",
-                    hideSliderAtLimit: 0,
-                    hideCaptionAtLimit: 0,
-                    hideAllCaptionAtLilmit: 0,
-                    debugMode: false,
-                    fallbacks: {
-                        simplifyAll: "off",
-                        nextSlideOnWindowFocus: "off",
-                        disableFocusListener: false
-                    }
-                });
-            }
+        // Staggered slide-up
+        var slides = document.querySelectorAll('.slide-up');
+        slides.forEach(function (el, i) {
+            setTimeout(function () {
+                el.classList.add('visible');
+            }, 120 + i * 150);
         });
+
+        // ── Floating particles ───────────────────────────────────────────────
+        var container = document.getElementById('particles-container');
+        if (container) {
+            for (var i = 0; i < 28; i++) {
+                (function () {
+                    var p   = document.createElement('div');
+                    p.className = 'particle';
+                    var sz  = Math.random() * 7 + 3;
+                    p.style.width    = sz + 'px';
+                    p.style.height   = sz + 'px';
+                    p.style.left     = Math.random() * 100 + '%';
+                    p.style.animationDuration  = (Math.random() * 18 + 10) + 's';
+                    p.style.animationDelay     = (Math.random() * 14) + 's';
+                    container.appendChild(p);
+                })();
+            }
+        }
+    });
+
+    // ── Countdown Timer ────────────────────────────────────────────────────────
+    (function () {
+        var launchDate = new Date('@yield("launch_date", "2026-09-01T00:00:00")').getTime();
+        if (isNaN(launchDate)) { launchDate = new Date('2026-09-01T00:00:00').getTime(); }
+
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        function pulse(id, val) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var fmt = pad(val);
+            if (el.textContent !== fmt) {
+                el.textContent = fmt;
+                el.classList.remove('cd-pulse');
+                void el.offsetWidth;
+                el.classList.add('cd-pulse');
+            }
+        }
+
+        function tick() {
+            var diff = launchDate - Date.now();
+            if (diff < 0) diff = 0;
+            pulse('cd-days',    Math.floor(diff / 86400000));
+            pulse('cd-hours',   Math.floor((diff % 86400000) / 3600000));
+            pulse('cd-minutes', Math.floor((diff % 3600000) / 60000));
+            pulse('cd-seconds', Math.floor((diff % 60000) / 1000));
+        }
+
+        tick();
+        setInterval(tick, 1000);
+    })();
+
+    // ── Notify form ────────────────────────────────────────────────────────────
+    function handleNotify(e) {
+        e.preventDefault();
+        var msg = document.getElementById('notify-msg');
+        if (msg) { msg.classList.remove('hidden'); e.target.reset(); }
+    }
     </script>
 
+    @stack('scripts')
 </body>
 
 </html>

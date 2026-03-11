@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+    
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -156,246 +157,174 @@
 </html>
 
 
-    <meta property="og:type" content="website">
-    {{-- <meta property="og:url" content="site_url"> --}}
-    <meta property="og:title" content="{{ $settings->site_title }}">
-    <meta property="og:description" content="{{ $settings->site_description }}">
-    {{-- <meta property="og:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
+    <title>404 — Halaman Tidak Ditemukan | {{ config('app.name') }}</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/apex favicon.jpeg') }}">
 
-    {{-- <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://site_url.com"> --}}
-    <meta property="twitter:title" content="{{ $settings->site_title }}">
-    <meta property="twitter:description" content="{{ $settings->site_description }}">
-    {{-- <meta property="twitter:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 
-    <title>{{ $settings->site_title }}</title>
+    <!-- Tailwind & App Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
-
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/font-icons.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/theme-vendors.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/responsive.css') }}" />
-
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/settings.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/layers.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('revolution/css/navigation.css') }}">
-
-</head>
-
-<body>
     <style>
-        .whatsapp-button {
-            position: fixed;
-            bottom: {{ old('offset_y', $whatsappButton->offset_y) }}px;
+        * { font-family: 'DM Sans', sans-serif; }
 
-            @if ($whatsappButton->position == 'right')
-                right: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @else
-                left: {{ old('offset_x', $whatsappButton->offset_x) }}px;
-            @endif
-            background-color: #25D366;
+        body { opacity: 0; transition: opacity 0.45s ease; }
+        body.ready { opacity: 1; }
+
+        /* Giant 404 glitch text */
+        .glitch {
+            position: relative;
+            display: inline-block;
+            color: #fff;
+            font-size: clamp(6rem, 20vw, 16rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.04em;
+        }
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .glitch::before {
+            color: #6366f1;
+            animation: glitch1 3.5s infinite linear;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+            transform: translateX(-3px);
+        }
+        .glitch::after {
+            color: #ec4899;
+            animation: glitch2 3.5s infinite linear;
+            clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+            transform: translateX(3px);
+        }
+        @keyframes glitch1 {
+            0%,90%,100% { transform: translateX(-3px) skewX(0deg); }
+            92%          { transform: translateX( 4px) skewX(-2deg); }
+            94%          { transform: translateX(-4px) skewX( 2deg); }
+            96%          { transform: translateX( 2px) skewX(-1deg); }
+        }
+        @keyframes glitch2 {
+            0%,90%,100% { transform: translateX(3px) skewX(0deg); }
+            92%          { transform: translateX(-4px) skewX( 2deg); }
+            94%          { transform: translateX( 4px) skewX(-2deg); }
+            96%          { transform: translateX(-2px) skewX( 1deg); }
+        }
+
+        /* Floating shapes */
+        .shape {
+            position: absolute;
             border-radius: 50%;
-            padding: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            opacity: 0.12;
+            animation: floatShape ease-in-out infinite alternate;
+        }
+        @keyframes floatShape {
+            from { transform: translateY(0) rotate(0deg); }
+            to   { transform: translateY(-30px) rotate(15deg); }
         }
 
-        .whatsapp-button img {
-            width: 45px;
-            height: 45px;
-            display: block;
+        /* Slide-up content */
+        .slide-up {
+            opacity: 0;
+            transform: translateY(32px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
-
-        .whatsapp-button:hover {
-            background-color: #128C7E;
-        }
+        .slide-up.visible { opacity: 1; transform: translateY(0); }
     </style>
 
-    @if ($whatsappButton && $whatsappButton->status == 'active')
-        <a href="https://api.whatsapp.com/send/?phone={{ $whatsappButton->phone_number }}&text={{ $whatsappButton->message }}&type=phone_number&app_absent=0"
-            class="whatsapp-button" target="_blank" aria-label="Chat with us on WhatsApp">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-        </a>
-    @endif
+    @stack('styles')
+</head>
 
-    {{-- @include('frontend.layouts.navbar') --}}
+<body class="bg-gray-950 text-gray-100 min-h-screen flex items-center justify-center overflow-hidden relative">
 
-    {{-- @include('frontend.layouts.navmenu') --}}
+    <!-- Decorative floating shapes -->
+    <div class="shape w-96 h-96 bg-indigo-600 top-[-8rem] left-[-8rem]" style="animation-duration:6s;"></div>
+    <div class="shape w-72 h-72 bg-pink-600 bottom-[-6rem] right-[-6rem]"  style="animation-duration:8s;animation-delay:1s;"></div>
+    <div class="shape w-48 h-48 bg-purple-600 top-1/3 right-1/4"          style="animation-duration:5s;animation-delay:0.5s;"></div>
 
-    {{-- <div class="modal fade search-area" id="search-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form>
-                    <input type="text" placeholder="Search here...">
-                    <button class="search-btn"><i class="fa fa-search"></i></button>
-                </form>
-            </div>
+    <!-- Background grid pattern -->
+    <div class="absolute inset-0 opacity-5"
+         style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 60px 60px;"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 text-center px-6 max-w-2xl mx-auto py-20">
+
+        <!-- Glitch number -->
+        <div class="slide-up mb-6">
+            <span class="glitch" data-text="404">404</span>
         </div>
-    </div> --}}
 
-    @yield('content')
+        <!-- Message -->
+        <div class="slide-up mb-3" data-delay="120">
+            <h1 class="text-2xl sm:text-4xl font-semibold tracking-tight text-white">
+                Halaman Tidak Ditemukan
+            </h1>
+        </div>
 
-    {{-- @include('frontend.layouts.footer') --}}
+        <div class="slide-up mb-10" data-delay="240">
+            <p class="text-base sm:text-lg text-gray-400 leading-relaxed">
+                Halaman yang kamu cari mungkin telah dipindahkan, dihapus,<br class="hidden sm:block">
+                atau memang tidak pernah ada.
+            </p>
+        </div>
 
-    <a class="scroll-top-arrow" href="javascript:void(0);"><i class="feather icon-feather-arrow-up"></i></a>
+        <!-- Action buttons -->
+        <div class="slide-up flex flex-col sm:flex-row items-center justify-center gap-4" data-delay="360">
+            <a href="{{ route('home') }}"
+               class="group inline-flex items-center gap-2 bg-white text-gray-900 text-sm font-semibold tracking-wider px-8 py-4 hover:bg-gray-100 transition-colors">
+                <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Kembali ke Beranda
+            </a>
+            <a href="javascript:history.back()"
+               class="inline-flex items-center gap-2 border border-white/20 text-gray-300 text-sm font-medium tracking-wider px-8 py-4 hover:border-white/50 hover:text-white transition-colors">
+                Halaman Sebelumnya
+            </a>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Search suggestion -->
+        <div class="slide-up mt-12 pt-10 border-t border-white/10" data-delay="480">
+            <p class="text-sm text-gray-500 mb-4">Atau cari apa yang kamu butuhkan</p>
+            <form action="{{ route('produk.index') }}" method="GET"
+                  class="flex items-center border-b border-white/20 focus-within:border-white/50 transition-colors max-w-sm mx-auto">
+                <input type="text" name="search"
+                       placeholder="Cari produk, artikel..."
+                       class="flex-1 bg-transparent text-white placeholder-gray-600 text-sm py-3 outline-none">
+                <button type="submit" class="text-gray-400 hover:text-white px-3 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+            </form>
+        </div>
 
-    {{-- <script>
-        @if ($errors->any())
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "error",
-                title: "FAIL!",
-                html: `
-                <ul style="text-align: left; margin: 0;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            `,
-                showConfirmButton: false,
-                timer: 5000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
-        @elseif (session('success'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "success",
-                title: "SUCCESS",
-                text: "{{ session('success') }}",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
-        @elseif (session('error'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: "error",
-                title: "FAIL!",
-                text: "{{ session('error') }}",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    popup: 'swal-custom-popup'
-                }
-            });
-        @endif
-    </script> --}}
+        @yield('content')
+    </div>
 
-    <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/theme-vendors.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/main.js') }}"></script>
+    <!-- Alpine.js (for child views) -->
+    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.tools.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/jquery.themepunch.revolution.min.js') }}"></script>
+    <!-- Pure JS: page reveal + staggered slide-up -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.body.classList.add('ready');
 
-    <!-- slider revolution 5.0 extensions (load extensions only on local file systems ! the following part can be removed on server for on demand loading) -->
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.actions.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.carousel.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.kenburn.min.js') }}">
-    </script>
-    <script type="text/javascript"
-        src="{{ asset('revolution/js/extensions/revolution.extension.layeranimation.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.migration.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.navigation.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.parallax.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.slideanims.min.js') }}">
-    </script>
-    <script type="text/javascript" src="{{ asset('revolution/js/extensions/revolution.extension.video.min.js') }}">
-    </script>
-
-    <script type="text/javascript">
-        var revapi349;
-        $(document).ready(function() {
-            if ($("#rev_slider_27_1").revolution === undefined) {
-                revslider_showDoubleJqueryError("#rev_slider_27_1");
-            } else {
-                revapi349 = $("#rev_slider_27_1").show().revolution({
-                    sliderType: "standard",
-                    jsFileLocation: "revolution/js/",
-                    sliderLayout: "fullscreen",
-                    dottedOverlay: "none",
-                    delay: 9000,
-                    navigation: {
-                        keyboardNavigation: "off",
-                        keyboard_direction: "horizontal",
-                        mouseScrollNavigation: "off",
-                        mouseScrollReverse: "reverse",
-                        onHoverStop: "off",
-                        arrows: {
-                            enable: true,
-                            style: "metis",
-                            hide_onmobile: false,
-                            hide_under: 0,
-                            hide_onleave: false,
-                            tmp: '',
-                            left: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 261,
-                            },
-                            right: {
-                                h_align: "right",
-                                v_align: "bottom",
-                                h_offset: 90,
-                                v_offset: 193
-                            }
-                        },
-                        touch: {
-                            touchenabled: 'on',
-                            swipe_threshold: 20,
-                            swipe_min_touches: 1,
-                            swipe_direction: 'horizontal',
-                            drag_block_vertical: true
-
-                        }
-                    },
-                    responsiveLevels: [1240, 1025, 778, 480],
-                    visibilityLevels: [1240, 1025, 778, 480],
-                    gridwidth: [1240, 1024, 778, 480],
-                    gridheight: [950, 500, 560, 500],
-                    lazyType: "none",
-                    shadow: 0,
-                    spinner: "spinner3",
-                    stopLoop: "off",
-                    stopAfterLoops: -1,
-                    stopAtSlide: -1,
-                    shuffle: "off",
-                    autoHeight: "off",
-                    fullScreenAutoWidth: "on",
-                    fullScreenAlignForce: "off",
-                    fullScreenOffsetContainer: "",
-                    fullScreenOffset: "100px",
-                    hideThumbsOnMobile: "off",
-                    hideSliderAtLimit: 0,
-                    hideCaptionAtLimit: 0,
-                    hideAllCaptionAtLilmit: 0,
-                    debugMode: false,
-                    fallbacks: {
-                        simplifyAll: "off",
-                        nextSlideOnWindowFocus: "off",
-                        disableFocusListener: false
-                    }
-                });
-            }
+        var items = document.querySelectorAll('.slide-up');
+        items.forEach(function (el, i) {
+            var delay = parseInt(el.getAttribute('data-delay') || (i * 120), 10);
+            setTimeout(function () {
+                el.classList.add('visible');
+            }, 80 + delay);
         });
+    });
     </script>
 
+    @stack('scripts')
 </body>
 
 </html>
