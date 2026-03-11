@@ -18,6 +18,15 @@ class BlogCategory extends Model
         'meta_keywords',
     ];
 
+
+    public function blogs()
+    {
+        return $this->hasMany(Blog::class, 'blog_categories_id');
+    }
+    
+    
+    
+    
     /*
     |--------------------------------------------------------------------------
     | Scopes

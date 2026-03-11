@@ -22,8 +22,10 @@ class PageShortcode extends Model
         'section_about_id',
         'pages_id',
         'faq_categories_id',
+        'product_category_id',
         'sort_id',
         'blog_limit',
+        'product_category_limit',
         'title',
         'subtitle',
         'heading',
@@ -55,6 +57,7 @@ class PageShortcode extends Model
         'comingsoon_subtitle',
         'comingsoon_image',
         'comingsoon_placeholder',
+        'product_category_style',
         'hero_style',
         'about_style',
         'pricing_style',
@@ -73,6 +76,7 @@ class PageShortcode extends Model
         'section_testimoni_id' => 'array',
         'section_team_id' => 'array',
         'section_service_id' => 'array',
+        'product_category_id' => 'array',
         'packages_id' => 'array',
     ];
 
