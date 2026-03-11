@@ -1,5 +1,13 @@
 @if ($shortcode->type == 'about us')
     @if ($shortcode->about_style == 'Style 1')
+    @php
+        $aboutSection = $shortcode->about;
+        // Helper: resolve image URL based on type (url = direct, upload = from storage)
+        $aboutImg = function($source, $type) {
+            if (!$source) return null;
+            return ($type === 'url') ? $source : asset('storage/' . $source);
+        };
+    @endphp
         
         <section class="py-20 bg-gray-100">
             <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24" data-reveal>
@@ -11,20 +19,20 @@
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Top Left Image -->
                             <div class="relative">
-                                <img src="{{ asset('images/hero/send.jpg') }}"
-                                    alt="Proses Pengiriman"
+                                <img src="{{ $aboutSection ? $aboutImg($aboutSection->image_1_source, $aboutSection->image_1_type) : asset('images/hero/send.jpg') }}"
+                                    alt="{{ $aboutSection ? ($aboutSection->image_1_alt ?? 'Image 1') : 'Proses Pengiriman' }}"
                                     class="w-full h-48 object-cover shadow-lg">
                             </div>
                             <!-- Top Right Image (Larger) -->
                             <div class="row-span-2">
-                                <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80"
-                                    alt="Mitra Bisnis Terpercaya"
+                                <img src="{{ $aboutSection ? $aboutImg($aboutSection->image_2_source, $aboutSection->image_2_type) : 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80' }}"
+                                    alt="{{ $aboutSection ? ($aboutSection->image_2_alt ?? 'Image 2') : 'Mitra Bisnis Terpercaya' }}"
                                     class="w-full h-full object-cover shadow-lg" style="min-height: 400px;">
                             </div>
                             <!-- Bottom Left Image -->
                             <div class="relative">
-                                <img src="{{ asset('images/hero/print.jpg') }}"
-                                    alt="Solusi Bisnis"
+                                <img src="{{ $aboutSection ? $aboutImg($aboutSection->image_3_source, $aboutSection->image_3_type) : asset('images/hero/print.jpg') }}"
+                                    alt="{{ $aboutSection ? ($aboutSection->image_3_alt ?? 'Image 3') : 'Solusi Bisnis' }}"
                                     class="w-full h-48 object-cover shadow-lg">
                             </div>
                         </div>
@@ -33,23 +41,55 @@
                     <!-- Right Column - Content -->
                     <div>
                         <!-- Label -->
-                        <span class="text-sm font-medium text-gray-500 tracking-widest uppercase mb-4 block">KEUNGGULAN KAMI</span>
+                        <span class="text-sm font-medium text-gray-500 tracking-widest uppercase mb-4 block">
+                            {{ $aboutSection ? $aboutSection->section_label : 'KEUNGGULAN KAMI' }}
+                        </span>
 
                         <!-- Heading -->
-                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Keterangan Produk</h2>
+                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                            {{ $aboutSection ? $aboutSection->section_title : 'Keterangan Produk' }}
+                        </h2>
 
                         <!-- Description -->
                         <p class="text-gray-600 leading-relaxed mb-8">
-                            Kami mengutamakan kualitas dan kepuasan pelanggan. Dengan katalog produk lengkap dan mitra brand terpercaya, setiap produk yang kami distribusikan memiliki kualitas terjamin dengan harga kompetitif untuk mendukung kebutuhan bisnis Anda.
+                            {{ $aboutSection ? $aboutSection->section_description : 'Kami mengutamakan kualitas dan kepuasan pelanggan. Dengan katalog produk lengkap dan mitra brand terpercaya, setiap produk yang kami distribusikan memiliki kualitas terjamin dengan harga kompetitif untuk mendukung kebutuhan bisnis Anda.' }}
                         </p>
 
                         <!-- Features Label -->
-                        <h4 class="font-bold text-gray-900 mb-6">Keunggulan produk kami:</h4>
+                        <h4 class="font-bold text-gray-900 mb-6">
+                            {{ $aboutSection ? $aboutSection->benefit_title : 'Keunggulan produk kami:' }}
+                        </h4>
 
                         <!-- Features Checklist - 2 Columns -->
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Left Column -->
                             <div class="space-y-4">
+                                @if($aboutSection)
+                                    @if($aboutSection->benefit_1_enabled && $aboutSection->benefit_1_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_1_text }}</span>
+                                    </div>
+                                    @endif
+                                    @if($aboutSection->benefit_2_enabled && $aboutSection->benefit_2_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_2_text }}</span>
+                                    </div>
+                                    @endif
+                                    @if($aboutSection->benefit_3_enabled && $aboutSection->benefit_3_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_3_text }}</span>
+                                    </div>
+                                    @endif
+                                @else
                                 <div class="flex items-center gap-3">
                                     <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
@@ -68,10 +108,37 @@
                                     </svg>
                                     <span class="text-gray-700">Gratis Ongkir Indonesia</span>
                                 </div>
+                                @endif
                             </div>
 
                             <!-- Right Column -->
                             <div class="space-y-4">
+                                @if($aboutSection)
+                                    @if($aboutSection->benefit_4_enabled && $aboutSection->benefit_4_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_4_text }}</span>
+                                    </div>
+                                    @endif
+                                    @if($aboutSection->benefit_5_enabled && $aboutSection->benefit_5_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_5_text }}</span>
+                                    </div>
+                                    @endif
+                                    @if($aboutSection->benefit_6_enabled && $aboutSection->benefit_6_text)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-gray-700">{{ $aboutSection->benefit_6_text }}</span>
+                                    </div>
+                                    @endif
+                                @else
                                 <div class="flex items-center gap-3">
                                     <svg class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -91,6 +158,7 @@
                                     </svg>
                                     <span class="text-gray-700">Brand Terpercaya</span>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>

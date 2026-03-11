@@ -1,5 +1,12 @@
 @if ($shortcode->type == 'service')
     @if ($shortcode->service_style == 'Style 1')
+    @php
+        $serviceIds = $shortcode->section_service_id ?? [];
+        $sectionServices = !empty($serviceIds)
+            ? \App\Models\SectionService::whereIn('id', $serviceIds)->where('status', 'active')->get()
+            : collect();
+        $totalServices = max(1, $sectionServices->count());
+    @endphp
 
         <!-- Keunggulan Kami - Minimalist Slider -->
         <section class="py-24 bg-[#e8e4df] relative overflow-hidden" data-reveal>
@@ -10,10 +17,12 @@
 
                 <!-- Section Header -->
                 <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl text-gray-900 italic">Kenapa Harus Mitra Jogja?</h2>
+                    <h2 class="text-3xl md:text-4xl text-gray-900 italic">
+                        {{ $shortcode->service_title ?? 'Kenapa Harus Mitra Jogja?' }}
+                    </h2>
                 </div>
 
-                <div x-data="{ activeSlide: 0, totalSlides: 3 }" class="relative">
+                <div x-data="{ activeSlide: 0, totalSlides: {{ $totalServices }} }" class="relative">
                     <!-- Navigation Arrow Left -->
                     <button x-on:click="activeSlide = (activeSlide - 1 + totalSlides) % totalSlides"
                             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 text-gray-400 hover:text-red-600 transition-colors">
@@ -27,13 +36,13 @@
                         <div class="flex transition-transform duration-700 ease-in-out"
                             :style="'transform: translateX(-' + (activeSlide * 100) + '%)'">
 
-                            <!-- Slide 1 - Produk Lengkap -->
+                            @forelse($sectionServices as $service)
                             <div class="min-w-full">
                                 <div class="text-center">
                                     <!-- Image -->
                                     <div class="mb-10">
-                                        <img src="{{ asset('images/keunggulan/proses-cepat.jpg') }}"
-                                            alt="Produk Lengkap"
+                                        <img src="{{ $service->image ? asset('storage/' . $service->image) : asset('images/keunggulan/proses-cepat.jpg') }}"
+                                            alt="{{ $service->name }}"
                                             class="w-full max-w-md mx-auto aspect-[4/3] object-cover"
                                             onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80'">
                                     </div>
@@ -41,57 +50,30 @@
                                     <!-- Text Content -->
                                     <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
                                     <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">
-                                        Produk Lengkap & Terpercaya
+                                        {{ $service->name }}
                                     </h3>
                                     <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
-                                        Menyediakan lebih dari 10.000+ item produk dari berbagai kategori. Mulai dari alat tulis kantor, perlengkapan kebersihan, alat kesehatan, furniture, hingga IT hardware & software. Semua produk original dengan garansi resmi.
+                                        {{ strip_tags($service->content ?? '') }}
                                     </p>
                                 </div>
                             </div>
-
-                            <!-- Slide 2 - Harga Kompetitif -->
+                            @empty
                             <div class="min-w-full">
                                 <div class="text-center">
-                                    <!-- Image -->
                                     <div class="mb-10">
-                                        <img src="{{ asset('images/keunggulan/kualitas-premium.jpg') }}"
-                                            alt="Harga Kompetitif"
-                                            class="w-full max-w-md mx-auto aspect-[4/3] object-cover"
-                                            onerror="this.src='https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=600&q=80'">
+                                        <img src="{{ asset('images/keunggulan/proses-cepat.jpg') }}"
+                                            alt="Layanan"
+                                            class="w-full max-w-md mx-auto aspect-[4/3] object-cover">
                                     </div>
-
-                                    <!-- Text Content -->
                                     <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
-                                    <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">
-                                        Harga Kompetitif & Terbaik
-                                    </h3>
+                                    <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">Layanan Kami</h3>
                                     <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
-                                        Dapatkan harga terbaik untuk pembelian dalam jumlah besar. Sistem harga bertingkat yang menguntungkan untuk bisnis Anda. Kami berkomitmen memberikan value terbaik dengan kualitas produk yang tidak perlu diragukan lagi.
+                                        Kami menyediakan berbagai layanan terbaik untuk mendukung kebutuhan bisnis Anda.
                                     </p>
                                 </div>
                             </div>
+                            @endforelse
 
-                            <!-- Slide 3 - Pelayanan Profesional -->
-                            <div class="min-w-full">
-                                <div class="text-center">
-                                    <!-- Image -->
-                                    <div class="mb-10">
-                                        <img src="{{ asset('images/keunggulan/pelayanan.jpg') }}"
-                                            alt="Pelayanan Terbaik"
-                                            class="w-full max-w-md mx-auto aspect-[4/3] object-cover"
-                                            onerror="this.src='https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&q=80'">
-                                    </div>
-
-                                    <!-- Text Content -->
-                                    <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
-                                    <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">
-                                        Layanan Profesional & Responsif
-                                    </h3>
-                                    <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
-                                        Tim customer service kami siap membantu kebutuhan bisnis Anda dengan responsif. Sistem pemesanan mudah, pengiriman cepat ke seluruh Indonesia, dan after-sales service yang memuaskan. Kepuasan Anda adalah prioritas kami.
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -113,6 +95,13 @@
         
         
     @elseif ($shortcode->service_style == 'Style 2')
+    @php
+        $serviceIds2 = $shortcode->section_service_id ?? [];
+        $sectionServices2 = !empty($serviceIds2)
+            ? \App\Models\SectionService::whereIn('id', $serviceIds2)->where('status', 'active')->get()
+            : collect();
+        $featuredService = $sectionServices2->firstWhere('is_featured', true) ?? $sectionServices2->first();
+    @endphp
     
         <section class="w-full px-8 md:px-16 py-16 bg-gray-50/60">
 
@@ -128,8 +117,8 @@
                     {{-- Main Image --}}
                     <div class="relative z-10 overflow-hidden shadow-2xl w-full max-w-sm mx-auto aspect-[4/5]">
                         <img
-                            src="{{ asset('images/cs.jpg') }}"
-                            alt="Tim CS Mitra Malang"
+                            src="{{ $featuredService && $featuredService->image_featured ? asset('storage/' . $featuredService->image_featured) : asset('images/cs.jpg') }}"
+                            alt="{{ $featuredService ? $featuredService->name : 'Tim CS' }}"
                             class="w-full h-full object-cover object-center">
                     </div>
 
@@ -164,74 +153,38 @@
                 {{-- Right: Why Choose Us --}}
                 <div class="flex flex-col justify-center reveal from-right">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-5 leading-tight">
-                        Mitra Terpercaya<br>Pengadaan TKDN
+                        {{ $shortcode->service_title ?? 'Mitra Terpercaya Pengadaan TKDN' }}
                     </h2>
                     <p class="text-gray-500 text-base leading-relaxed mb-8 max-w-md">
-                        Kami hadir sebagai platform yang menghubungkan instansi pemerintah &amp; swasta dengan penyedia barang dan jasa lokal yang telah terverifikasi TKDN, terdaftar e-Katalog LKPP, dan siap mendukung kebutuhan pengadaan Anda.
+                        {{ $shortcode->service_subtitle ?? 'Kami hadir sebagai platform yang menghubungkan instansi pemerintah & swasta dengan penyedia barang dan jasa lokal yang telah terverifikasi TKDN, terdaftar e-Katalog LKPP, dan siap mendukung kebutuhan pengadaan Anda.' }}
                     </p>
 
                     {{-- Accordion --}}
-                    <div class="divide-y divide-gray-200 border-y border-gray-200" x-data="{ open: 2 }">
+                    <div class="divide-y divide-gray-200 border-y border-gray-200" x-data="{ open: 1 }">
 
-                        {{-- Item 1 --}}
+                        @forelse($sectionServices2 as $svcIdx => $svc)
+                        @php $svcNum = $svcIdx + 1; @endphp
                         <div class="py-5">
-                            <button @click="open = open === 1 ? null : 1"
+                            <button @click="open = open === {{ $svcNum }} ? null : {{ $svcNum }}"
                                     class="w-full flex items-center justify-between text-left group">
                                 <span class="text-base font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
-                                    Produk Bersertifikat TKDN
+                                    {{ $svc->name }}
                                 </span>
                                 <span class="text-2xl font-light text-gray-400 leading-none ml-4 shrink-0"
-                                    x-text="open === 1 ? '−' : '+'">+</span>
+                                    x-text="open === {{ $svcNum }} ? '−' : '+'">+</span>
                             </button>
-                            <div x-show="open === 1" x-transition class="mt-2 text-sm text-gray-500 leading-relaxed pr-8">
-                                Seluruh produk yang kami sediakan telah memiliki sertifikasi TKDN resmi dari Kementerian Perindustrian, memastikan kepatuhan penuh terhadap regulasi pengadaan pemerintah.
+                            <div x-show="open === {{ $svcNum }}" x-transition class="mt-2 text-sm text-gray-500 leading-relaxed pr-8">
+                                {{ strip_tags($svc->content ?? '') }}
                             </div>
                         </div>
-
-                        {{-- Item 2 --}}
+                        @empty
                         <div class="py-5">
-                            <button @click="open = open === 2 ? null : 2"
-                                    class="w-full flex items-center justify-between text-left group">
-                                <span class="text-base font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
-                                    Terdaftar di e-Katalog LKPP
-                                </span>
-                                <span class="text-2xl font-light text-gray-400 leading-none ml-4 shrink-0"
-                                    x-text="open === 2 ? '−' : '+'">−</span>
+                            <button class="w-full flex items-center justify-between text-left">
+                                <span class="text-base font-bold text-gray-900">Produk Bersertifikat TKDN</span>
+                                <span class="text-2xl font-light text-gray-400 leading-none ml-4 shrink-0">+</span>
                             </button>
-                            <div x-show="open === 2" x-transition class="mt-2 text-sm text-gray-500 leading-relaxed pr-8">
-                                Semua mitra kami terdaftar resmi di e-Katalog LKPP, sehingga proses pengadaan instansi menjadi lebih mudah, transparan, dan sesuai dengan ketentuan Perpres Pengadaan Barang/Jasa Pemerintah.
-                            </div>
                         </div>
-
-                        {{-- Item 3 --}}
-                        <div class="py-5">
-                            <button @click="open = open === 3 ? null : 3"
-                                    class="w-full flex items-center justify-between text-left group">
-                                <span class="text-base font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
-                                    6 Kategori Pengadaan Lengkap
-                                </span>
-                                <span class="text-2xl font-light text-gray-400 leading-none ml-4 shrink-0"
-                                    x-text="open === 3 ? '−' : '+'">+</span>
-                            </button>
-                            <div x-show="open === 3" x-transition class="mt-2 text-sm text-gray-500 leading-relaxed pr-8">
-                                Kami menyediakan 6 kategori kebutuhan instansi: Alat Tulis &amp; Kantor, Alat Kebersihan, Alat Kesehatan, Home Appliances, Furniture, serta IT Hardware &amp; Software — semua dalam satu platform.
-                            </div>
-                        </div>
-
-                        {{-- Item 4 --}}
-                        <div class="py-5">
-                            <button @click="open = open === 4 ? null : 4"
-                                    class="w-full flex items-center justify-between text-left group">
-                                <span class="text-base font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
-                                    Mitra Penyedia Terverifikasi
-                                </span>
-                                <span class="text-2xl font-light text-gray-400 leading-none ml-4 shrink-0"
-                                    x-text="open === 4 ? '−' : '+'">+</span>
-                            </button>
-                            <div x-show="open === 4" x-transition class="mt-2 text-sm text-gray-500 leading-relaxed pr-8">
-                                Setiap mitra penyedia kami telah melalui proses verifikasi legalitas, kemampuan produksi, dan kepatuhan TKDN, sehingga instansi dapat berbelanja dengan aman dan akuntabel.
-                            </div>
-                        </div>
+                        @endforelse
 
                     </div>
                 </div>
@@ -240,7 +193,33 @@
             {{-- Bottom: 3 Feature Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
-                {{-- Card 1: 100% Authentic --}}
+                @foreach($sectionServices2->take(3) as $cardIdx => $svcCard)
+                @php
+                    $cardColors = [
+                        ['bg' => 'bg-amber-50', 'iconBg' => 'bg-amber-100', 'iconText' => 'text-amber-600'],
+                        ['bg' => 'bg-white border border-gray-100 shadow-sm', 'iconBg' => 'bg-blue-50', 'iconText' => 'text-blue-500'],
+                        ['bg' => 'bg-white border border-gray-100 shadow-sm', 'iconBg' => 'bg-green-50', 'iconText' => 'text-green-600'],
+                    ];
+                    $cc = $cardColors[$cardIdx] ?? $cardColors[0];
+                @endphp
+                <div class="{{ $cc['bg'] }} p-6 flex flex-col gap-3 reveal delay-{{ $cardIdx + 1 }}">
+                    <div class="w-10 h-10 {{ $cc['iconBg'] }} rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 {{ $cc['iconText'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ $svcCard->name }}</h3>
+                        <p class="text-xs text-gray-500 leading-relaxed">{{ Str::limit(strip_tags($svcCard->content ?? ''), 120) }}</p>
+                    </div>
+                    <a href="{{ $svcCard->slug ? route('service.show', $svcCard->slug) : '#' }}" class="mt-auto inline-flex items-center justify-center border border-gray-300 text-xs font-semibold text-gray-700 px-4 py-2 rounded-full hover:border-red-600 hover:text-red-600 transition-colors w-fit">
+                        Lihat Detail
+                    </a>
+                </div>
+                @endforeach
+
+                @if($sectionServices2->count() === 0)
+                {{-- Card 1: Fallback --}}
                 <div class="bg-amber-50 p-6 flex flex-col gap-3 reveal delay-1">
                     <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -255,38 +234,7 @@
                         Lihat Detail
                     </a>
                 </div>
-
-                {{-- Card 2: Free Return --}}
-                <div class="bg-white border border-gray-100 p-6 flex flex-col gap-3 shadow-sm reveal delay-2">
-                    <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 15v1a3 3 0 01-6 0v-1m6-8V5a3 3 0 00-6 0v2M5 10h14M5 10l2-2m-2 2l2 2m10-2l-2-2m2 2l-2 2"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900 mb-1">Terdaftar e-Katalog LKPP</h3>
-                        <p class="text-xs text-gray-500 leading-relaxed">Mitra kami terdaftar resmi di e-Katalog LKPP, mempermudah proses pembelian langsung oleh instansi pemerintah.</p>
-                    </div>
-                    <a href="#" class="mt-auto inline-flex items-center justify-center border border-gray-300 text-xs font-semibold text-gray-700 px-4 py-2 rounded-full hover:border-red-600 hover:text-red-600 transition-colors w-fit">
-                        Lihat Detail
-                    </a>
-                </div>
-
-                {{-- Card 3: Safe Payments --}}
-                <div class="bg-white border border-gray-100 p-6 flex flex-col gap-3 shadow-sm reveal delay-3">
-                    <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900 mb-1">Sesuai Perpres Pengadaan</h3>
-                        <p class="text-xs text-gray-500 leading-relaxed">Seluruh proses pengadaan kami mengikuti ketentuan Perpres No. 16/2018 dan perubahannya untuk keamanan dan akuntabilitas.</p>
-                    </div>
-                    <a href="#" class="mt-auto inline-flex items-center justify-center border border-gray-300 text-xs font-semibold text-gray-700 px-4 py-2 rounded-full hover:border-red-600 hover:text-red-600 transition-colors w-fit">
-                        Lihat Detail
-                    </a>
-                </div>
+                @endif
 
             </div>
 

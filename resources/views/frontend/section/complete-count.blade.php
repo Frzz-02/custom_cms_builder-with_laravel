@@ -1,4 +1,10 @@
 @if ($shortcode->type == 'completecount')
+@php
+    $countIds = $shortcode->section_completecount_id ?? [];
+    $completeCounts = !empty($countIds)
+        ? \App\Models\SectionCompletecount::whereIn('id', $countIds)->where('status', 'active')->get()
+        : collect();
+@endphp
 
     <!-- Solusi Mitra Jogja Section - Mediterranean Style -->
     <section class="py-20 bg-white relative" data-reveal>
@@ -32,7 +38,17 @@
                 <div>
                     <h3 class="text-center text-xl tracking-[0.3em] text-gray-400 font-light mb-12">BENEFITS</h3>
                     <div class="grid grid-cols-2 gap-x-12 gap-y-8">
-                        <!-- Benefit 1 -->
+                        @forelse($completeCounts as $count)
+                        <div class="text-center">
+                            <div class="border-t border-gray-300 pt-4 mb-3">
+                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <p class="text-gray-700 text-sm font-semibold">{{ $count->amount ? number_format($count->amount) . '+' : '' }}</p>
+                            <p class="text-gray-700 text-sm">{{ $count->title }}</p>
+                        </div>
+                        @empty
                         <div class="text-center">
                             <div class="border-t border-gray-300 pt-4 mb-3">
                                 <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,19 +57,6 @@
                             </div>
                             <p class="text-gray-700 text-sm">Pengiriman Cepat</p>
                         </div>
-
-                        <!-- Benefit 2 -->
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                            </div>
-                            <p class="text-gray-700 text-sm">Gratis Ongkir*</p>
-                        </div>
-
-                        <!-- Benefit 3 -->
                         <div class="text-center">
                             <div class="border-t border-gray-300 pt-4 mb-3">
                                 <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,8 +65,6 @@
                             </div>
                             <p class="text-gray-700 text-sm">1250+ Klien Puas</p>
                         </div>
-
-                        <!-- Benefit 4 -->
                         <div class="text-center">
                             <div class="border-t border-gray-300 pt-4 mb-3">
                                 <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,8 +73,6 @@
                             </div>
                             <p class="text-gray-700 text-sm">Garansi Resmi</p>
                         </div>
-
-                        <!-- Benefit 5 -->
                         <div class="text-center">
                             <div class="border-t border-gray-300 pt-4 mb-3">
                                 <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,8 +81,6 @@
                             </div>
                             <p class="text-gray-700 text-sm">Produk Original</p>
                         </div>
-
-                        <!-- Benefit 6 -->
                         <div class="text-center">
                             <div class="border-t border-gray-300 pt-4 mb-3">
                                 <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,6 +89,7 @@
                             </div>
                             <p class="text-gray-700 text-sm">Harga Kompetitif</p>
                         </div>
+                        @endforelse
                     </div>
                 </div>
             </div>

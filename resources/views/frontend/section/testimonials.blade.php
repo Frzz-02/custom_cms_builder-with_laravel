@@ -1,52 +1,40 @@
 @if ($shortcode->type == 'testimonials')
     @if ($shortcode->testimonials_style == 'Style 1')
+    @php
+        $testimoniIds = $shortcode->section_testimoni_id ?? [];
+        $dbTestimonials = !empty($testimoniIds)
+            ? \App\Models\SectionTestimonial::whereIn('id', $testimoniIds)->where('status', 'active')->get()
+            : collect();
+        $testimonialsData = $dbTestimonials->map(function($t, $i) {
+            $borders = ['border-violet-400', 'border-violet-300', 'border-sky-400', 'border-teal-300', 'border-amber-400', 'border-pink-400'];
+            return [
+                'name'    => $t->name ?? 'Pelanggan',
+                'role'    => $t->position ?? '',
+                'text'    => $t->content ?? '',
+                'product' => $t->position ?? '',
+                'avatar'  => $t->image ? asset('storage/' . $t->image) : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80',
+                'star'    => (int) ($t->star ?? 5),
+                'border'  => $borders[$i % count($borders)],
+            ];
+        })->values()->toArray();
+
+        // Fallback to demo data if no DB records
+        if (empty($testimonialsData)) {
+            $testimonialsData = [
+                ['name' => 'Sir Didik Wenger', 'role' => 'Purchasing Manager Tech Corp', 'text' => 'MitraJogja sangat membantu untuk kebutuhan procurement kantor. Katalog lengkap, harga kompetitif, dan pengiriman cepat. Partner B2B yang sangat profesional dan terpercaya!', 'product' => 'IT Hardware', 'avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80', 'star' => 5, 'border' => 'border-violet-400'],
+                ['name' => 'Sarah Wijaya', 'role' => 'Admin Rumah Sakit', 'text' => 'Sudah 6 bulan jadi pelanggan untuk supply alat kesehatan dan kebersihan. Produk original, harga bersaing, dan CS sangat responsif. Highly recommended!', 'product' => 'Alat Kesehatan', 'avatar' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80', 'star' => 5, 'border' => 'border-violet-300'],
+                ['name' => 'Budi Santoso', 'role' => 'Owner Toko Peralatan', 'text' => 'Sistem grosir yang fleksibel dan harga sangat kompetitif. Katalog produknya lengkap dari ATK sampai furniture. Perfect untuk reseller seperti kami!', 'product' => 'Alat Tulis Kantor', 'avatar' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80', 'star' => 5, 'border' => 'border-sky-400'],
+                ['name' => 'Dewi Lestari', 'role' => 'Office Manager', 'text' => 'One-stop solution untuk semua kebutuhan kantor! Dari ATK, furniture, sampai cleaning supplies semua ada. Proses pemesanan mudah dan pengiriman tepat waktu!', 'product' => 'Furniture Kantor', 'avatar' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80', 'star' => 5, 'border' => 'border-teal-300'],
+                ['name' => 'Ahmad Rizki', 'role' => 'Business Owner', 'text' => 'Pelayanan ramah dan profesional. Tim sales sangat membantu untuk konsultasi produk. Harga bulk order sangat menarik. Top service!', 'product' => 'Home Appliances', 'avatar' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80', 'star' => 5, 'border' => 'border-amber-400'],
+            ];
+        }
+    @endphp
         <!-- Testimonials Section -->
         <section id="testimoni" class="py-20 bg-gradient-to-b from-slate-100 to-slate-200 relative overflow-hidden" data-reveal>
             <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24 relative z-10"
                 x-data="{
                     currentTestimonial: 2,
-                    testimonials: [
-                        {
-                            name: 'Sir Didik Wenger',
-                            role: 'Purchasing Manager Tech Corp',
-                            text: 'MitraJogja sangat membantu untuk kebutuhan procurement kantor. Katalog lengkap, harga kompetitif, dan pengiriman cepat. Partner B2B yang sangat profesional dan terpercaya!',
-                            product: 'IT Hardware',
-                            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80',
-                            border: 'border-violet-400'
-                        },
-                        {
-                            name: 'Sarah Wijaya',
-                            role: 'Admin Rumah Sakit',
-                            text: 'Sudah 6 bulan jadi pelanggan untuk supply alat kesehatan dan kebersihan. Produk original, harga bersaing, dan CS sangat responsif. Highly recommended!',
-                            product: 'Alat Kesehatan',
-                            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80',
-                            border: 'border-violet-300'
-                        },
-                        {
-                            name: 'Budi Santoso',
-                            role: 'Owner Toko Peralatan',
-                            text: 'Sistem grosir yang fleksibel dan harga sangat kompetitif. Katalog produknya lengkap dari ATK sampai furniture. Perfect untuk reseller seperti kami!',
-                            product: 'Alat Tulis Kantor',
-                            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80',
-                            border: 'border-sky-400'
-                        },
-                        {
-                            name: 'Dewi Lestari',
-                            role: 'Office Manager',
-                            text: 'One-stop solution untuk semua kebutuhan kantor! Dari ATK, furniture, sampai cleaning supplies semua ada. Proses pemesanan mudah dan pengiriman tepat waktu!',
-                            product: 'Furniture Kantor',
-                            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80',
-                            border: 'border-teal-300'
-                        },
-                        {
-                            name: 'Ahmad Rizki',
-                            role: 'Business Owner',
-                            text: 'Pelayanan ramah dan profesional. Tim sales sangat membantu untuk konsultasi produk. Harga bulk order sangat menarik. Top service!',
-                            product: 'Home Appliances',
-                            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80',
-                            border: 'border-amber-400'
-                        }
-                    ],
+                    testimonials: {{ Js::from($testimonialsData) }},
                     getPosition(index) {
                         const diff = index - this.currentTestimonial;
                         const total = this.testimonials.length;
@@ -61,8 +49,12 @@
                 }">
 
                 <div class="text-center mb-10">
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">Kata Mereka Tentang</h2>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">Layanan Kami?</h2>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                        {{ $shortcode->testimonials_title ?? 'Kata Mereka Tentang' }}
+                    </h2>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                        {{ $shortcode->testimonials_subtitle ?? 'Layanan Kami?' }}
+                    </h2>
                 </div>
 
                 <!-- Avatar Carousel - Horizontal sliding -->

@@ -1,4 +1,9 @@
 @if ($shortcode->type == 'newsletter')
+@php
+    $sectionNewsletter = $shortcode->section_newsletter_id
+        ? \App\Models\SectionNewsletter::find($shortcode->section_newsletter_id)
+        : null;
+@endphp
 
     <section class="w-full px-8 md:px-16 py-10 bg-white reveal">
 
@@ -14,11 +19,14 @@
                     Newsletter
                 </span>
                 <h2 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-3">
-                    Ingin Tahu Lebih Banyak<br>
-                    tentang Kebutuhan <span class="text-gray-400">TKDN</span> Kami?
+                    {!! $sectionNewsletter && $sectionNewsletter->title
+                        ? $sectionNewsletter->title
+                        : 'Ingin Tahu Lebih Banyak<br>tentang Kebutuhan <span class="text-gray-400">TKDN</span> Kami?' !!}
                 </h2>
                 <p class="text-gray-400 text-sm leading-relaxed max-w-md">
-                    Dapatkan informasi terbaru seputar produk lokal unggulan, promo eksklusif, dan update TKDN langsung di kotak masuk Anda. Subscribe sekarang dan jadilah yang pertama tahu!
+                    {{ $sectionNewsletter && $sectionNewsletter->subtitle
+                        ? $sectionNewsletter->subtitle
+                        : 'Dapatkan informasi terbaru seputar produk lokal unggulan, promo eksklusif, dan update TKDN langsung di kotak masuk Anda. Subscribe sekarang dan jadilah yang pertama tahu!' }}
                 </p>
             </div>
 
@@ -34,12 +42,12 @@
                         <input
                             type="email"
                             x-model="email"
-                            placeholder="email@contoh.com"
+                            placeholder="{{ $sectionNewsletter && $sectionNewsletter->placeholder ? $sectionNewsletter->placeholder : 'email@contoh.com' }}"
                             class="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none py-1 min-w-0">
                         <button
                             @click="if(email) sent = true"
                             class="bg-gray-400 hover:bg-red-300 text-gray-900 text-sm font-bold px-5 py-2.5 rounded-full transition-colors shrink-0">
-                            Subscribe
+                            {{ $sectionNewsletter && $sectionNewsletter->action_label ? $sectionNewsletter->action_label : 'Subscribe' }}
                         </button>
                     </div>
                     <p class="text-gray-500 text-[11px] mt-3">
