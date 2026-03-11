@@ -1,6 +1,6 @@
 {{-- @extends('frontend.layouts.master') --}}
 
-@extends('frontend.layouts.pages.master-homepage')
+@extends($layout)
 
 
 
@@ -65,9 +65,9 @@
 
         @include('frontend.section.about')
 
-        @include('frontend.section.faqs')
-
         @include('frontend.section.pricing')
+        
+        @include('frontend.section.productCategory')
 
         @include('frontend.section.contact')
 
@@ -77,15 +77,11 @@
 
         @include('frontend.section.complete-count')
 
-        @include('frontend.section.team')
-
         @include('frontend.section.testimonials')
 
-        @include('frontend.section.brand')
+        @include('frontend.section.brands')
 
-        @include('frontend.section.recentpromo')
-
-        @include('frontend.section.recentproduct')
+        @include('frontend.section.recentProduct')
 
         @include('frontend.section.comingsoon')
 

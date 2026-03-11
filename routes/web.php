@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('header', HeaderController::class);
         
         // Product Category Routes
+        Route::get('product-categories/list', [ProductCategoryController::class, 'getList'])->name('product-categories.list');
         Route::resource('product-categories', ProductCategoryController::class);
         
         // Product Routes
@@ -120,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('testimonials', SectionTestimonialController::class);
         
         // Services Routes
+        Route::get('section-services/list', [SectionServiceController::class, 'getList'])->name('section-services.list');
         Route::resource('services', SectionServiceController::class);
         
         // Newsletter Settings Routes
