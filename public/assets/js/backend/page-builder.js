@@ -266,6 +266,32 @@ function updateBlockOrder() {
     });
 }
 
+/**
+ * Fungsi untuk mendapatkan next block counter yang benar
+ * Menghitung dari block yang ada, bukan dari variable global
+ * Ini mencegah skip nomor saat block dihapus
+ * 
+ * @returns {number} - Nomor counter berikutnya
+ */
+function getNextBlockCounter() {
+    const blocks = document.querySelectorAll('.block-item');
+    let maxCounter = 0;
+    
+    // Loop setiap block untuk cari nomor terbesar
+    blocks.forEach(block => {
+        const blockId = block.id; // Contoh: "block-3"
+        if (blockId && blockId.startsWith('block-')) {
+            const num = parseInt(blockId.replace('block-', ''));
+            if (!isNaN(num) && num > maxCounter) {
+                maxCounter = num;
+            }
+        }
+    });
+    
+    // Return nomor terbesar + 1
+    return maxCounter + 1;
+}
+
 // ===================================================================
 // BAGIAN 5: FUNGSI HELPER UNTUK MODAL
 // ===================================================================
@@ -1163,7 +1189,7 @@ async function saveBrandsBlock() {
     
     // Ambil semua checkbox yang dicentang
     const checkboxes = document.querySelectorAll('#brandsList input[type="checkbox"]:checked');
-    const selectedBrands = Array.from(checkboxes).map(cb => cb.value);
+    const selectedBrands = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
     // Validasi minimal harus pilih 1 brand
     if (selectedBrands.length === 0) {
@@ -1365,7 +1391,7 @@ async function saveCompleteCountsBlock() {
     
     // Ambil semua checkbox yang dicentang
     const checkboxes = document.querySelectorAll('#completeCountsList input[type="checkbox"]:checked');
-    const selectedCounts = Array.from(checkboxes).map(cb => cb.value);
+    const selectedCounts = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
     // Validasi minimal harus pilih 1 complete count
     if (selectedCounts.length === 0) {
@@ -1893,7 +1919,7 @@ function addBlock(type) {
     // Special handling untuk hero-banner
     // Hero banner butuh pilih style dulu sebelum ditambahkan
     if (type === 'hero-banner') {
-        blockCounter++; // Increment counter (tambah 1)
+        blockCounter = getNextBlockCounter(); // Gunakan fungsi baru untuk counter konsisten
         pendingHeroBannerBlockId = `block-${blockCounter}`; // Buat ID untuk pending block
         closeBlockLibrary(); // Tutup library modal
         document.getElementById('selectHeroStyleModal').classList.remove('hidden'); // Buka style modal
@@ -1903,7 +1929,7 @@ function addBlock(type) {
     
     // Special handling untuk featured-services (butuh pilih style dulu)
     if (type === 'featured-services') {
-        blockCounter++;
+        blockCounter = getNextBlockCounter();
         pendingFeaturedServicesBlockId = `block-${blockCounter}`;
         closeBlockLibrary();
         document.getElementById('selectServiceStyleModal').classList.remove('hidden');
@@ -1913,7 +1939,7 @@ function addBlock(type) {
     
     // Special handling untuk testimonials (sama seperti hero-banner)
     if (type === 'testimonials') {
-        blockCounter++;
+        blockCounter = getNextBlockCounter();
         pendingTestimonialsBlockId = `block-${blockCounter}`;
         closeBlockLibrary();
         document.getElementById('selectTestimonialsStyleModal').classList.remove('hidden');
@@ -1923,7 +1949,7 @@ function addBlock(type) {
     
     // Special handling untuk latestnews (butuh pilih style dulu)
     if (type === 'latestnews') {
-        blockCounter++;
+        blockCounter = getNextBlockCounter();
         pendingLatestNewsBlockId = `block-${blockCounter}`;
         closeBlockLibrary();
         document.getElementById('selectLatestNewsStyleModal').classList.remove('hidden');
@@ -1933,7 +1959,7 @@ function addBlock(type) {
     
     // Newsletter langsung ditambahkan tanpa pilih style
     if (type === 'newsletter') {
-        blockCounter++;
+        blockCounter = getNextBlockCounter();
         const blockId = `block-${blockCounter}`;
         const config = blockConfig[type];
         const blocksList = document.getElementById('blocksList');
@@ -1986,7 +2012,7 @@ function addBlock(type) {
     }
     
     // Untuk block lainnya, langsung buat block
-    blockCounter++; // Increment counter
+    blockCounter = getNextBlockCounter(); // Gunakan fungsi baru untuk counter konsisten
     const blockId = `block-${blockCounter}`; // Buat ID unik untuk block
     const config = blockConfig[type]; // Ambil config dari object blockConfig
     const blocksList = document.getElementById('blocksList'); // Ambil container list
@@ -2212,6 +2238,22 @@ function loadExistingBlocks() {
     // Update order numbers
     updateBlockOrder();
     
+    // PENTING: Set blockCounter ke nomor tertinggi yang ada
+    // Agar block baru yang ditambahkan tidak bentrok dengan yang lama
+    const blocks = document.querySelectorAll('.block-item');
+    let maxCounter = 0;
+    blocks.forEach(block => {
+        const blockId = block.id;
+        if (blockId && blockId.startsWith('block-')) {
+            const num = parseInt(blockId.replace('block-', ''));
+            if (!isNaN(num) && num > maxCounter) {
+                maxCounter = num;
+            }
+        }
+    });
+    blockCounter = maxCounter; // Set ke nomor tertinggi
+    console.log(`🔢 Block counter initialized to: ${blockCounter}`);
+    
     console.log(`✅ Loaded ${window.existingShortcodes.length} blocks from database`);
 }
 
@@ -2292,23 +2334,17 @@ function selectTestimonialsStyle(style) {
 /**
  * Membuka modal edit testimonials
  */
-function openEditTestimonialsModal() {
+async function openEditTestimonialsModal() {
     const block = document.getElementById(currentEditBlockId);
     const style = block?.dataset.style || '1';
     const shortcodeId = block?.dataset.shortcodeId || '';
     
-    // Ambil selected testimonial IDs kalau ada
-    let selectedTestimonialIds = [];
-    if (block?.dataset.testimonialIds) {
-        try {
-            selectedTestimonialIds = JSON.parse(block.dataset.testimonialIds);
-        } catch (e) {
-            console.error('Error parsing testimonial IDs:', e);
-        }
-    }
+    // Reset form fields dulu (penting untuk block baru)
+    document.getElementById('testimonials_title').value = '';
+    document.getElementById('testimonials_subtitle').value = '';
+    document.getElementById('testimonials_shortcode_id').value = '';
     
     document.getElementById('testimonials_style_value').value = style;
-    document.getElementById('testimonials_shortcode_id').value = shortcodeId;
     
     const styleNames = {
         '1': 'Style 1: Classic Grid',
@@ -2316,6 +2352,43 @@ function openEditTestimonialsModal() {
         '3': 'Style 3: Masonry Layout'
     };
     document.getElementById('testimonials_style_display').textContent = styleNames[style] || 'Unknown Style';
+    
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
+    let selectedTestimonialIds = [];
+    
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading testimonials from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        selectedTestimonialIds = shortcodeData.section_testimoni_id || [];
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading testimonials from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                selectedTestimonialIds = shortcodeData.section_testimoni_id || [];
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading testimonials data:', error);
+        }
+    }
+    
+    // Populate form jika ada data
+    if (shortcodeData) {
+        document.getElementById('testimonials_shortcode_id').value = shortcodeData.id || '';
+        document.getElementById('testimonials_title').value = shortcodeData.testimonials_title || '';
+        document.getElementById('testimonials_subtitle').value = shortcodeData.testimonials_subtitle || '';
+    } else {
+        // Form sudah di-reset di atas
+        document.getElementById('testimonials_shortcode_id').value = shortcodeId;
+    }
     
     // Fetch daftar testimonials dan restore selection
     fetchTestimonialsList(selectedTestimonialIds);
@@ -2329,6 +2402,40 @@ function openEditTestimonialsModal() {
  */
 function closeEditTestimonialsModal() {
     closeModalWithTransition('editTestimonialsModal', () => {
+        // Reset form
+        document.getElementById('testimonials_title').value = '';
+        document.getElementById('testimonials_subtitle').value = '';
+        document.getElementById('testimonials_shortcode_id').value = '';
+        document.getElementById('testimonials_style_value').value = '';
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll('#testimonialsList input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        // Reset button states
+        const saveBtn = document.getElementById('saveTestimonialsBtn');
+        const saveIconCheck = document.getElementById('saveTestimonialsIconCheck');
+        const saveIconLoading = document.getElementById('saveTestimonialsIconLoading');
+        const saveButtonText = document.getElementById('saveTestimonialsButtonText');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveIconCheck?.classList.remove('hidden');
+            saveIconLoading?.classList.add('hidden');
+            if (saveButtonText) saveButtonText.textContent = 'Save Changes';
+        }
+        
+        const deleteBtn = document.getElementById('deleteTestimonialsBtn');
+        const deleteIconTrash = document.getElementById('deleteTestimonialsIconTrash');
+        const deleteIconLoading = document.getElementById('deleteTestimonialsIconLoading');
+        const deleteButtonText = document.getElementById('deleteTestimonialsButtonText');
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIconTrash?.classList.remove('hidden');
+            deleteIconLoading?.classList.add('hidden');
+            if (deleteButtonText) deleteButtonText.textContent = 'Delete';
+        }
+        
         currentEditBlockId = null;
     });
 }
@@ -2444,22 +2551,29 @@ function generateStars(count) {
 /**
  * Menyimpan testimonials block ke database
  */
-function saveTestimonialsBlock() {
+async function saveTestimonialsBlock() {
+    if (!currentEditBlockId) return;
+    
     // Ambil nilai dari form
-    const title = document.getElementById('testimonials_title').value;
-    const subtitle = document.getElementById('testimonials_subtitle').value;
+    const title = document.getElementById('testimonials_title').value.trim();
+    const subtitle = document.getElementById('testimonials_subtitle').value.trim();
     const style = document.getElementById('testimonials_style_value').value;
     const shortcodeId = document.getElementById('testimonials_shortcode_id').value;
     const pageId = window.pageId;
     
     // Ambil semua checkbox yang dicentang
     const checkboxes = document.querySelectorAll('#testimonialsList input[type="checkbox"]:checked');
-    
-    // Ubah jadi array berisi ID (angka)
-    // parseInt() = ubah string jadi number
     const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
-    // Show loading state
+    // Validasi minimal harus pilih 1 testimonial
+    if (selectedIds.length === 0) {
+        alert('Please select at least one testimonial');
+        return;
+    }
+    
+    // Extract sort_id dari block ID
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
     const saveBtn = document.getElementById('saveTestimonialsBtn');
     const saveIconCheck = document.getElementById('saveTestimonialsIconCheck');
     const saveIconLoading = document.getElementById('saveTestimonialsIconLoading');
@@ -2470,73 +2584,96 @@ function saveTestimonialsBlock() {
     saveIconLoading.classList.remove('hidden');
     saveButtonText.textContent = 'Saving...';
 
-    // Prepare data untuk dikirim
-    const formData = {
-        pages_id: pageId,
-        testimonials_title: title,
-        testimonials_subtitle: subtitle,
-        testimonials_style: style,
-        // IMPORTANT: Kirim array langsung, JANGAN pakai JSON.stringify()
-        // Laravel akan otomatis convert array ke JSON karena ada $casts
-        section_testimoni_id: selectedIds,
-        type: 'testimonials',
-        sort_id: blockCounter
-    };
-
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
-        : '/bagoosh/page-shortcode/store';
-    const method = shortcodeId ? 'PUT' : 'POST';
-
-    // Kirim data ke server
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const block = document.getElementById(currentEditBlockId);
-            if (block && data.id) {
-                block.dataset.shortcodeId = data.id;
-                // Store selected testimonial IDs for future edits
-                block.dataset.testimonialIds = JSON.stringify(selectedIds);
-            }
-            
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
-            
-            closeEditTestimonialsModal();
-            alert('Testimonials saved successfully!');
-        } else {
-            alert('Failed to save testimonials');
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
+    try {
+        const data = {
+            type: 'testimonials',
+            testimonials_title: title,
+            testimonials_subtitle: subtitle,
+            testimonials_style: style,
+            section_testimoni_id: selectedIds,
+            pages_id: pageId,
+            sort_id: sortId
+        };
+        
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        console.log('💾 Saving testimonials block:', { url, method, data });
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to save');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while saving');
+        
+        // Update hidden input dengan ID baru (untuk update berikutnya)
+        if (result.data && result.data.id) {
+            document.getElementById('testimonials_shortcode_id').value = result.data.id;
+            
+            // Simpan ke cache
+            blockDataCache[currentEditBlockId] = {
+                id: result.data.id,
+                type: 'testimonials',
+                testimonials_title: title,
+                testimonials_subtitle: subtitle,
+                testimonials_style: style,
+                section_testimoni_id: selectedIds,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+        }
+        
+        // Update tampilan block di UI
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            const blockContent = block.querySelector('.block-content');
+            if (blockContent) {
+                blockContent.innerHTML = `
+                    <div class="space-y-1">
+                        ${title ? `<div class="font-semibold text-slate-700">${title}</div>` : ''}
+                        <div class="flex items-center gap-2 text-sm text-slate-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>${selectedIds.length} testimonial(s) selected</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        closeEditTestimonialsModal();
+        alert('Testimonials saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving testimonials:', error);
+        alert('Failed to save testimonials: ' + error.message);
+    } finally {
+        // Restore button state
         saveBtn.disabled = false;
         saveIconCheck.classList.remove('hidden');
         saveIconLoading.classList.add('hidden');
         saveButtonText.textContent = 'Save Changes';
-    });
+    }
 }
 
 /**
  * Menghapus testimonials block
  */
-function deleteTestimonialsBlock() {
-    if (!currentEditBlockId || !confirm('Are you sure?')) return;
+async function deleteTestimonialsBlock() {
+    if (!currentEditBlockId) return;
+    if (!confirm('Are you sure you want to delete this testimonials block?')) return;
     
     const shortcodeId = document.getElementById('testimonials_shortcode_id').value;
     const deleteBtn = document.getElementById('deleteTestimonialsBtn');
@@ -2549,39 +2686,52 @@ function deleteTestimonialsBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
     
-    const removeBlock = () => {
-        closeModalWithTransition('editTestimonialsModal', () => {
-            const block = document.getElementById(currentEditBlockId);
-            if (block) {
-                block.style.transition = 'opacity 300ms';
-                block.style.opacity = '0';
-                setTimeout(() => {
-                    block.remove();
-                    checkEmptyState();
-                    updateBlockOrder();
-                }, 300);
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to delete from database');
             }
-            currentEditBlockId = null;
-            alert('Testimonials deleted successfully!');
-        });
-    };
-    
-    if (shortcodeId) {
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) removeBlock();
-            else alert('Error: ' + (data.message || 'Failed to delete'));
-        })
-        .catch(() => alert('Error deleting'));
-    } else {
-        removeBlock();
+        }
+        // Jika tidak ada shortcodeId = block baru belum tersimpan, langsung hapus dari UI saja
+        
+        // Hapus dari cache
+        delete blockDataCache[currentEditBlockId];
+        
+        // Hapus dari UI dengan animasi
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            block.style.transition = 'opacity 300ms';
+            block.style.opacity = '0';
+            setTimeout(() => {
+                block.remove();
+                checkEmptyState();
+                updateBlockOrder();
+            }, 300);
+        }
+        
+        closeEditTestimonialsModal();
+        alert('Testimonials block deleted successfully!');
+        
+    } catch (error) {
+        console.error('Error deleting testimonials block:', error);
+        alert('Failed to delete: ' + error.message);
+    } finally {
+        // Restore button state
+        deleteBtn.disabled = false;
+        deleteIconTrash.classList.remove('hidden');
+        deleteIconLoading.classList.add('hidden');
+        deleteButtonText.textContent = 'Delete';
     }
 }
 
@@ -2592,13 +2742,48 @@ function deleteTestimonialsBlock() {
 /**
  * Membuka modal edit recent product
  */
-function openEditRecentProductModal() {
+async function openEditRecentProductModal() {
     const block = document.getElementById(currentEditBlockId);
     const shortcodeId = block?.dataset.shortcodeId || '';
     
-    document.getElementById('recentproduct_shortcode_id').value = shortcodeId;
+    // Reset form fields dulu (penting untuk block baru)
+    document.getElementById('recentproduct_title').value = '';
+    document.getElementById('recentproduct_subtitle').value = '';
+    document.getElementById('recentproduct_shortcode_id').value = '';
     
-    // TODO: If there's saved data, fetch and populate
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
+    
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading recent product from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading recent product from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading recent product data:', error);
+        }
+    }
+    
+    // Populate form jika ada data
+    if (shortcodeData) {
+        document.getElementById('recentproduct_shortcode_id').value = shortcodeData.id || '';
+        document.getElementById('recentproduct_title').value = shortcodeData.product_title || '';
+        document.getElementById('recentproduct_subtitle').value = shortcodeData.product_subtitle || '';
+    } else {
+        // Form sudah di-reset di atas
+        document.getElementById('recentproduct_shortcode_id').value = shortcodeId;
+    }
     
     document.getElementById('editRecentProductModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -2609,6 +2794,34 @@ function openEditRecentProductModal() {
  */
 function closeEditRecentProductModal() {
     closeModalWithTransition('editRecentProductModal', () => {
+        // Reset form
+        document.getElementById('recentproduct_title').value = '';
+        document.getElementById('recentproduct_subtitle').value = '';
+        document.getElementById('recentproduct_shortcode_id').value = '';
+        
+        // Reset button states
+        const saveBtn = document.getElementById('saveRecentProductBtn');
+        const saveIconCheck = document.getElementById('saveRecentProductIconCheck');
+        const saveIconLoading = document.getElementById('saveRecentProductIconLoading');
+        const saveButtonText = document.getElementById('saveRecentProductButtonText');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveIconCheck?.classList.remove('hidden');
+            saveIconLoading?.classList.add('hidden');
+            if (saveButtonText) saveButtonText.textContent = 'Save Changes';
+        }
+        
+        const deleteBtn = document.getElementById('deleteRecentProductBtn');
+        const deleteIconTrash = document.getElementById('deleteRecentProductIconTrash');
+        const deleteIconLoading = document.getElementById('deleteRecentProductIconLoading');
+        const deleteButtonText = document.getElementById('deleteRecentProductButtonText');
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIconTrash?.classList.remove('hidden');
+            deleteIconLoading?.classList.add('hidden');
+            if (deleteButtonText) deleteButtonText.textContent = 'Delete';
+        }
+        
         currentEditBlockId = null;
     });
 }
@@ -2616,11 +2829,16 @@ function closeEditRecentProductModal() {
 /**
  * Menyimpan recent product block ke database
  */
-function saveRecentProductBlock() {
-    const title = document.getElementById('recentproduct_title').value;
-    const subtitle = document.getElementById('recentproduct_subtitle').value;
+async function saveRecentProductBlock() {
+    if (!currentEditBlockId) return;
+    
+    const title = document.getElementById('recentproduct_title').value.trim();
+    const subtitle = document.getElementById('recentproduct_subtitle').value.trim();
     const shortcodeId = document.getElementById('recentproduct_shortcode_id').value;
     const pageId = window.pageId;
+    
+    // Extract sort_id dari block ID
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
     
     const saveBtn = document.getElementById('saveRecentProductBtn');
     const saveIconCheck = document.getElementById('saveRecentProductIconCheck');
@@ -2632,63 +2850,87 @@ function saveRecentProductBlock() {
     saveIconLoading.classList.remove('hidden');
     saveButtonText.textContent = 'Saving...';
 
-    const formData = {
-        pages_id: pageId,
-        product_title: title,
-        product_subtitle: subtitle,
-        type: 'recent-product',
-        sort_id: blockCounter
-    };
-
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
-        : '/bagoosh/page-shortcode/store';
-    const method = shortcodeId ? 'PUT' : 'POST';
-
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const block = document.getElementById(currentEditBlockId);
-            if (block && data.id) block.dataset.shortcodeId = data.id;
-            
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
-            
-            closeEditRecentProductModal();
-            alert('Recent product block saved successfully!');
-        } else {
-            alert('Failed to save');
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
+    try {
+        const data = {
+            type: 'recent-product',
+            product_title: title,
+            product_subtitle: subtitle,
+            pages_id: pageId,
+            sort_id: sortId
+        };
+        
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        console.log('💾 Saving recent product block:', { url, method, data });
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to save');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving');
+        
+        // Update hidden input dengan ID baru (untuk update berikutnya)
+        if (result.data && result.data.id) {
+            document.getElementById('recentproduct_shortcode_id').value = result.data.id;
+            
+            // Simpan ke cache
+            blockDataCache[currentEditBlockId] = {
+                id: result.data.id,
+                type: 'recent-product',
+                product_title: title,
+                product_subtitle: subtitle,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+        }
+        
+        // Update tampilan block di UI
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            const blockContent = block.querySelector('.block-content');
+            if (blockContent) {
+                blockContent.innerHTML = `
+                    <div class="space-y-1">
+                        ${title ? `<div class="font-semibold text-slate-700">${title}</div>` : ''}
+                        ${subtitle ? `<div class="text-sm text-slate-600">${subtitle}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        closeEditRecentProductModal();
+        alert('Recent product block saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving recent product:', error);
+        alert('Failed to save recent product: ' + error.message);
+    } finally {
+        // Restore button state
         saveBtn.disabled = false;
         saveIconCheck.classList.remove('hidden');
         saveIconLoading.classList.add('hidden');
         saveButtonText.textContent = 'Save Changes';
-    });
+    }
 }
 
 /**
  * Menghapus recent product block
  */
-function deleteRecentProductBlock() {
-    if (!currentEditBlockId || !confirm('Are you sure?')) return;
+async function deleteRecentProductBlock() {
+    if (!currentEditBlockId) return;
+    if (!confirm('Are you sure you want to delete this recent product block?')) return;
     
     const shortcodeId = document.getElementById('recentproduct_shortcode_id').value;
     const deleteBtn = document.getElementById('deleteRecentProductBtn');
@@ -2701,39 +2943,52 @@ function deleteRecentProductBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
     
-    const removeBlock = () => {
-        closeModalWithTransition('editRecentProductModal', () => {
-            const block = document.getElementById(currentEditBlockId);
-            if (block) {
-                block.style.transition = 'opacity 300ms';
-                block.style.opacity = '0';
-                setTimeout(() => {
-                    block.remove();
-                    checkEmptyState();
-                    updateBlockOrder();
-                }, 300);
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to delete from database');
             }
-            currentEditBlockId = null;
-            alert('Recent product deleted successfully!');
-        });
-    };
-    
-    if (shortcodeId) {
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) removeBlock();
-            else alert('Error: ' + (data.message || 'Failed to delete'));
-        })
-        .catch(() => alert('Error deleting'));
-    } else {
-        removeBlock();
+        }
+        // Jika tidak ada shortcodeId = block baru belum tersimpan, langsung hapus dari UI saja
+        
+        // Hapus dari cache
+        delete blockDataCache[currentEditBlockId];
+        
+        // Hapus dari UI dengan animasi
+        const block = document.getElementById(currentEditBlockId);
+        if (block) {
+            block.style.transition = 'opacity 300ms';
+            block.style.opacity = '0';
+            setTimeout(() => {
+                block.remove();
+                checkEmptyState();
+                updateBlockOrder();
+            }, 300);
+        }
+        
+        closeEditRecentProductModal();
+        alert('Recent product block deleted successfully!');
+        
+    } catch (error) {
+        console.error('Error deleting recent product block:', error);
+        alert('Failed to delete: ' + error.message);
+    } finally {
+        // Restore button state
+        deleteBtn.disabled = false;
+        deleteIconTrash.classList.remove('hidden');
+        deleteIconLoading.classList.add('hidden');
+        deleteButtonText.textContent = 'Delete';
     }
 }
 
@@ -2812,7 +3067,7 @@ function selectServiceStyle(style) {
 /**
  * Membuka modal edit featured services
  */
-function openEditFeaturedServicesModal(blockId) {
+async function openEditFeaturedServicesModal(blockId) {
     currentEditBlockId = blockId;
     
     const block = document.getElementById(blockId);
@@ -2821,18 +3076,35 @@ function openEditFeaturedServicesModal(blockId) {
     const style = block?.dataset.style || '1';
     const shortcodeId = block?.dataset.shortcodeId || '';
     
-    // Ambil selected service IDs kalau ada (stored sebagai JSON di dataset)
-    let selectedServiceIds = [];
-    if (block?.dataset.serviceIds) {
-        try {
-            selectedServiceIds = JSON.parse(block.dataset.serviceIds);
-        } catch (e) {
-            console.error('Error parsing service IDs:', e);
-        }
-    }
-    
     document.getElementById('serviceStyle').value = style;
     document.getElementById('serviceStyleDisplay').value = `Style ${style}`;
+    
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
+    let selectedServiceIds = [];
+    
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading featured services from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        selectedServiceIds = shortcodeData.section_service_id || [];
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading featured services from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                selectedServiceIds = shortcodeData.section_service_id || [];
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading featured services data:', error);
+        }
+    }
     
     // Fetch daftar services dan restore selection
     fetchServicesList(selectedServiceIds);
@@ -2927,7 +3199,9 @@ function fetchServicesList(selectedIds = []) {
 /**
  * Menyimpan featured services block ke database
  */
-function saveFeaturedServicesBlock() {
+async function saveFeaturedServicesBlock() {
+    if (!currentEditBlockId) return;
+    
     const checkboxes = document.querySelectorAll('#servicesList input[type="checkbox"]:checked');
     const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
@@ -2943,6 +3217,15 @@ function saveFeaturedServicesBlock() {
     const shortcodeId = block.dataset.shortcodeId;
     const pageId = window.pageId;
     
+    // Extract sort_id dari block ID
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
     const saveBtn = document.getElementById('saveFeaturedServicesBtn');
     const saveIcon = document.getElementById('saveFeaturedServicesIcon');
     const saveLoading = document.getElementById('saveFeaturedServicesLoading');
@@ -2953,58 +3236,90 @@ function saveFeaturedServicesBlock() {
     saveLoading.classList.remove('hidden');
     saveText.textContent = 'Saving...';
     
-    const formData = {
-        pages_id: pageId,
-        service_style: style,
-        section_service_id: selectedIds,
-        type: 'service',
-        sort_id: blockCounter
-    };
-    
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
-        : '/bagoosh/page-shortcode/store';
-    const method = shortcodeId ? 'PUT' : 'POST';
-    
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Store shortcode ID dan selected service IDs di block dataset
-            if (block && data.shortcode_id) {
-                block.dataset.shortcodeId = data.shortcode_id;
-                block.dataset.serviceIds = JSON.stringify(selectedIds);
-            }
-            
-            closeEditFeaturedServicesModal();
-            alert('Featured Services saved successfully!');
-        } else {
-            alert('Failed to save featured services');
+    try {
+        const formData = {
+            pages_id: pageId,
+            service_style: style,
+            section_service_id: selectedIds,
+            type: 'service',
+            sort_id: sortId
+        };
+        
+        console.log('💾 Saving featured services:', formData);
+        
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to save');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving featured services');
-    })
-    .finally(() => {
+        
+        // Simpan ke cache
+        if (data.data && data.data.id) {
+            blockDataCache[currentEditBlockId] = {
+                id: data.data.id,
+                type: 'service',
+                service_style: style,
+                section_service_id: selectedIds,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+            
+            // PENTING: Simpan shortcodeId ke dataset untuk fungsi delete
+            if (block) {
+                block.dataset.shortcodeId = data.data.id;
+                console.log('✅ Saved shortcodeId to block dataset:', data.data.id);
+            }
+        }
+        
+        // Update block content
+        const blockContent = block.querySelector('.block-content');
+        if (blockContent) {
+            blockContent.innerHTML = `
+                <div class="space-y-1">
+                    <div class="font-semibold text-slate-700">Style ${style}</div>
+                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>${selectedIds.length} service(s) selected</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        closeEditFeaturedServicesModal();
+        alert('Featured Services saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving featured services:', error);
+        alert('Failed to save featured services: ' + error.message);
+    } finally {
         saveBtn.disabled = false;
         saveIcon.classList.remove('hidden');
         saveLoading.classList.add('hidden');
         saveText.textContent = 'Save';
-    });
+    }
 }
 
 /**
  * Menghapus featured services block
  */
-function deleteFeaturedServicesBlock() {
+async function deleteFeaturedServicesBlock() {
+    if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this Featured Services block?')) {
         return;
     }
@@ -3024,43 +3339,49 @@ function deleteFeaturedServicesBlock() {
     deleteLoading.classList.remove('hidden');
     deleteText.textContent = 'Deleting...';
     
-    const removeBlock = () => {
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            console.log('🗑️ Deleting featured services from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
+            }
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus dari UI
         block.remove();
         checkEmptyState();
         updateBlockOrder();
         closeEditFeaturedServicesModal();
-    };
-    
-    if (shortcodeId) {
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                removeBlock();
-                alert('Featured Services deleted successfully!');
-            } else {
-                alert('Error deleting from database, but block will be removed from UI');
-                removeBlock();
-            }
-        })
-        .catch(() => {
-            alert('Error deleting from database, but block will be removed from UI');
-            removeBlock();
-        })
-        .finally(() => {
-            deleteBtn.disabled = false;
-            deleteIcon.classList.remove('hidden');
-            deleteLoading.classList.add('hidden');
-            deleteText.textContent = 'Delete';
-        });
-    } else {
-        removeBlock();
+        alert('Featured Services deleted successfully!');
+        
+    } catch (error) {
+        console.error('Error deleting featured services:', error);
+        alert('Failed to delete: ' + error.message);
+    } finally {
+        deleteBtn.disabled = false;
+        deleteIcon.classList.remove('hidden');
+        deleteLoading.classList.add('hidden');
+        deleteText.textContent = 'Delete';
     }
 }
 
@@ -3071,16 +3392,42 @@ function deleteFeaturedServicesBlock() {
 /**
  * Membuka modal edit newsletter
  */
-function openEditNewsletterModal(blockId) {
+async function openEditNewsletterModal(blockId) {
     currentEditBlockId = blockId;
     
     const block = document.getElementById(blockId);
     if (!block) return;
     
     const shortcodeId = block?.dataset.shortcodeId || '';
-    const newsletterId = block?.dataset.newsletterId || '';
     
-    // Fetch daftar newsletter dari server
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
+    let newsletterId = '';
+    
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading newsletter from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        newsletterId = shortcodeData.section_newsletter_id || '';
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading newsletter from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                newsletterId = shortcodeData.section_newsletter_id || '';
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading newsletter data:', error);
+        }
+    }
+    
+    // Fetch daftar newsletter dan set selected value
     fetchNewsletterList(newsletterId);
     
     // Tampilkan modal
@@ -3203,7 +3550,7 @@ function fetchNewsletterList(selectedId = '') {
  * 6. Update UI atau tampilkan error
  * 7. Reset button state
  */
-function saveNewsletterBlock() {
+async function saveNewsletterBlock() {
     // FASE 1: PERSIAPAN & LOADING STATE
     // ===================================
     
@@ -3258,7 +3605,6 @@ function saveNewsletterBlock() {
     const pageId = window.pageId;
     
     // Extract sort_id dari block ID (block-1, block-2, etc)
-    // blockCounter adalah angka yang digunakan saat block dibuat
     const sortId = parseInt(currentEditBlockId.replace('block-', ''));
     
     console.log('📊 Sort ID calculation:', {
@@ -3320,18 +3666,22 @@ function saveNewsletterBlock() {
         if (data.success) {
             // SUKSES! 🎉
             
-            // Update block dengan shortcode ID dari server
-            // PENTING: Server harus return 'id' atau 'shortcode_id'
-            const savedId = data.id || data.shortcode_id;
-            
-            if (savedId && block) {
-                // dataset.shortcodeId = set attribute data-shortcode-id
-                block.dataset.shortcodeId = savedId;
-                block.dataset.newsletterId = newsletterId;
-                console.log('✅ Block updated with shortcode ID:', savedId);
-                console.log('✅ Newsletter ID stored:', newsletterId);
-            } else {
-                console.warn('⚠️ No ID returned from server!', data);
+            // Update dengan ID dari response
+            if (data.data && data.data.id) {
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = {
+                    id: data.data.id,
+                    type: 'newsletter',
+                    section_newsletter_id: newsletterId,
+                    sort_id: sortId
+                };
+                console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+                
+                // PENTING: Simpan shortcodeId ke dataset untuk fungsi delete
+                if (block) {
+                    block.dataset.shortcodeId = data.data.id;
+                    console.log('✅ Saved shortcodeId to block dataset:', data.data.id);
+                }
             }
             
             // Tampilkan success message
@@ -3390,144 +3740,75 @@ function saveNewsletterBlock() {
  * 6. Remove block dengan animasi
  * 7. Cek empty state
  */
-function deleteNewsletterBlock() {
-    // FASE 1: VALIDASI & KONFIRMASI
-    // ==============================
+async function deleteNewsletterBlock() {
+    if (!currentEditBlockId) return;
+    if (!confirm('Are you sure you want to delete this newsletter block?')) return;
     
-    // Cek apakah ada block yang sedang di-edit
-    // || = operator OR
-    // !currentEditBlockId = jika currentEditBlockId kosong/null
-    // !confirm(...) = jika user klik Cancel
-    if (!currentEditBlockId || !confirm('Are you sure you want to delete this newsletter block?')) {
-        return;  // Keluar dari function
-    }
+    const block = document.getElementById(currentEditBlockId);
+    const shortcodeId = block?.dataset.shortcodeId || '';
     
-    console.log('🗑️ Deleting newsletter block:', currentEditBlockId);
-    
-    // FASE 2: LOADING STATE
-    // =====================
-    
-    // Ambil element-element untuk loading state
     const deleteBtn = document.getElementById('deleteNewsletterBtn');
     const deleteIcon = document.getElementById('deleteNewsletterIcon');
     const deleteLoading = document.getElementById('deleteNewsletterLoading');
     const deleteText = document.getElementById('deleteNewsletterText');
     
-    // Show loading state
     deleteBtn.disabled = true;
     deleteIcon.classList.add('hidden');
     deleteLoading.classList.remove('hidden');
     deleteText.textContent = 'Deleting...';
     
-    // FASE 3: CEK SHORTCODE ID
-    // ========================
-    
-    // Ambil block element
-    const block = document.getElementById(currentEditBlockId);
-    
-    // Ambil shortcode ID (kalau ada berarti sudah disave di database)
-    const shortcodeId = block?.dataset.shortcodeId || '';
-    
-    console.log('📋 Block element:', block);
-    console.log('📋 All dataset:', block?.dataset);
-    console.log('📋 Shortcode ID:', shortcodeId);
-    console.log('📋 Has shortcode?', shortcodeId ? 'YES - Will delete from database' : 'NO - Only remove from UI');
-    
-    // FASE 4: HELPER FUNCTION UNTUK REMOVE UI
-    // ========================================
-    
-    /**
-     * Helper function untuk menghapus block dari tampilan
-     * Function ini dipanggil setelah berhasil hapus dari database
-     * atau kalau block belum pernah disave
-     */
-    const removeBlockFromUI = () => {
-        // Tutup modal dengan animasi
-        closeModalWithTransition('editNewsletterModal', () => {
-            // Ambil block element (double-check)
-            const blockElement = document.getElementById(currentEditBlockId);
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            console.log('🗑️ Deleting newsletter from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
             
-            if (blockElement) {
-                // Fade out animation
-                // transition = durasi animasi CSS
-                blockElement.style.transition = 'opacity 300ms';
-                blockElement.style.opacity = '0';  // Buat transparan
-                
-                // Tunggu animasi selesai, baru remove dari DOM
-                setTimeout(() => {
-                    // .remove() = hapus element dari HTML
-                    blockElement.remove();
-                    
-                    // Cek apakah list jadi kosong
-                    // Kalau kosong, tampilkan empty state
-                    checkEmptyState();
-                    
-                    // Update nomor urutan blocks yang tersisa
-                    updateBlockOrder();
-                    
-                    console.log('✅ Block removed from UI');
-                }, 300);  // 300ms = sama dengan durasi transition
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to delete from database');
             }
-            
-            // Reset currentEditBlockId
-            currentEditBlockId = null;
-            
-            // Tampilkan success message
-            alert('Newsletter block deleted successfully! 🗑️');
-        });
-    };
-    
-    // FASE 5: DELETE LOGIC
-    // ====================
-    
-    // Cek apakah block sudah pernah disave (punya shortcodeId)
-    if (shortcodeId) {
-        // SUDAH DISAVE → Hapus dari database dulu
-        console.log('📡 Sending DELETE request to server...');
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
         
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus dari UI dengan animasi
+        closeModalWithTransition('editNewsletterModal', () => {
+            if (block) {
+                block.style.transition = 'opacity 300ms';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('📨 Delete response:', data);
-            
-            if (data.success) {
-                // Berhasil hapus dari database
-                // Sekarang hapus dari UI
-                console.log('✅ Deleted from database');
-                removeBlockFromUI();
-            } else {
-                // Gagal hapus dari database
-                const errorMsg = data.message || 'Failed to delete';
-                alert('Error: ' + errorMsg);
-                console.error('❌ Delete failed:', errorMsg);
-                
-                // Reset button state
-                deleteBtn.disabled = false;
-                deleteIcon.classList.remove('hidden');
-                deleteLoading.classList.add('hidden');
-                deleteText.textContent = 'Delete';
-            }
-        })
-        .catch(error => {
-            console.error('❌ Network error:', error);
-            alert('Network error! Please try again.');
-            
-            // Reset button state
-            deleteBtn.disabled = false;
-            deleteIcon.classList.remove('hidden');
-            deleteLoading.classList.add('hidden');
-            deleteText.textContent = 'Delete';
+            currentEditBlockId = null;
+            alert('Newsletter block deleted successfully!');
         });
-    } else {
-        // BELUM DISAVE → Langsung hapus dari UI
-        console.log('ℹ️ Block not saved yet, removing from UI only');
-        removeBlockFromUI();
+        
+    } catch (error) {
+        console.error('Error deleting newsletter:', error);
+        alert('Failed to delete: ' + error.message);
+    } finally {
+        // Restore button state
+        deleteBtn.disabled = false;
+        deleteIcon.classList.remove('hidden');
+        deleteLoading.classList.add('hidden');
+        deleteText.textContent = 'Delete';
     }
 }
 
@@ -3800,7 +4081,7 @@ function selectLatestNewsStyle(style) {
 /**
  * Membuka modal edit latest news
  */
-function openEditLatestNewsModal(blockId) {
+async function openEditLatestNewsModal(blockId) {
     console.log('Opening Latest News modal for block:', blockId);
     
     const block = document.querySelector(`[data-block-id="${blockId}"]`);
@@ -3812,9 +4093,41 @@ function openEditLatestNewsModal(blockId) {
     // Set current block ID
     currentEditBlockId = blockId;
     
-    // Ambil data dari block dataset
-    const title = block.dataset.title || '';
-    const blogLimit = block.dataset.blogLimit || '4';
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
+    let title = '';
+    let blogLimit = '4';
+    
+    const shortcodeId = block.dataset.shortcodeId || '';
+    
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading latest news from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        title = shortcodeData.latestnews_title || '';
+        blogLimit = shortcodeData.blog_limit || '4';
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading latest news from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                title = shortcodeData.latestnews_title || '';
+                blogLimit = shortcodeData.blog_limit || '4';
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading latest news data:', error);
+        }
+    } else {
+        // Block baru, ambil dari dataset kalau ada
+        title = block.dataset.title || '';
+        blogLimit = block.dataset.blogLimit || '4';
+    }
     
     console.log('Block data:', { title, blogLimit });
     
@@ -3839,7 +4152,7 @@ function closeEditLatestNewsModal() {
 /**
  * Menyimpan latest news block ke database
  */
-function saveLatestNewsBlock() {
+async function saveLatestNewsBlock() {
     console.log('Saving Latest News block...');
     
     // Validasi: pastikan ada block yang sedang diedit
@@ -3875,89 +4188,106 @@ function saveLatestNewsBlock() {
     const style = block.dataset.style;
     const shortcodeId = block.dataset.shortcodeId || null;
     
+    // Extract sort_id dari block ID
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
     console.log('Form data:', { title, blogLimit, style, shortcodeId });
     
     // Tampilkan loading state
     document.getElementById('latestNewsLoadingState').classList.remove('hidden');
     document.getElementById('latestNewsFormContent').classList.add('hidden');
     
-    // Siapkan data untuk dikirim ke server
-    const formData = {
-        pages_id: window.pageId,
-        type: 'latestnews',
-        latestnews_title: title,
-        blog_limit: blogLimit,
-        latestnews_style: style,
-        sort_id: Array.from(document.querySelectorAll('.block-item')).indexOf(block) + 1
-    };
-    
-    console.log('Sending data to server:', formData);
-    
-    // Tentukan URL dan method berdasarkan apakah update atau create
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
-        : '/bagoosh/page-shortcode/store';
-    const method = shortcodeId ? 'PUT' : 'POST';
-    
-    // Kirim request ke server
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        // Siapkan data untuk dikirim ke server
+        const formData = {
+            pages_id: window.pageId,
+            type: 'latestnews',
+            latestnews_title: title,
+            blog_limit: blogLimit,
+            latestnews_style: style,
+            sort_id: sortId
+        };
+        
+        console.log('Sending data to server:', formData);
+        
+        // Tentukan URL dan method berdasarkan apakah update atau create
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        // Kirim request ke server
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
         console.log('Save response:', data);
         
-        if (data.success) {
-            // Simpan ID shortcode ke block dataset
-            const savedId = data.id || data.shortcode_id;
-            if (savedId && block) {
-                block.dataset.shortcodeId = savedId;
-                block.dataset.title = title;
-                block.dataset.blogLimit = blogLimit;
-                console.log('✅ Block updated with shortcode ID:', savedId);
-                console.log('✅ Title:', title);
-                console.log('✅ Blog limit:', blogLimit);
-            } else {
-                console.warn('⚠️ No ID returned from server!', data);
-            }
-            
-            // Tutup modal
-            closeEditLatestNewsModal();
-            
-            // Tampilkan notifikasi sukses
-            alert('Latest News block saved successfully!');
-        } else {
+        if (!response.ok) {
             throw new Error(data.message || 'Failed to save');
         }
-    })
-    .catch(error => {
+        
+        // Simpan ke cache
+        if (data.data && data.data.id) {
+            blockDataCache[currentEditBlockId] = {
+                id: data.data.id,
+                type: 'latestnews',
+                latestnews_title: title,
+                blog_limit: blogLimit,
+                latestnews_style: style,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+            
+            // PENTING: Simpan shortcodeId ke dataset untuk fungsi delete
+            if (block) {
+                block.dataset.shortcodeId = data.data.id;
+                console.log('✅ Saved shortcodeId to block dataset:', data.data.id);
+            }
+        }
+        
+        // Update block content
+        const blockContent = block.querySelector('.block-content');
+        if (blockContent) {
+            blockContent.innerHTML = `
+                <div class="space-y-1">
+                    ${title ? `<div class="font-semibold text-slate-700">${title}</div>` : ''}
+                    <div class="text-sm text-slate-600">Showing ${blogLimit} latest posts</div>
+                </div>
+            `;
+        }
+        
+        // Tutup modal
+        closeEditLatestNewsModal();
+        
+        // Tampilkan notifikasi sukses
+        alert('Latest News block saved successfully!');
+        
+    } catch (error) {
         console.error('Save error:', error);
         alert('Error saving Latest News block: ' + error.message);
-    })
-    .finally(() => {
+    } finally {
         // Sembunyikan loading state
         document.getElementById('latestNewsLoadingState').classList.add('hidden');
         document.getElementById('latestNewsFormContent').classList.remove('hidden');
-    });
+    }
 }
 
-/**
- * Menghapus latest news block
- */
-function deleteLatestNewsBlock() {
-    console.log('Deleting Latest News block...');
+async function deleteLatestNewsBlock() {
+    if (!currentEditBlockId) return;
     
-    if (!currentEditBlockId) {
-        console.error('No block selected for deletion');
-        return;
-    }
-    
-    // Konfirmasi penghapusan
     if (!confirm('Are you sure you want to delete this Latest News block?')) {
         return;
     }
@@ -3965,49 +4295,67 @@ function deleteLatestNewsBlock() {
     const block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
     const shortcodeId = block?.dataset.shortcodeId;
     
-    console.log('📋 Block element:', block);
-    console.log('📋 All dataset:', block?.dataset);
-    console.log('📋 Shortcode ID:', shortcodeId);
-    console.log('📋 Has shortcode?', shortcodeId ? 'YES - Will delete from database' : 'NO - Only remove from UI');
+    // Ambil element untuk loading state
+    const deleteBtn = document.getElementById('deleteLatestNewsBtn');
+    const deleteIcon = document.getElementById('deleteLatestNewsIcon');
+    const deleteLoading = document.getElementById('deleteLatestNewsLoading');
+    const deleteText = document.getElementById('deleteLatestNewsText');
     
-    // Jika block sudah tersimpan di database, hapus dari database dulu
-    if (shortcodeId) {
-        console.log('📡 Sending DELETE request to server...');
-        
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('📨 Delete response:', data);
+    // Show loading state
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    console.log('📋 Block element:', block);
+    console.log('📋 Shortcode ID:', shortcodeId);
+    
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            console.log('🗑️ Deleting latest news from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
             
-            if (data.success) {
-                console.log('✅ Successfully deleted from database');
-                // Hapus block dari UI
-                block?.remove();
-                closeEditLatestNewsModal();
-                checkEmptyState();
-                updateBlockOrder();
-                alert('Latest News block deleted successfully!');
-            } else {
-                throw new Error(data.message || 'Failed to delete');
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
             }
-        })
-        .catch(error => {
-            console.error('❌ Delete error:', error);
-            alert('Error deleting Latest News block: ' + error.message);
-        });
-    } else {
-        // Jika belum tersimpan, langsung hapus dari UI
-        console.log('ℹ️ Block not saved yet, removing from UI only');
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI  
         block?.remove();
         closeEditLatestNewsModal();
         checkEmptyState();
         updateBlockOrder();
+        alert('Latest News block deleted successfully!');
+        
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('Error deleting Latest News block: ' + error.message);
+    } finally {
+        // Restore button state jika masih ada (untuk kasus error)
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
     }
 }
 
@@ -4018,8 +4366,10 @@ function deleteLatestNewsBlock() {
 /**
  * Membuka modal edit contact
  */
-function openEditContactModal(blockId) {
+async function openEditContactModal(blockId) {
     console.log('Opening Contact modal for block:', blockId);
+    
+    currentEditBlockId = blockId;
     
     let block = document.getElementById(blockId);
     if (!block) {
@@ -4031,27 +4381,46 @@ function openEditContactModal(blockId) {
         return;
     }
     
-    // Set current block ID
-    currentEditBlockId = blockId;
+    const shortcodeId = block.dataset.shortcodeId || '';
     
-    // Ambil data dari block dataset
-    const title = block.dataset.contactTitle || '';
-    const subtitle = block.dataset.contactSubtitle || '';
+    // Reset form fields dulu
+    document.getElementById('contactTitle').value = '';
+    document.getElementById('contactSubtitle').value = '';
+    
+    // Load data dari cache atau database jika ada
+    let shortcodeData = null;
     let selectedContactIds = [];
     
-    try {
-        if (block.dataset.contactIds) {
-            selectedContactIds = JSON.parse(block.dataset.contactIds);
+    // Prioritas 1: Cek cache local
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading contact from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        selectedContactIds = shortcodeData.contact_id || [];
+    }
+    // Prioritas 2: Fetch dari database
+    else if (shortcodeId) {
+        console.log('🔄 Loading contact from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                selectedContactIds = shortcodeData.contact_id || [];
+                // Simpan ke cache
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading contact data:', error);
         }
-    } catch (e) {
-        console.error('Error parsing contact IDs:', e);
     }
     
-    console.log('Block data:', { title, subtitle, selectedContactIds });
+    // Populate form jika ada data
+    if (shortcodeData) {
+        document.getElementById('contactTitle').value = shortcodeData.contact_title_1 || '';
+        document.getElementById('contactSubtitle').value = shortcodeData.contact_subtitle || '';
+    }
     
-    // Set nilai ke form
-    document.getElementById('contactTitle').value = title;
-    document.getElementById('contactSubtitle').value = subtitle;
+    console.log('Block data:', { shortcodeData, selectedContactIds });
     
     // Load contacts list dengan selected IDs
     fetchContactsList(selectedContactIds);
@@ -4150,7 +4519,7 @@ function renderContactsList(contacts, selectedIds = []) {
 /**
  * Menyimpan contact block ke database
  */
-function saveContactBlock() {
+async function saveContactBlock() {
     console.log('Saving Contact block...');
     
     // Validasi: pastikan ada block yang sedang diedit
@@ -4194,81 +4563,98 @@ function saveContactBlock() {
     
     const shortcodeId = block.dataset.shortcodeId || null;
     
+    // Extract sort_id dari block ID
+    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    
+    console.log('📊 Sort ID calculation:', {
+        blockId: currentEditBlockId,
+        extractedSortId: sortId,
+        currentBlockCounter: blockCounter
+    });
+    
     console.log('Form data:', { title, subtitle, selectedContactIds, shortcodeId });
     
     // Tampilkan loading state
-    document.getElementById('contactLoadingState').classList.remove('hidden');
-    document.getElementById('contactFormContent').classList.add('hidden');
+    const loadingState = document.getElementById('contactLoadingState');
+    const formContent = document.getElementById('contactFormContent');
+    loadingState?.classList.remove('hidden');
+    formContent?.classList.add('hidden');
     
-    // Siapkan data untuk dikirim ke server
-    const formData = {
-        pages_id: window.pageId,
-        type: 'contact',
-        contact_title_1: title,
-        contact_subtitle: subtitle,
-        contact_id: selectedContactIds, // Laravel akan convert ke JSON
-        sort_id: Array.from(document.querySelectorAll('.block-item')).indexOf(block) + 1
-    };
-    
-    console.log('Sending data to server:', formData);
-    
-    // Tentukan URL dan method
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}`
-        : '/bagoosh/page-shortcode/store';
-    const method = shortcodeId ? 'PUT' : 'POST';
-    
-    // Kirim request ke server
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        // Siapkan data untuk dikirim ke server
+        const formData = {
+            pages_id: window.pageId,
+            type: 'contact',
+            contact_title_1: title,
+            contact_subtitle: subtitle,
+            contact_id: selectedContactIds,
+            sort_id: sortId
+        };
+        
+        console.log('💾 Sending data to server:', formData);
+        
+        // Tentukan URL dan method
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        // Kirim request ke server
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
         console.log('Save response:', data);
         
-        if (data.success) {
-            // Simpan data ke block dataset
-            const savedId = data.id || data.shortcode_id;
-            if (savedId && block) {
-                block.dataset.shortcodeId = savedId;
-                block.dataset.contactTitle = title;
-                block.dataset.contactSubtitle = subtitle;
-                block.dataset.contactIds = JSON.stringify(selectedContactIds);
-                console.log('✅ Block updated with shortcode ID:', savedId);
-                console.log('✅ Selected contacts:', selectedContactIds);
-            } else {
-                console.warn('⚠️ No ID returned from server!', data);
-            }
-            
-            // Tutup modal
-            closeEditContactModal();
-            
-            // Tampilkan notifikasi sukses
-            alert('Contact block saved successfully!');
-        } else {
+        if (!response.ok) {
             throw new Error(data.message || 'Failed to save');
         }
-    })
-    .catch(error => {
+        
+        // Simpan ke cache
+        if (data.data && data.data.id) {
+            blockDataCache[currentEditBlockId] = {
+                id: data.data.id,
+                type: 'contact',
+                contact_title_1: title,
+                contact_subtitle: subtitle,
+                contact_id: selectedContactIds,
+                sort_id: sortId
+            };
+            console.log('📦 Saved to cache:', blockDataCache[currentEditBlockId]);
+            
+            // PENTING: Simpan shortcodeId ke dataset untuk fungsi delete
+            if (block) {
+                block.dataset.shortcodeId = data.data.id;
+                console.log('✅ Saved shortcodeId to block dataset:', data.data.id);
+            }
+        }
+        
+        // Tutup modal
+        closeEditContactModal();
+        
+        // Tampilkan notifikasi sukses
+        alert('Contact block saved successfully!');
+        
+    } catch (error) {
         console.error('Save error:', error);
         alert('Error saving Contact block: ' + error.message);
-    })
-    .finally(() => {
+    } finally {
         // Sembunyikan loading state
-        document.getElementById('contactLoadingState').classList.add('hidden');
-        document.getElementById('contactFormContent').classList.remove('hidden');
-    });
+        loadingState?.classList.add('hidden');
+        formContent?.classList.remove('hidden');
+    }
 }
 
 /**
  * Menghapus contact block
  */
-function deleteContactBlock() {
+async function deleteContactBlock() {
     console.log('Deleting Contact block...');
     
     if (!currentEditBlockId) {
@@ -4286,49 +4672,75 @@ function deleteContactBlock() {
         block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
     }
     
+    if (!block) {
+        console.error('Block not found:', currentEditBlockId);
+        return;
+    }
+    
     const shortcodeId = block?.dataset.shortcodeId;
+    
+    // Ambil element untuk loading state
+    const deleteBtn = document.getElementById('deleteContactBtn');
+    const deleteIcon = document.getElementById('deleteContactIcon');
+    const deleteLoading = document.getElementById('deleteContactLoading');
+    const deleteText = document.getElementById('deleteContactText');
+    
+    // Show loading state
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
     
     console.log('📋 Block element:', block);
     console.log('📋 Shortcode ID:', shortcodeId);
     
-    // Jika block sudah tersimpan di database, hapus dari database dulu
-    if (shortcodeId) {
-        console.log('📡 Sending DELETE request to server...');
-        
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
+    try {
+        // Jika ada shortcodeId = data sudah tersimpan di database, perlu API call
+        if (shortcodeId) {
+            console.log('🗑️ Deleting contact from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
             console.log('📨 Delete response:', data);
             
-            if (data.success) {
-                console.log('✅ Successfully deleted from database');
-                // Hapus block dari UI
-                block?.remove();
-                closeEditContactModal();
-                checkEmptyState();
-                updateBlockOrder();
-                alert('Contact block deleted successfully!');
-            } else {
-                throw new Error(data.message || 'Failed to delete');
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
             }
-        })
-        .catch(error => {
-            console.error('❌ Delete error:', error);
-            alert('Error deleting Contact block: ' + error.message);
-        });
-    } else {
-        // Jika belum tersimpan, langsung hapus dari UI
-        console.log('ℹ️ Block not saved yet, removing from UI only');
-        block?.remove();
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block.remove();
         closeEditContactModal();
         checkEmptyState();
         updateBlockOrder();
+        alert('Contact block deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting Contact block: ' + error.message);
+    } finally {
+        // Restore button state jika masih ada (untuk kasus error)
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
     }
 }
 
