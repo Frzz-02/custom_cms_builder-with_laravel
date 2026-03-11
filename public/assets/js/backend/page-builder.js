@@ -41,16 +41,24 @@ let pendingFeaturedServicesBlockId = null;
 // Menyimpan ID block latest news yang menunggu pemilihan style
 let pendingLatestNewsBlockId = null;
 
+// Menyimpan ID block about yang menunggu pemilihan style
+let pendingAboutBlockId = null;
+
+// Menyimpan ID block product category yang menunggu pemilihan style
+let pendingProductCategoryBlockId = null;
+
 // Cache untuk data dari database (untuk optimasi performa)
 // Data di-load sekali saat halaman dibuka, lalu disimpan di sini
 let cachedTestimonials = [];
 let cachedServices = [];
 let cachedNewsletters = [];
 let cachedContacts = [];
+let cachedSectionServices = []; // Untuk hero banner style 2
 let isDataLoaded = false;
 
 // Cache untuk data block yang sudah disave (optimasi performa)
-// Format: { 'block-1': { title: 'xxx', subtitle: 'yyy', ... }, 'block-2': { ... } }
+// Format: { 'block-1': { title:
+//  'xxx', subtitle: 'yyy', ... }, 'block-2': { ... } }
 // Setiap block punya data sendiri-sendiri, meskipun tipenya sama
 let blockDataCache = {};
 
@@ -125,6 +133,11 @@ const blockConfig = {
         name: 'Contact', 
         icon: 'phone', 
         color: 'teal' 
+    },
+    'product-category': { 
+        name: 'Product Category', 
+        icon: 'view-grid', 
+        color: 'green' 
     }
 };
 
@@ -136,7 +149,8 @@ const blockConfig = {
 // 'DOMContentLoaded' = event yang terjadi saat HTML selesai dimuat
 // function() { ... } = kode yang akan dijalankan saat event terjadi
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page Builder JS Loaded');
+    console.log('🚀 Page Builder JS Loaded');
+    console.log('📍 Current page ID:', window.pageId);
     
     // Pre-load semua data dari database untuk optimasi performa
     preloadAllData();
@@ -149,11 +163,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modal) {
         console.log('✓ Block Library Modal found');
     } else {
-        console.error('✗ Block Library Modal NOT found!');
+        console.error('✗ Block Library Modal NOT found! Please check if library-modal.blade.php is included.');
+    }
+    
+    // ✅ BIND EVENT LISTENERS KE BUTTON (FIX untuk ReferenceError)
+    // Menggunakan addEventListener lebih aman daripada onclick inline
+    const openLibraryBtn = document.getElementById('openLibraryBtn');
+    const addFirstBlockBtn = document.getElementById('addFirstBlockBtn');
+    
+    if (openLibraryBtn) {
+        console.log('✅ Binding click event to openLibraryBtn');
+        openLibraryBtn.addEventListener('click', function() {
+            console.log('🖱️ Button clicked! Calling openBlockLibrary()...');
+            openBlockLibrary();
+        });
+    } else {
+        console.warn('⚠️ openLibraryBtn NOT found!');
+    }
+    
+    if (addFirstBlockBtn) {
+        console.log('✅ Binding click event to addFirstBlockBtn');
+        addFirstBlockBtn.addEventListener('click', function() {
+            console.log('🖱️ Add First Block button clicked!');
+            openBlockLibrary();
+        });
+    } else {
+        console.warn('⚠️ addFirstBlockBtn NOT found!');
     }
     
     // Load existing blocks dari database (jika ada)
     loadExistingBlocks();
+    
+    console.log('✅ Page Builder initialization complete');
 });
 
 // ===================================================================
@@ -200,6 +241,28 @@ function preloadAllData() {
             }
         })
         .catch(error => console.error('❌ Error loading newsletters:', error));
+    
+    // Fetch product categories (untuk hero banner)
+    fetch('/bagoosh/product-categories/list')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                cachedProductCategories = data.data;
+                console.log('✅ Product categories loaded:', cachedProductCategories.length, 'items');
+            }
+        })
+        .catch(error => console.error('❌ Error loading product categories:', error));
+    
+    // Fetch section services (untuk hero banner style 2)
+    fetch('/bagoosh/section-services/list')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                cachedSectionServices = data.data;
+                console.log('✅ Section services loaded:', cachedSectionServices.length, 'items');
+            }
+        })
+        .catch(error => console.error('❌ Error loading section services:', error));
 }
 
 // ===================================================================
@@ -245,6 +308,9 @@ function initSortable() {
 /**
  * Fungsi untuk memperbarui nomor urutan block setelah di-drag
  * Contoh: Block 1, Block 2, Block 3 → setelah drag → Block 2, Block 1, Block 3
+ * 
+ * PENTING: Fungsi ini juga mengupdate sort_id di cache!
+ * Sehingga saat user klik configure > save, sort_id sudah otomatis terupdate
  */
 function updateBlockOrder() {
     // querySelectorAll = ambil SEMUA element yang cocok dengan selector
@@ -263,6 +329,14 @@ function updateBlockOrder() {
         // index + 1 karena index mulai dari 0, tapi kita mau mulai dari 1
         // Contoh: index 0 → tampil 1, index 1 → tampil 2, dst
         orderElement.textContent = index + 1;
+        
+        // BARU: Update sort_id di cache agar sinkron dengan posisi aktual
+        const blockId = block.id;
+        if (blockDataCache[blockId]) {
+            const newSortId = index + 1;
+            blockDataCache[blockId].sort_id = newSortId;
+            console.log(`🔄 Updated sort_id in cache: ${blockId} → ${newSortId}`);
+        }
     });
 }
 
@@ -290,6 +364,27 @@ function getNextBlockCounter() {
     
     // Return nomor terbesar + 1
     return maxCounter + 1;
+}
+
+/**
+ * Fungsi untuk mendapatkan sort_id yang benar berdasarkan posisi AKTUAL di blocklist
+ * Ini memastikan sort_id selalu sinkron dengan urutan visual
+ * 
+ * @param {string} blockId - ID dari block yang mau dicari sort_id-nya
+ * @returns {number} - Sort ID berdasarkan posisi aktual (1-based index)
+ */
+function getCurrentSortId(blockId) {
+    const blocks = document.querySelectorAll('.block-item');
+    let sortId = 1; // default
+    
+    blocks.forEach((block, index) => {
+        if (block.id === blockId) {
+            sortId = index + 1; // Posisi aktual (1-based)
+        }
+    });
+    
+    console.log(`📍 Sort ID for ${blockId}: ${sortId}`);
+    return sortId;
 }
 
 // ===================================================================
@@ -349,35 +444,43 @@ function closeModalWithTransition(modalId, callback) {
  * Fungsi untuk membuka modal library (daftar block yang tersedia)
  */
 function openBlockLibrary() {
-    console.log('openBlockLibrary() called');
+    console.log('🔥 openBlockLibrary() DIPANGGIL!');
+    console.log('🔍 Mencari modal dengan ID: blockLibraryModal');
     
     // getElementById = ambil element dengan ID tertentu
     const modal = document.getElementById('blockLibraryModal');
     
+    console.log('📦 Modal element:', modal);
+    
     if (!modal) {
-        console.error('Modal blockLibraryModal not found!');
-        alert('Error: Modal not found. Please refresh the page.');
+        console.error('❌ Modal blockLibraryModal TIDAK DITEMUKAN!');
+        console.log('📋 Semua element dengan ID:', document.querySelectorAll('[id]'));
+        alert('Error: Modal tidak ditemukan! Cek console untuk detail.');
         return;
     }
     
-    console.log('Opening modal...');
+    console.log('✅ Modal ditemukan!');
+    console.log('🎨 Classes saat ini:', modal.className);
     
     // classList.remove = hapus class dari element
     // 'hidden' = class yang menyembunyikan element
     // Jadi: tampilkan modal dengan menghapus class 'hidden'
     modal.classList.remove('hidden');
     
+    console.log('🎨 Classes setelah remove:', modal.className);
+    
     // Cegah scroll di halaman utama saat modal terbuka
     // 'hidden' = tidak bisa scroll
     document.body.style.overflow = 'hidden';
     
-    console.log('Modal opened successfully');
+    console.log('✅✅✅ Modal BERHASIL DIBUKA!');
 }
 
 /**
  * Fungsi untuk menutup modal library
  */
 function closeBlockLibrary() {
+    console.log('🔥 closeBlockLibrary() DIPANGGIL!');
     // Tutup modal dengan animasi transisi
     closeModalWithTransition('blockLibraryModal');
 }
@@ -460,10 +563,14 @@ async function openEditModal(blockId) {
         // Untuk block simple text
         document.getElementById('editSimpleTextModal').classList.remove('hidden');
         // Populate form jika ada data
+        console.log('📝 Simple Text - Loading data:', shortcodeData);
         if (shortcodeData) {
+            console.log('✅ Simple Text - Populating form with:', shortcodeData.content);
             document.getElementById('simpleTextBlockId').value = shortcodeData.id || '';
             document.getElementById('simpleTextContent').value = shortcodeData.content || '';
+            console.log('✅ Simple Text - Form populated. Input value:', document.getElementById('simpleTextContent').value);
         } else {
+            console.log('⚠️ Simple Text - No data, resetting form');
             // Reset form jika tidak ada data
             document.getElementById('simpleTextBlockId').value = '';
             document.getElementById('simpleTextContent').value = '';
@@ -552,8 +659,28 @@ async function openEditModal(blockId) {
             });
         }
     } else if (blockType === 'hero-banner') {
-        // Untuk block hero banner (punya fungsi khusus)
-        openEditHeroBannerModal();
+        // Untuk block hero banner (punya fungsi khusus per style)
+        const style = block.dataset.style || '1';
+        if (style === '1') {
+            openEditHeroBannerModal();
+        } else if (style === '2') {
+            openEditHeroBannerStyle2Modal();
+        } else if (style === '3') {
+            openEditHeroBannerStyle3Modal();
+        } else {
+            alert('Invalid hero banner style: ' + style);
+        }
+    } else if (blockType === 'about') {
+        // Untuk block about (punya fungsi khusus per style)
+        const aboutStyle = block.dataset.aboutStyle || '1';
+        if (aboutStyle === '1') {
+            openEditAboutModal();
+        } else {
+            alert('About style ' + aboutStyle + ' coming soon!');
+        }
+    } else if (blockType === 'product-category') {
+        // Untuk block product category (punya fungsi khusus)
+        openEditProductCategoryModal();
     } else if (blockType === 'testimonials') {
         // Untuk block testimonials (punya fungsi khusus)
         openEditTestimonialsModal();
@@ -607,11 +734,20 @@ async function saveTitleBlock() {
     const subtitle = document.getElementById('titleBlockSubtitle').value;
     const heading = document.getElementById('titleBlockHeading').value;
     const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
     
-    // Extract sort_id dari block ID (block-1, block-2, etc)
-    // blockCounter adalah angka yang digunakan saat block dibuat
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    // ⭐ PENTING: Ambil shortcodeId dari HIDDEN INPUT FIELD (bukan dataset!)
+    // Hidden field adalah single source of truth yang PASTI ter-update setelah save
+    const shortcodeId = document.getElementById('titleBlockId').value;
+    
+    // PENTING: Hitung sort_id dari posisi AKTUAL di blocklist, bukan dari block ID!
+    // Ini memastikan sort_id selalu sinkron dengan urutan visual
+    const blocks = document.querySelectorAll('.block-item');
+    let sortId = 1; // default
+    blocks.forEach((block, index) => {
+        if (block.id === currentEditBlockId) {
+            sortId = index + 1; // Posisi aktual (1-based)
+        }
+    });
     
     console.log('📊 Sort ID calculation:', {
         blockId: currentEditBlockId,
@@ -648,6 +784,7 @@ async function saveTitleBlock() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -658,6 +795,7 @@ async function saveTitleBlock() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -670,6 +808,9 @@ async function saveTitleBlock() {
             // Update block dengan shortcode ID
             if (result.shortcode_id) {
                 blockElement.dataset.shortcodeId = result.shortcode_id;
+                // ⭐ CRITICAL: Update HIDDEN INPUT FIELD juga!
+                // Tanpa ini, save kedua akan create baru, dan delete tidak bisa hapus database!
+                document.getElementById('titleBlockId').value = result.shortcode_id;
             }
             
             // Simpan ke cache local untuk performa (tidak perlu fetch database lagi)
@@ -720,109 +861,79 @@ async function saveTitleBlock() {
  * Menghapus title block
  */
 async function deleteTitleBlock() {
-    // if (!currentEditBlockId) = jika tidak ada block yang sedang diedit
-    // return = keluar dari fungsi
     if (!currentEditBlockId) return;
-    
-    // confirm() = menampilkan dialog konfirmasi Yes/No
-    // return true jika user klik OK, false jika Cancel
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    // getElementById = ambil element berdasarkan ID
-    const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
+    // ⭐ PENTING: Ambil shortcodeId dari hidden input field (bukan dari dataset!)
+    const shortcodeId = document.getElementById('titleBlockId').value;
     
-    // Ambil element-element untuk loading state
     const deleteBtn = document.getElementById('deleteTitleBtn');
     const deleteIconTrash = document.getElementById('deleteTitleIconTrash');
     const deleteIconLoading = document.getElementById('deleteTitleIconLoading');
     const deleteButtonText = document.getElementById('deleteTitleButtonText');
     
-    // Show loading state (tampilkan animasi loading)
-    // disabled = true = tombol tidak bisa diklik
     deleteBtn.disabled = true;
-    // classList.add = tambah class, classList.remove = hapus class
-    deleteIconTrash.classList.add('hidden'); // Sembunyikan icon trash
-    deleteIconLoading.classList.remove('hidden'); // Tampilkan icon loading (spinning)
-    deleteButtonText.textContent = 'Deleting...'; // Ubah text tombol
+    deleteIconTrash.classList.add('hidden');
+    deleteIconLoading.classList.remove('hidden');
+    deleteButtonText.textContent = 'Deleting...';
 
-    // if (shortcodeId) = jika block sudah pernah disave ke database
-    if (shortcodeId) {
-        console.log('🗑️ Deleting from database:', shortcodeId);
-        try {
-            // Delete dari database
+    try {
+        // Hanya hapus dari database jika shortcodeId ada (sudah pernah di-save)
+        if (shortcodeId) {
+            console.log('🗑️ Deleting title block from database:', shortcodeId);
+            
             const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             });
             
-            const result = await response.json();
-            
-            if (!result.success) {
+            if (!response.ok) {
+                const result = await response.json();
                 throw new Error(result.message || 'Failed to delete');
             }
             
             console.log('✅ Deleted from database');
-        } catch (error) {
-            console.error('Error deleting from database:', error);
-            alert('Failed to delete block: ' + error.message);
-            
-            // Reset button state
+        } else {
+            console.log('ℹ️ Block belum disave, skip API call');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        closeModalWithTransition('editTitleModal', () => {
+            const block = document.getElementById(currentEditBlockId);
+            if (block) {
+                block.style.transition = 'opacity 300ms ease-out';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
+            }
+            currentEditBlockId = null;
             deleteBtn.disabled = false;
             deleteIconTrash.classList.remove('hidden');
             deleteIconLoading.classList.add('hidden');
             deleteButtonText.textContent = 'Delete';
-            return;
-        }
-    } else {
-        console.log('ℹ️ Block was never saved, just removing from UI');
-    }
-    
-    // Hapus dari cache (baik sudah disave atau belum)
-    if (blockDataCache[currentEditBlockId]) {
-        delete blockDataCache[currentEditBlockId];
-        console.log('🧹 Removed from cache:', currentEditBlockId);
-    }
-
-    // Tutup modal dan hapus block dari tampilan
-    closeModalWithTransition('editTitleModal', () => {
-        // Ambil element block yang mau dihapus
-        const block = document.getElementById(currentEditBlockId);
+            alert('Block deleted successfully!');
+        });
         
-        // if (block) = jika block ditemukan
-        if (block) {
-            // Atur animasi fade out
-            block.style.transition = 'opacity 300ms ease-out';
-            block.style.opacity = '0'; // Buat transparan
-            
-            // Tunggu animasi selesai, baru hapus dari DOM
-            setTimeout(() => {
-                // remove() = hapus element dari HTML
-                block.remove();
-                
-                // Cek apakah masih ada block atau tidak
-                checkEmptyState();
-                
-                // Update nomor urutan block
-                updateBlockOrder();
-            }, 300);
-        }
+    } catch (error) {
+        console.error('Error deleting title block:', error);
+        alert('Failed to delete title block: ' + error.message);
         
-        // Reset variable
-        currentEditBlockId = null;
-        
-        // Reset button state (kembalikan tombol ke kondisi normal)
+        // Restore button state
         deleteBtn.disabled = false;
         deleteIconTrash.classList.remove('hidden');
         deleteIconLoading.classList.add('hidden');
         deleteButtonText.textContent = 'Delete';
-        
-        // alert() = tampilkan pesan popup
-        alert('Block deleted successfully!');
-    });
+    }
 }
 
 // ===================================================================
@@ -841,11 +952,19 @@ async function saveSimpleTextBlock() {
     // Ambil data dari form
     const content = document.getElementById('simpleTextContent').value;
     const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
     
-    // Extract sort_id dari block ID (block-1, block-2, etc)
-    // blockCounter adalah angka yang digunakan saat block dibuat
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    // ⭐ PENTING: Ambil shortcodeId dari HIDDEN INPUT FIELD (bukan dataset!)
+    // Hidden field adalah single source of truth yang PASTI ter-update setelah save
+    const shortcodeId = document.getElementById('simpleTextBlockId').value;
+    
+    // PENTING: Hitung sort_id dari posisi AKTUAL di blocklist, bukan dari block ID!
+    const blocks = document.querySelectorAll('.block-item');
+    let sortId = 1;
+    blocks.forEach((block, index) => {
+        if (block.id === currentEditBlockId) {
+            sortId = index + 1;
+        }
+    });
     
     console.log('📊 Sort ID calculation:', {
         blockId: currentEditBlockId,
@@ -880,6 +999,7 @@ async function saveSimpleTextBlock() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -890,6 +1010,7 @@ async function saveSimpleTextBlock() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -902,7 +1023,20 @@ async function saveSimpleTextBlock() {
             // Update block dengan shortcode ID
             if (result.shortcode_id) {
                 blockElement.dataset.shortcodeId = result.shortcode_id;
+                // ⭐ CRITICAL: Update HIDDEN INPUT FIELD juga!
+                // Tanpa ini, save kedua akan create baru, dan delete tidak bisa hapus database!
+                document.getElementById('simpleTextBlockId').value = result.shortcode_id;
             }
+            
+            // PENTING: Simpan ke cache untuk performa dan konsistensi data
+            blockDataCache[currentEditBlockId] = {
+                id: result.shortcode_id || shortcodeId,
+                content: content,
+                type: 'simple-text',
+                sort_id: sortId
+            };
+            
+            console.log('💾 Saved to cache:', currentEditBlockId, blockDataCache[currentEditBlockId]);
             
             // Update tampilan block
             const contentEl = blockElement.querySelector('p');
@@ -940,8 +1074,8 @@ async function deleteSimpleTextBlock() {
     if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
+    // ⭐ PENTING: Ambil shortcodeId dari hidden input field (bukan dari dataset!)
+    const shortcodeId = document.getElementById('simpleTextBlockId').value;
     
     const deleteBtn = document.getElementById('deleteSimpleTextBtn');
     const deleteIconTrash = document.getElementById('deleteSimpleTextIconTrash');
@@ -953,53 +1087,63 @@ async function deleteSimpleTextBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
 
-    if (shortcodeId) {
-        try {
-            // Delete dari database
+    try {
+        // Hanya hapus dari database jika shortcodeId ada (sudah pernah di-save)
+        if (shortcodeId) {
+            console.log('🗑️ Deleting simple text block from database:', shortcodeId);
+            
             const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             });
             
-            const result = await response.json();
-            
-            if (!result.success) {
+            if (!response.ok) {
+                const result = await response.json();
                 throw new Error(result.message || 'Failed to delete');
             }
-        } catch (error) {
-            console.error('Error deleting from database:', error);
-            alert('Failed to delete block: ' + error.message);
             
-            // Reset button state
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block belum disave, skip API call');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        closeModalWithTransition('editSimpleTextModal', () => {
+            const block = document.getElementById(currentEditBlockId);
+            if (block) {
+                block.style.transition = 'opacity 300ms ease-out';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
+            }
+            currentEditBlockId = null;
             deleteBtn.disabled = false;
             deleteIconTrash.classList.remove('hidden');
             deleteIconLoading.classList.add('hidden');
             deleteButtonText.textContent = 'Delete';
-            return;
-        }
-    }
-
-    closeModalWithTransition('editSimpleTextModal', () => {
-        const block = document.getElementById(currentEditBlockId);
-        if (block) {
-            block.style.transition = 'opacity 300ms ease-out';
-            block.style.opacity = '0';
-            setTimeout(() => {
-                block.remove();
-                checkEmptyState();
-                updateBlockOrder();
-            }, 300);
-        }
-        currentEditBlockId = null;
+            alert('Block deleted successfully!');
+        });
+        
+    } catch (error) {
+        console.error('Error deleting simple text block:', error);
+        alert('Failed to delete simple text block: ' + error.message);
+        
+        // Restore button state
         deleteBtn.disabled = false;
         deleteIconTrash.classList.remove('hidden');
         deleteIconLoading.classList.add('hidden');
         deleteButtonText.textContent = 'Delete';
-        alert('Block deleted successfully!');
-    });
+    }
 }
 
 // ===================================================================
@@ -1019,11 +1163,19 @@ async function saveTextEditorBlock() {
     // Trix = rich text editor (seperti Microsoft Word di browser)
     const content = document.getElementById('textEditorContent').value;
     const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
     
-    // Extract sort_id dari block ID (block-1, block-2, etc)
-    // blockCounter adalah angka yang digunakan saat block dibuat
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    // ⭐ PENTING: Ambil shortcodeId dari HIDDEN INPUT FIELD (bukan dataset!)
+    // Hidden field adalah single source of truth yang PASTI ter-update setelah save
+    const shortcodeId = document.getElementById('textEditorBlockId').value;
+    
+    // PENTING: Hitung sort_id dari posisi AKTUAL di blocklist, bukan dari block ID!
+    const blocks = document.querySelectorAll('.block-item');
+    let sortId = 1;
+    blocks.forEach((block, index) => {
+        if (block.id === currentEditBlockId) {
+            sortId = index + 1;
+        }
+    });
     
     console.log('📊 Sort ID calculation:', {
         blockId: currentEditBlockId,
@@ -1058,6 +1210,7 @@ async function saveTextEditorBlock() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -1068,6 +1221,7 @@ async function saveTextEditorBlock() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // ⭐ Pastikan Laravel return JSON (bukan HTML!)
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify(data)
@@ -1080,7 +1234,20 @@ async function saveTextEditorBlock() {
             // Update block dengan shortcode ID
             if (result.shortcode_id) {
                 blockElement.dataset.shortcodeId = result.shortcode_id;
+                // ⭐ CRITICAL: Update HIDDEN INPUT FIELD juga!
+                // Tanpa ini, save kedua akan create baru, dan delete tidak bisa hapus database!
+                document.getElementById('textEditorBlockId').value = result.shortcode_id;
             }
+            
+            // PENTING: Simpan ke cache untuk performa dan konsistensi data
+            blockDataCache[currentEditBlockId] = {
+                id: result.shortcode_id || shortcodeId,
+                content: content,
+                type: 'text-editor',
+                sort_id: sortId
+            };
+            
+            console.log('💾 Saved to cache:', currentEditBlockId, blockDataCache[currentEditBlockId]);
             
             // Reset button state
             saveBtn.disabled = false;
@@ -1112,8 +1279,8 @@ async function deleteTextEditorBlock() {
     if (!currentEditBlockId) return;
     if (!confirm('Are you sure you want to delete this block?')) return;
 
-    const blockElement = document.getElementById(currentEditBlockId);
-    const shortcodeId = blockElement.dataset.shortcodeId;
+    // ⭐ PENTING: Ambil shortcodeId dari hidden input field (bukan dari dataset!)
+    const shortcodeId = document.getElementById('textEditorBlockId').value;
     
     const deleteBtn = document.getElementById('deleteTextEditorBtn');
     const deleteIconTrash = document.getElementById('deleteTextEditorIconTrash');
@@ -1125,53 +1292,63 @@ async function deleteTextEditorBlock() {
     deleteIconLoading.classList.remove('hidden');
     deleteButtonText.textContent = 'Deleting...';
 
-    if (shortcodeId) {
-        try {
-            // Delete dari database
+    try {
+        // Hanya hapus dari database jika shortcodeId ada (sudah pernah di-save)
+        if (shortcodeId) {
+            console.log('🗑️ Deleting text editor block from database:', shortcodeId);
+            
             const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             });
             
-            const result = await response.json();
-            
-            if (!result.success) {
+            if (!response.ok) {
+                const result = await response.json();
                 throw new Error(result.message || 'Failed to delete');
             }
-        } catch (error) {
-            console.error('Error deleting from database:', error);
-            alert('Failed to delete block: ' + error.message);
             
-            // Reset button state
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block belum disave, skip API call');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        closeModalWithTransition('editTextEditorModal', () => {
+            const block = document.getElementById(currentEditBlockId);
+            if (block) {
+                block.style.transition = 'opacity 300ms ease-out';
+                block.style.opacity = '0';
+                setTimeout(() => {
+                    block.remove();
+                    checkEmptyState();
+                    updateBlockOrder();
+                }, 300);
+            }
+            currentEditBlockId = null;
             deleteBtn.disabled = false;
             deleteIconTrash.classList.remove('hidden');
             deleteIconLoading.classList.add('hidden');
             deleteButtonText.textContent = 'Delete';
-            return;
-        }
-    }
-
-    closeModalWithTransition('editTextEditorModal', () => {
-        const block = document.getElementById(currentEditBlockId);
-        if (block) {
-            block.style.transition = 'opacity 300ms ease-out';
-            block.style.opacity = '0';
-            setTimeout(() => {
-                block.remove();
-                checkEmptyState();
-                updateBlockOrder();
-            }, 300);
-        }
-        currentEditBlockId = null;
+            alert('Block deleted successfully!');
+        });
+        
+    } catch (error) {
+        console.error('Error deleting text editor block:', error);
+        alert('Failed to delete text editor block: ' + error.message);
+        
+        // Restore button state
         deleteBtn.disabled = false;
         deleteIconTrash.classList.remove('hidden');
         deleteIconLoading.classList.add('hidden');
         deleteButtonText.textContent = 'Delete';
-        alert('Block deleted successfully!');
-    });
+    }
 }
 
 // ===================================================================
@@ -1197,14 +1374,8 @@ async function saveBrandsBlock() {
         return;
     }
     
-    // Extract sort_id dari block ID (block-1, block-2, dll)
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     const shortcodeId = document.getElementById('brandsBlockId').value;
     const pageId = window.pageId;
@@ -1399,14 +1570,8 @@ async function saveCompleteCountsBlock() {
         return;
     }
     
-    // Extract sort_id dari block ID (block-1, block-2, dll)
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     const shortcodeId = document.getElementById('completeCountsBlockId').value;
     const pageId = window.pageId;
@@ -1678,200 +1843,1617 @@ function selectHeroStyle(style) {
 // BAGIAN 14: FUNGSI HERO BANNER - EDIT & SAVE
 // ===================================================================
 
-function openEditHeroBannerModal() {
-    const block = document.getElementById(currentEditBlockId);
-    
-    // Optional chaining (?.) = akses property dengan aman
-    // Jika block null/undefined, hasilnya null (tidak error)
-    const style = block?.dataset.style || '1';
-    const shortcodeId = block?.dataset.shortcodeId || '';
-    
-    document.getElementById('hero_style_value').value = style;
-    document.getElementById('hero_shortcode_id').value = shortcodeId;
-    
-    // Tampilkan style yang dipilih
-    const styleNames = {
-        '1': 'Style 1: Classic Hero',
-        '2': 'Style 2: Split Screen',
-        '3': 'Style 3: Full Background'
-    };
-    document.getElementById('hero_style_display').textContent = styleNames[style] || 'Unknown Style';
-    
-    // Jika ada data tersimpan, fetch dan populate form
-    if (shortcodeId) {
-        // TODO: Fetch data from API
+// Variable global untuk menyimpan product categories
+let cachedProductCategories = [];
+
+/**
+ * Populate dropdown kategori produk untuk semua tabs
+ */
+function populateHeroCategories() {
+    // Check if data ready
+    if (cachedProductCategories.length === 0) {
+        console.warn('⚠️ Product categories not loaded yet');
+        return false;
     }
     
+    // Loop untuk 6 tabs
+    for (let i = 1; i <= 6; i++) {
+        const select = document.getElementById(`heroCategory${i}`);
+        if (!select) continue;
+        
+        // Clear existing options (kecuali option pertama "Select Category")
+        select.innerHTML = '<option value="">Select Category</option>';
+        
+        // Add options dari cached categories
+        cachedProductCategories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            select.appendChild(option);
+        });
+    }
+    
+    console.log('✅ Hero categories populated:', cachedProductCategories.length, 'items');
+    return true;
+}
+
+/**
+ * Switch antara tabs di modal hero banner
+ */
+function switchHeroTab(tabNumber) {
+    // Hide semua tab content
+    for (let i = 1; i <= 6; i++) {
+        const tabContent = document.getElementById(`heroTab${i}`);
+        const tabBtn = document.querySelector(`[data-tab="${i}"]`);
+        
+        if (tabContent) {
+            tabContent.classList.add('hidden');
+        }
+        
+        if (tabBtn) {
+            tabBtn.classList.remove('border-indigo-600', 'text-indigo-600');
+            tabBtn.classList.add('border-transparent', 'text-slate-600');
+        }
+    }
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(`heroTab${tabNumber}`);
+    const selectedBtn = document.querySelector(`[data-tab="${tabNumber}"]`);
+    
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+    }
+    
+    if (selectedBtn) {
+        selectedBtn.classList.remove('border-transparent', 'text-slate-600');
+        selectedBtn.classList.add('border-indigo-600', 'text-indigo-600');
+    }
+}
+
+/**
+ * Handle image upload dan konversi ke WebP
+ */
+async function handleHeroImageUpload(tabNumber, input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validasi tipe file
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        input.value = '';
+        return;
+    }
+    
+    try {
+        // Convert image to WebP
+        const webpDataUrl = await convertImageToWebP(file);
+        
+        // Show preview
+        const preview = document.getElementById(`heroImagePreview${tabNumber}`);
+        const previewImg = preview?.querySelector('img');
+        
+        if (preview && previewImg) {
+            previewImg.src = webpDataUrl;
+            preview.classList.remove('hidden');
+        }
+        
+        // Store in temporary variable (akan di-upload saat save)
+        if (!window.heroBannerImages) {
+            window.heroBannerImages = {};
+        }
+        window.heroBannerImages[`tab${tabNumber}`] = webpDataUrl;
+        
+        console.log(`✅ Image for tab ${tabNumber} converted to WebP`);
+    } catch (error) {
+        console.error('❌ Error converting image:', error);
+        alert('Error processing image');
+        input.value = '';
+    }
+}
+
+/**
+ * Convert image to WebP format
+ */
+function convertImageToWebP(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const img = new Image();
+            
+            img.onload = () => {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                // Draw image to canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                // Convert to WebP
+                const webpDataUrl = canvas.toBlob((blob) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                }, 'image/webp', 0.9);
+            };
+            
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Open modal edit hero banner
+ */
+async function openEditHeroBannerModal() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    const style = block.dataset.style || '1';
+    const shortcodeId = block.dataset.shortcodeId;
+    
+    // Hanya style 1 yang bisa dibuka modal-nya (sesuai requirement)
+    if (style !== '1') {
+        alert('Configuration for Style 2 and Style 3 coming soon!');
+        return;
+    }
+    
+    // Update display style
+    document.getElementById('heroBannerStyleDisplay').textContent = style;
+    
+    // Check if product categories ready (harus sudah di-preload)
+    if (cachedProductCategories.length === 0) {
+        alert('Product categories are still loading. Please wait a moment and try again.');
+        console.error('❌ Product categories not ready yet');
+        return;
+    }
+    
+    // Populate dropdowns
+    const populated = populateHeroCategories();
+    if (!populated) {
+        alert('Failed to load product categories. Please refresh the page.');
+        return;
+    }
+    
+    // Load data dari cache jika ada
+    if (blockDataCache[currentEditBlockId]) {
+        const cachedData = blockDataCache[currentEditBlockId];
+        console.log('🔍 Hero Banner Style 1 - Cached data:', cachedData);
+        
+        // Data bisa berupa direct cache atau dari relationship
+        const heroData = cachedData.hero || cachedData;
+        console.log('🎯 Hero data to use:', heroData);
+        
+        // Parse product_category_id dari JSON string jika perlu
+        let productCategoryIds = cachedData.product_category_id;
+        if (typeof productCategoryIds === 'string') {
+            try {
+                productCategoryIds = JSON.parse(productCategoryIds);
+            } catch (e) {
+                console.error('Failed to parse product_category_id:', e);
+                productCategoryIds = [];
+            }
+        }
+        if (!Array.isArray(productCategoryIds)) {
+            productCategoryIds = [];
+        }
+        
+        console.log('📦 Product Category IDs:', productCategoryIds);
+        
+        // ⭐ MAPPING FIELD DARI DATABASE KE FORM
+        // Database menyimpan: title, title_2, title_3, ... title_6
+        // Form butuh: Tab 1, Tab 2, Tab 3, ... Tab 6
+        
+        // Populate form dengan data dari hero relationship
+        for (let i = 1; i <= 6; i++) {
+            // Tentukan nama field di database berdasarkan tab number
+            const titleField = i === 1 ? 'title' : `title_${i}`;
+            const descField = i === 1 ? 'description' : `description_${i}`;
+            const actionLabelField = i === 1 ? 'action_label' : `action_label_${i}`;
+            const actionUrlField = i === 1 ? 'action_url' : `action_url_${i}`;
+            const imageField = i === 1 ? 'image' : `image_${i}`;
+            
+            console.log(`Tab ${i} - Looking for fields:`, {
+                title: titleField,
+                desc: descField,
+                actionLabel: actionLabelField,
+                actionUrl: actionUrlField,
+                image: imageField
+            });
+            console.log(`Tab ${i} - Data from heroData:`, {
+                title: heroData[titleField],
+                description: heroData[descField],
+                actionLabel: heroData[actionLabelField],
+                actionUrl: heroData[actionUrlField],
+                image: heroData[imageField] ? heroData[imageField].substring(0, 50) + '...' : null
+            });
+            
+            // Set category dari product_category_id array (index ke i-1)
+            const categorySelect = document.getElementById(`heroCategory${i}`);
+            if (categorySelect) {
+                const categoryId = productCategoryIds[i - 1];
+                if (categoryId) {
+                    categorySelect.value = categoryId;
+                    console.log(`✅ Tab ${i} - Set category to:`, categoryId);
+                }
+            }
+            
+            // Set title
+            const titleInput = document.getElementById(`heroTitle${i}`);
+            if (titleInput) {
+                const titleValue = heroData[titleField];
+                if (titleValue) {
+                    titleInput.value = titleValue;
+                    console.log(`✅ Tab ${i} - Set title:`, titleValue);
+                }
+            }
+            
+            // Set description
+            const descInput = document.getElementById(`heroDescription${i}`);
+            if (descInput) {
+                const descValue = heroData[descField];
+                if (descValue) {
+                    descInput.value = descValue;
+                    console.log(`✅ Tab ${i} - Set description:`, descValue.substring(0, 30) + '...');
+                }
+            }
+            
+            // Set action label
+            const actionLabelInput = document.getElementById(`heroActionLabel${i}`);
+            if (actionLabelInput) {
+                const actionLabelValue = heroData[actionLabelField];
+                if (actionLabelValue) {
+                    actionLabelInput.value = actionLabelValue;
+                    console.log(`✅ Tab ${i} - Set action label:`, actionLabelValue);
+                }
+            }
+            
+            // Set action URL
+            const actionUrlInput = document.getElementById(`heroActionUrl${i}`);
+            if (actionUrlInput) {
+                const actionUrlValue = heroData[actionUrlField];
+                if (actionUrlValue) {
+                    actionUrlInput.value = actionUrlValue;
+                    console.log(`✅ Tab ${i} - Set action URL:`, actionUrlValue);
+                }
+            }
+            
+            // Set image preview
+            const imageValue = heroData[imageField];
+            if (imageValue) {
+                const preview = document.getElementById(`heroImagePreview${i}`);
+                const previewImg = preview?.querySelector('img');
+                if (preview && previewImg) {
+                    previewImg.src = '/storage/' + imageValue;
+                    preview.classList.remove('hidden');
+                    console.log(`✅ Tab ${i} - Set image preview:`, imageValue.substring(0, 50) + '...');
+                }
+                
+                // Store in temporary variable
+                if (!window.heroBannerImages) {
+                    window.heroBannerImages = {};
+                }
+                window.heroBannerImages[`tab${i}`] = imageValue;
+            }
+        }
+        
+        console.log('✅ Hero Banner Style 1 - Form populated successfully');
+    } else if (shortcodeId) {
+        // Load data dari database jika belum ada di cache
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Store ke cache
+                blockDataCache[currentEditBlockId] = result.data;
+                
+                // Populate form (recursive call)
+                openEditHeroBannerModal();
+                return;
+            }
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+        }
+    }
+    
+    // Show tab 1 by default
+    switchHeroTab(1);
+    
+    // Show modal
     document.getElementById('editHeroBannerModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
 
+/**
+ * Close modal edit hero banner
+ */
 function closeEditHeroBannerModal() {
     closeModalWithTransition('editHeroBannerModal', () => {
+        // Clear temporary images
+        if (window.heroBannerImages) {
+            window.heroBannerImages = {};
+        }
+        
+        // Reset form
+        for (let i = 1; i <= 6; i++) {
+            const categorySelect = document.getElementById(`heroCategory${i}`);
+            const titleInput = document.getElementById(`heroTitle${i}`);
+            const descInput = document.getElementById(`heroDescription${i}`);
+            const actionLabelInput = document.getElementById(`heroActionLabel${i}`);
+            const actionUrlInput = document.getElementById(`heroActionUrl${i}`);
+            const imageInput = document.getElementById(`heroImage${i}`);
+            const preview = document.getElementById(`heroImagePreview${i}`);
+            
+            if (categorySelect) categorySelect.value = '';
+            if (titleInput) titleInput.value = '';
+            if (descInput) descInput.value = '';
+            if (actionLabelInput) actionLabelInput.value = '';
+            if (actionUrlInput) actionUrlInput.value = '';
+            if (imageInput) imageInput.value = '';
+            if (preview) preview.classList.add('hidden');
+        }
+        
         currentEditBlockId = null;
     });
 }
 
-function populateHeroBannerForm(data) {
-    // TODO: Populate form fields with data
-    console.log('Populating form with:', data);
-}
-
-function handleImageUpload(fieldName, fileInput) {
-    // TODO: Implement image upload
-    console.log('Uploading image for:', fieldName);
+/**
+ * Save hero banner block
+ */
+async function saveHeroBannerBlock() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    const style = block.dataset.style || '1';
+    const shortcodeId = block.dataset.shortcodeId;
+    const pageId = window.pageId;
+    const sortId = getCurrentSortId(currentEditBlockId);
+    
+    // Get button elements for loading state
+    const saveBtn = document.getElementById('saveHeroBannerBtn');
+    const saveIcon = document.getElementById('saveHeroBannerIcon');
+    const saveLoading = document.getElementById('saveHeroBannerLoading');
+    const saveText = document.getElementById('saveHeroBannerText');
+    
+    // Show loading
+    if (saveBtn) saveBtn.disabled = true;
+    saveIcon?.classList.add('hidden');
+    saveLoading?.classList.remove('hidden');
+    if (saveText) saveText.textContent = 'Saving...';
+    
+    try {
+        // Collect data dari 6 tabs
+        const tabsData = {};
+        let hasError = false;
+        let errorMessages = [];
+        
+        for (let i = 1; i <= 6; i++) {
+            const categoryId = document.getElementById(`heroCategory${i}`)?.value || '';
+            const title = document.getElementById(`heroTitle${i}`)?.value.trim() || '';
+            const description = document.getElementById(`heroDescription${i}`)?.value.trim() || '';
+            const actionLabel = document.getElementById(`heroActionLabel${i}`)?.value.trim() || '';
+            const actionUrl = document.getElementById(`heroActionUrl${i}`)?.value.trim() || '';
+            const image = window.heroBannerImages?.[`tab${i}`] || '';
+            
+            // Validation: SEMUA field wajib diisi (required)
+            const missingFields = [];
+            if (!categoryId) missingFields.push('Category');
+            if (!title) missingFields.push('Title');
+            if (!description) missingFields.push('Description');
+            if (!actionLabel) missingFields.push('Action Label');
+            if (!actionUrl) missingFields.push('Action URL');
+            if (!image) missingFields.push('Image');
+            
+            if (missingFields.length > 0) {
+                errorMessages.push(`Tab ${i}: ${missingFields.join(', ')} required`);
+                hasError = true;
+            }
+            
+            tabsData[`tab${i}`] = {
+                category_id: categoryId,
+                title: title,
+                description: description,
+                action_label: actionLabel,
+                action_url: actionUrl,
+                image: image
+            };
+        }
+        
+        if (hasError) {
+            alert('Please complete all required fields:\n\n' + errorMessages.join('\n'));
+            throw new Error('Validation failed');
+        }
+        
+        // Collect array of product category IDs from all tabs
+        const productCategoryIds = [];
+        for (let i = 1; i <= 6; i++) {
+            const categoryId = tabsData[`tab${i}`].category_id;
+            if (categoryId) {
+                productCategoryIds.push(parseInt(categoryId));
+            }
+        }
+        
+        // Prepare form data
+        const formData = {
+            pages_id: pageId,
+            type: 'hero-banner',
+            hero_style: style,
+            sort_id: sortId,
+            hero_data: tabsData, // Object data 6 tabs
+            product_category_id: productCategoryIds // Array of category IDs
+        };
+        
+        // Determine URL and method
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}` 
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        // Send to API
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to save');
+        }
+        
+        // Save ke cache (local array) dengan struktur yang konsisten dengan database
+        // Convert tabsData format (tab1, tab2) ke database format (title, title_2, description, description_2, etc)
+        const heroDataForCache = {};
+        
+        for (let i = 1; i <= 6; i++) {
+            const tabData = tabsData[`tab${i}`];
+            if (tabData) {
+                // Map ke field database
+                const titleField = i === 1 ? 'title' : `title_${i}`;
+                const descField = i === 1 ? 'description' : `description_${i}`;
+                const actionLabelField = i === 1 ? 'action_label' : `action_label_${i}`;
+                const actionUrlField = i === 1 ? 'action_url' : `action_url_${i}`;
+                const imageField = i === 1 ? 'image' : `image_${i}`;
+                
+                heroDataForCache[titleField] = tabData.title;
+                heroDataForCache[descField] = tabData.description;
+                heroDataForCache[actionLabelField] = tabData.action_label;
+                heroDataForCache[actionUrlField] = tabData.action_url;
+                heroDataForCache[imageField] = tabData.image;
+            }
+        }
+        
+        blockDataCache[currentEditBlockId] = {
+            hero_style: style,
+            hero: heroDataForCache, // Data dalam format database untuk konsistensi
+            product_category_id: productCategoryIds,
+            type: 'hero-banner'
+        };
+        
+        console.log('💾 Updated cache for Hero Banner (converted to DB format):', blockDataCache[currentEditBlockId]);
+        
+        // Save shortcode ID ke block dataset
+        if (block && data.data?.id) {
+            block.dataset.shortcodeId = data.data.id;
+        }
+        
+        console.log('✅ Hero banner saved successfully');
+        
+        closeEditHeroBannerModal();
+        alert('Hero banner saved successfully!');
+        
+    } catch (error) {
+        console.error('❌ Save error:', error);
+        alert('Error saving hero banner: ' + error.message);
+    } finally {
+        // Restore button state
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveIcon?.classList.remove('hidden');
+            saveLoading?.classList.add('hidden');
+            if (saveText) saveText.textContent = 'Save';
+        }
+    }
 }
 
 /**
- * Menyimpan hero banner ke database
- * Menggunakan AJAX (Asynchronous JavaScript And XML)
- * AJAX = cara kirim/terima data tanpa reload halaman
+ * Delete hero banner block
  */
-function saveHeroBannerBlock() {
-    // Ambil data dari form
-    const style = document.getElementById('hero_style_value').value;
-    const shortcodeId = document.getElementById('hero_shortcode_id').value;
+async function deleteHeroBannerBlock() {
+    if (!currentEditBlockId) return;
     
-    // window.pageId = variable global yang diset dari blade template
-    const pageId = window.pageId;
+    if (!confirm('Are you sure you want to delete this Hero Banner block?')) {
+        return;
+    }
     
-    // Ambil element untuk loading state
-    const saveBtn = document.getElementById('saveHeroBtn');
-    const saveIconCheck = document.getElementById('saveHeroIconCheck');
-    const saveIconLoading = document.getElementById('saveHeroIconLoading');
-    const saveButtonText = document.getElementById('saveHeroButtonText');
+    const block = document.getElementById(currentEditBlockId);
+    const shortcodeId = block?.dataset.shortcodeId;
     
-    // Show loading state
-    saveBtn.disabled = true;
-    saveIconCheck.classList.add('hidden');
-    saveIconLoading.classList.remove('hidden');
-    saveButtonText.textContent = 'Saving...';
-
-    // Prepare form data untuk dikirim ke server
-    // Object = struktur data dengan key-value pairs
-    const formData = {
-        pages_id: pageId,
-        hero_style: style,
-        type: 'hero-banner',
-        sort_id: blockCounter
-    };
-
-    // Tentukan URL dan method berdasarkan apakah ini create atau update
-    // Ternary operator: condition ? valueIfTrue : valueIfFalse
-    const url = shortcodeId 
-        ? `/bagoosh/page-shortcode/update/${shortcodeId}` // URL untuk update
-        : '/bagoosh/page-shortcode/store'; // URL untuk create
+    // Get button elements
+    const deleteBtn = document.getElementById('deleteHeroBannerBtn');
+    const deleteIcon = document.getElementById('deleteHeroBannerIcon');
+    const deleteLoading = document.getElementById('deleteHeroBannerLoading');
+    const deleteText = document.getElementById('deleteHeroBannerText');
     
-    const method = shortcodeId ? 'PUT' : 'POST';
-
-    // fetch() = cara modern untuk AJAX request
-    // Kirim data ke server
-    fetch(url, {
-        method: method, // POST atau PUT
-        headers: {
-            // Headers = informasi tambahan yang dikirim ke server
-            'Content-Type': 'application/json', // Kita kirim data JSON
-            // CSRF token = security token untuk Laravel
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        // JSON.stringify() = ubah object JavaScript jadi string JSON
-        body: JSON.stringify(formData)
-    })
-    // .then() = promise chain - jalankan kode setelah request selesai
-    // response => response.json() = ubah response jadi JSON
-    .then(response => response.json())
-    // data = hasil dari response.json()
-    .then(data => {
-        // if (data.success) = jika server response success
-        if (data.success) {
-            // Simpan ID shortcode ke block
-            const block = document.getElementById(currentEditBlockId);
-            if (block && data.id) {
-                block.dataset.shortcodeId = data.id;
+    // Show loading
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    try {
+        // Jika sudah tersimpan di database, hapus dari database
+        if (shortcodeId) {
+            console.log('🗑️ Deleting hero banner from database:', shortcodeId);
+            
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
             }
-            
-            // Reset button state
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
-            
-            closeEditHeroBannerModal();
-            alert('Hero banner saved successfully!');
+            console.log('✅ Deleted from database');
         } else {
-            alert('Failed to save hero banner');
-            saveBtn.disabled = false;
-            saveIconCheck.classList.remove('hidden');
-            saveIconLoading.classList.add('hidden');
-            saveButtonText.textContent = 'Save Changes';
+            console.log('ℹ️ Block not saved yet, removing from UI only');
         }
-    })
-    // .catch() = tangkap error jika ada masalah
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while saving');
-        saveBtn.disabled = false;
-        saveIconCheck.classList.remove('hidden');
-        saveIconLoading.classList.add('hidden');
-        saveButtonText.textContent = 'Save Changes';
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block?.remove();
+        closeEditHeroBannerModal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('Hero banner deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting hero banner: ' + error.message);
+    } finally {
+        // Restore button state (untuk kasus error)
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
+    }
+}
+
+// ===================================================================
+// BAGIAN 14B: FUNGSI HERO BANNER STYLE 2 - EDIT & SAVE
+// ===================================================================
+
+/**
+ * Handle image upload untuk hero banner style 2 (4 images)
+ */
+async function handleHeroStyle2ImageUpload(imageNumber, input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validasi tipe file
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        input.value = '';
+        return;
+    }
+    
+    try {
+        // Convert to WebP
+        const webpDataUrl = await convertImageToWebP(file);
+        
+        // Show preview
+        const preview = document.getElementById(`heroStyle2ImagePreview${imageNumber}`);
+        const previewImg = preview?.querySelector('img');
+        if (preview && previewImg) {
+            previewImg.src = webpDataUrl;
+            preview.classList.remove('hidden');
+        }
+        
+        // Store in temporary object
+        if (!window.heroBannerStyle2Images) {
+            window.heroBannerStyle2Images = {};
+        }
+        window.heroBannerStyle2Images[`image${imageNumber}`] = webpDataUrl;
+        
+        console.log(`✅ Image ${imageNumber} converted to WebP for Style 2`);
+    } catch (error) {
+        console.error('❌ Image conversion error:', error);
+        alert('Error converting image. Please try again.');
+    }
+}
+
+/**
+ * Populate checkboxes untuk services dengan limit 3
+ */
+function populateHeroStyle2Services(selectedIds = []) {
+    const container = document.getElementById('heroStyle2ServicesContainer');
+    const counter = document.getElementById('heroStyle2ServicesCount');
+    
+    if (!container) return false;
+    
+    // Check if data ready
+    if (cachedSectionServices.length === 0) {
+        container.innerHTML = '<p class=\"text-center text-slate-500 py-4\">No services available</p>';
+        return false;
+    }
+    
+    // Clear container
+    container.innerHTML = '';
+    
+    // Create checkboxes
+    cachedSectionServices.forEach(service => {
+        const isChecked = selectedIds.includes(service.id);
+        
+        const checkboxHTML = `
+            <label class="flex items-center p-3 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                <input type="checkbox" 
+                       class="hero-style2-service-checkbox w-4 h-4 text-purple-600 border-slate-300 rounded focus:ring-2 focus:ring-purple-500" 
+                       value="${service.id}"
+                       ${isChecked ? 'checked' : ''}
+                       onchange="handleHeroStyle2ServiceCheckbox(this)">
+                <span class="ml-3 text-sm font-medium text-slate-700">${service.name}</span>
+            </label>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', checkboxHTML);
+    });
+    
+    // Update counter
+    if (counter) {
+        counter.textContent = selectedIds.length;
+    }
+    
+    console.log('✅ Services populated for Hero Style 2:', cachedSectionServices.length, 'items');
+    return true;
+}
+
+/**
+ * Handle checkbox change dengan validasi maksimal 3
+ */
+function handleHeroStyle2ServiceCheckbox(checkbox) {
+    const allCheckboxes = document.querySelectorAll('.hero-style2-service-checkbox');
+    const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+    const counter = document.getElementById('heroStyle2ServicesCount');
+    
+    // Update counter
+    if (counter) {
+        counter.textContent = checkedCount;
+    }
+    
+    // Validasi: maksimal 3
+    if (checkedCount > 3) {
+        checkbox.checked = false;
+        alert('You can only select up to 3 services');
+        if (counter) {
+            counter.textContent = 3;
+        }
+        return;
+    }
+    
+    // Update counter color
+    if (counter) {
+        if (checkedCount === 3) {
+            counter.classList.remove('text-purple-600');
+            counter.classList.add('text-green-600');
+        } else {
+            counter.classList.remove('text-green-600');
+            counter.classList.add('text-purple-600');
+        }
+    }
+}
+
+/**
+ * Open modal edit hero banner style 2
+ */
+async function openEditHeroBannerStyle2Modal() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    const style = block.dataset.style || '2';
+    const shortcodeId = block.dataset.shortcodeId;
+    
+    // Hanya style 2 yang bisa dibuka modal ini
+    if (style !== '2') {
+        alert('This modal is only for Hero Banner Style 2');
+        return;
+    }
+    
+    // Check if section services ready
+    if (cachedSectionServices.length === 0) {
+        alert('Services data not loaded yet. Please refresh the page.');
+        return;
+    }
+    
+    // Populate services checkboxes
+    const populated = populateHeroStyle2Services();
+    if (!populated) {
+        alert('Failed to load services. Please try again.');
+        return;
+    }
+    
+    // Load data dari cache jika ada
+    if (blockDataCache[currentEditBlockId]) {
+        const cachedData = blockDataCache[currentEditBlockId];
+        console.log('🔍 Hero Banner Style 2 - Cached data:', cachedData);
+        
+        // Data bisa berupa direct cache atau dari relationship
+        const heroData = cachedData.hero || cachedData;
+        console.log('🎯 Hero data to use:', heroData);
+        
+        // Set title
+        const titleInput = document.getElementById('heroStyle2Title');
+        if (titleInput && heroData.title) {
+            titleInput.value = heroData.title;
+            console.log('✅ Set title:', heroData.title);
+        }
+        
+        // Set description
+        const descInput = document.getElementById('heroStyle2Description');
+        if (descInput && heroData.description) {
+            descInput.value = heroData.description;
+            console.log('✅ Set description:', heroData.description.substring(0, 50));
+        }
+        
+        // Set action labels and URLs
+        // Database uses: action_label (not action_label_1), action_label_2
+        // Database uses: action_url (not action_url_1), action_url_2
+        const actionLabel1 = document.getElementById('heroStyle2ActionLabel1');
+        const actionLabel2 = document.getElementById('heroStyle2ActionLabel2');
+        const actionUrl1 = document.getElementById('heroStyle2ActionUrl1');
+        const actionUrl2 = document.getElementById('heroStyle2ActionUrl2');
+        
+        if (actionLabel1 && heroData.action_label) {
+            actionLabel1.value = heroData.action_label;
+            console.log('✅ Set action label 1:', heroData.action_label);
+        }
+        if (actionLabel2 && heroData.action_label_2) {
+            actionLabel2.value = heroData.action_label_2;
+            console.log('✅ Set action label 2:', heroData.action_label_2);
+        }
+        if (actionUrl1 && heroData.action_url) {
+            actionUrl1.value = heroData.action_url;
+            console.log('✅ Set action URL 1:', heroData.action_url);
+        }
+        if (actionUrl2 && heroData.action_url_2) {
+            actionUrl2.value = heroData.action_url_2;
+            console.log('✅ Set action URL 2:', heroData.action_url_2);
+        }
+        
+        // Set images
+        // Database uses: image (not image_1), image_2, image_3, image_4
+        // Images are stored as base64 WebP strings: data:image/webp;base64,...
+        if (!window.heroBannerStyle2Images) {
+            window.heroBannerStyle2Images = {};
+        }
+        
+        // Image 1
+        if (heroData.image) {
+            const preview = document.getElementById('heroStyle2ImagePreview1');
+            const previewImg = preview?.querySelector('img');
+            if (preview && previewImg) {
+                previewImg.src = '/storage/' + heroData.image;
+                preview.classList.remove('hidden');
+                console.log('✅ Set image 1 preview:', heroData.image.substring(0, 50));
+            }
+            window.heroBannerStyle2Images['image1'] = heroData.image;
+        }
+        
+        // Images 2-4
+        for (let i = 2; i <= 4; i++) {
+            if (heroData[`image_${i}`]) {
+                const preview = document.getElementById(`heroStyle2ImagePreview${i}`);
+                const previewImg = preview?.querySelector('img');
+                if (preview && previewImg) {
+                    previewImg.src = '/storage/' + heroData[`image_${i}`];
+                    preview.classList.remove('hidden');
+                    console.log(`✅ Set image ${i} preview:`, heroData[`image_${i}`].substring(0, 50));
+                }
+                window.heroBannerStyle2Images[`image${i}`] = heroData[`image_${i}`];
+            }
+        }
+        
+        // Parse section_service_id dari JSON string jika perlu dan set checkboxes
+        let serviceIds = cachedData.section_service_id;
+        if (typeof serviceIds === 'string') {
+            try {
+                serviceIds = JSON.parse(serviceIds);
+            } catch (e) {
+                console.error('Failed to parse section_service_id:', e);
+                serviceIds = [];
+            }
+        }
+        if (!Array.isArray(serviceIds)) {
+            serviceIds = [];
+        }
+        
+        console.log('📦 Service IDs to select:', serviceIds);
+        
+        // Populate services dengan selected IDs
+        if (serviceIds.length > 0) {
+            populateHeroStyle2Services(serviceIds);
+            console.log('✅ Services checkboxes populated with', serviceIds.length, 'selected');
+        }
+        
+        console.log('✅ Hero Banner Style 2 - Form populated successfully');
+    } else if (shortcodeId) {
+        // Load data dari database jika belum ada di cache
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]')?.content || ''
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Store ke cache
+                blockDataCache[currentEditBlockId] = result.data;
+                
+                // Populate form (recursive call)
+                openEditHeroBannerStyle2Modal();
+                return;
+            }
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+        }
+    }
+    
+    // Show modal
+    document.getElementById('editHeroBannerStyle2Modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close modal edit hero banner style 2
+ */
+function closeEditHeroBannerStyle2Modal() {
+    closeModalWithTransition('editHeroBannerStyle2Modal', () => {
+        // Clear temporary images
+        if (window.heroBannerStyle2Images) {
+            window.heroBannerStyle2Images = {};
+        }
+        
+        // Reset form
+        const titleInput = document.getElementById('heroStyle2Title');
+        const descInput = document.getElementById('heroStyle2Description');
+        const actionLabel1 = document.getElementById('heroStyle2ActionLabel1');
+        const actionLabel2 = document.getElementById('heroStyle2ActionLabel2');
+        const actionUrl1 = document.getElementById('heroStyle2ActionUrl1');
+        const actionUrl2 = document.getElementById('heroStyle2ActionUrl2');
+        
+        if (titleInput) titleInput.value = '';
+        if (descInput) descInput.value = '';
+        if (actionLabel1) actionLabel1.value = '';
+        if (actionLabel2) actionLabel2.value = '';
+        if (actionUrl1) actionUrl1.value = '';
+        if (actionUrl2) actionUrl2.value = '';
+        
+        // Reset images
+        for (let i = 1; i <= 4; i++) {
+            const imageInput = document.getElementById(`heroStyle2Image${i}`);
+            const preview = document.getElementById(`heroStyle2ImagePreview${i}`);
+            
+            if (imageInput) imageInput.value = '';
+            if (preview) preview.classList.add('hidden');
+        }
+        
+        // Reset checkboxes
+        const checkboxes = document.querySelectorAll('.hero-style2-service-checkbox');
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        const counter = document.getElementById('heroStyle2ServicesCount');
+        if (counter) {
+            counter.textContent = '0';
+            counter.classList.remove('text-green-600');
+            counter.classList.add('text-purple-600');
+        }
+        
+        currentEditBlockId = null;
     });
 }
 
 /**
- * Menghapus hero banner dari database dan UI
+ * Save hero banner style 2 block
  */
-function deleteHeroBannerBlock() {
-    // || = OR operator
-    // (!currentEditBlockId || !confirm(...)) = jika tidak ada block ATAU user klik cancel
-    if (!currentEditBlockId || !confirm('Are you sure?')) return;
+async function saveHeroBannerStyle2Block() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
     
-    const shortcodeId = document.getElementById('hero_shortcode_id').value;
-    const deleteBtn = document.getElementById('deleteHeroBtn');
-    const deleteIconTrash = document.getElementById('deleteHeroIconTrash');
-    const deleteIconLoading = document.getElementById('deleteHeroIconLoading');
-    const deleteButtonText = document.getElementById('deleteHeroButtonText');
+    const style = block.dataset.style || '2';
+    const shortcodeId = block.dataset.shortcodeId;
+    const pageId = window.pageId;
+    const sortId = getCurrentSortId(currentEditBlockId);
     
-    deleteBtn.disabled = true;
-    deleteIconTrash.classList.add('hidden');
-    deleteIconLoading.classList.remove('hidden');
-    deleteButtonText.textContent = 'Deleting...';
+    // Get button elements for loading state
+    const saveBtn = document.getElementById('saveHeroBannerStyle2Btn');
+    const saveIcon = document.getElementById('saveHeroBannerStyle2Icon');
+    const saveLoading = document.getElementById('saveHeroBannerStyle2Loading');
+    const saveText = document.getElementById('saveHeroBannerStyle2Text');
     
-    // Arrow function untuk menghapus block dari UI
-    const removeBlock = () => {
-        closeModalWithTransition('editHeroBannerModal', () => {
-            const block = document.getElementById(currentEditBlockId);
-            if (block) {
-                block.style.transition = 'opacity 300ms';
-                block.style.opacity = '0';
-                setTimeout(() => {
-                    block.remove();
-                    checkEmptyState();
-                    updateBlockOrder();
-                }, 300);
-            }
-            currentEditBlockId = null;
-            alert('Hero banner deleted successfully!');
-        });
-    };
+    // Show loading
+    if (saveBtn) saveBtn.disabled = true;
+    saveIcon?.classList.add('hidden');
+    saveLoading?.classList.remove('hidden');
+    if (saveText) saveText.textContent = 'Saving...';
     
-    // Jika sudah tersimpan di database, hapus dari database dulu
-    if (shortcodeId) {
-        fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
-            method: 'DELETE',
+    try {
+        // Collect form data
+        const title = document.getElementById('heroStyle2Title')?.value.trim() || '';
+        const description = document.getElementById('heroStyle2Description')?.value.trim() || '';
+        const actionLabel1 = document.getElementById('heroStyle2ActionLabel1')?.value.trim() || '';
+        const actionLabel2 = document.getElementById('heroStyle2ActionLabel2')?.value.trim() || '';
+        const actionUrl1 = document.getElementById('heroStyle2ActionUrl1')?.value.trim() || '';
+        const actionUrl2 = document.getElementById('heroStyle2ActionUrl2')?.value.trim() || '';
+        
+        // Collect images
+        const image1 = window.heroBannerStyle2Images?.image1 || '';
+        const image2 = window.heroBannerStyle2Images?.image2 || '';
+        const image3 = window.heroBannerStyle2Images?.image3 || '';
+        const image4 = window.heroBannerStyle2Images?.image4 || '';
+        
+        // Collect selected services
+        const checkboxes = document.querySelectorAll('.hero-style2-service-checkbox:checked');
+        const serviceIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        
+        // Validation: ALL fields required
+        const missingFields = [];
+        if (!title) missingFields.push('Title');
+        if (!description) missingFields.push('Description');
+        if (!image1) missingFields.push('Image 1');
+        if (!image2) missingFields.push('Image 2');
+        if (!image3) missingFields.push('Image 3');
+        if (!image4) missingFields.push('Image 4');
+        if (!actionLabel1) missingFields.push('Action Label 1');
+        if (!actionUrl1) missingFields.push('Action URL 1');
+        if (!actionLabel2) missingFields.push('Action Label 2');
+        if (!actionUrl2) missingFields.push('Action URL 2');
+        if (serviceIds.length !== 3) missingFields.push('Exactly 3 Services');
+        
+        if (missingFields.length > 0) {
+            alert('Please complete all required fields:\\n\\n' + missingFields.join('\\n'));
+            throw new Error('Validation failed');
+        }
+        
+        // Prepare form data
+        // Database expects: action_label (not action_label_1), action_label_2
+        // Database expects: action_url (not action_url_1), action_url_2
+        // Database expects: image (not image_1), image_2, image_3, image_4
+        const formData = {
+            pages_id: pageId,
+            type: 'hero-banner',
+            hero_style: style,
+            sort_id: sortId,
+            hero_data: {
+                title: title,
+                description: description,
+                action_label: actionLabel1,      // Not action_label_1
+                action_label_2: actionLabel2,
+                action_url: actionUrl1,          // Not action_url_1
+                action_url_2: actionUrl2,
+                image: image1,                   // Not image_1
+                image_2: image2,
+                image_3: image3,
+                image_4: image4
+            },
+            section_service_id: serviceIds // Array of 3 service IDs
+        };
+        
+        // Determine URL and method
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}` 
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        // Send to API
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to save');
+        }
+        
+        // Save ke cache (local array) dengan struktur yang konsisten
+        // Use same field names as database for consistency
+        blockDataCache[currentEditBlockId] = {
+            hero_style: style,
+            hero: {
+                title, 
+                description,
+                action_label: actionLabel1,      // Not action_label_1
+                action_label_2: actionLabel2,
+                action_url: actionUrl1,          // Not action_url_1
+                action_url_2: actionUrl2,
+                image: image1,                   // Not image_1
+                image_2: image2, 
+                image_3: image3, 
+                image_4: image4
+            },
+            section_service_id: serviceIds,
+            type: 'hero-banner'
+        };
+        
+        console.log('💾 Updated cache for Hero Banner Style 2:', blockDataCache[currentEditBlockId]);
+        
+        // Save shortcode ID ke block dataset
+        if (block && data.data?.id) {
+            block.dataset.shortcodeId = data.data.id;
+        }
+        
+        console.log('✅ Hero banner style 2 saved successfully');
+        
+        closeEditHeroBannerStyle2Modal();
+        alert('Hero banner style 2 saved successfully!');
+        
+    } catch (error) {
+        console.error('❌ Save error:', error);
+        alert('Error saving hero banner: ' + error.message);
+    } finally {
+        // Restore button state
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveIcon?.classList.remove('hidden');
+            saveLoading?.classList.add('hidden');
+            if (saveText) saveText.textContent = 'Save';
+        }
+    }
+}
+
+/**
+ * Delete hero banner style 2 block
+ */
+async function deleteHeroBannerStyle2Block() {
+    if (!currentEditBlockId) return;
+    
+    if (!confirm('Are you sure you want to delete this Hero Banner Style 2 block?')) {
+        return;
+    }
+    
+    const block = document.getElementById(currentEditBlockId);
+    const shortcodeId = block?.dataset.shortcodeId;
+    
+    // Get button elements
+    const deleteBtn = document.getElementById('deleteHeroBannerStyle2Btn');
+    const deleteIcon = document.getElementById('deleteHeroBannerStyle2Icon');
+    const deleteLoading = document.getElementById('deleteHeroBannerStyle2Loading');
+    const deleteText = document.getElementById('deleteHeroBannerStyle2Text');
+    
+    // Show loading
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    try {
+        // Jika sudah tersimpan di database, hapus dari database
+        if (shortcodeId) {
+            console.log('🗑️ Deleting hero banner style 2 from database:', shortcodeId);
+            
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) removeBlock();
-            else alert('Error: ' + (data.message || 'Failed to delete'));
-        })
-        .catch(() => alert('Error deleting'));
-    } else {
-        // Jika belum tersimpan, langsung hapus dari UI
-        removeBlock();
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block?.remove();
+        closeEditHeroBannerStyle2Modal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('Hero banner style 2 deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting hero banner: ' + error.message);
+    } finally {
+        // Restore button state (untuk kasus error)
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
+    }
+}
+
+// ===================================================================
+// BAGIAN 14C: FUNGSI HERO BANNER STYLE 3 - EDIT & SAVE
+// ===================================================================
+
+/**
+ * Handle image upload untuk hero banner style 3 (3 images)
+ */
+async function handleHeroStyle3ImageUpload(imageNumber, input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        input.value = '';
+        return;
+    }
+    
+    try {
+        // Convert to WebP
+        const webpDataUrl = await convertImageToWebP(file);
+        
+        // Show preview
+        const preview = document.getElementById(`heroStyle3ImagePreview${imageNumber}`);
+        const previewImg = preview?.querySelector('img');
+        
+        if (preview && previewImg) {
+            previewImg.src = webpDataUrl;
+            preview.classList.remove('hidden');
+        }
+        
+        // Store in temporary object
+        if (!window.heroBannerStyle3Images) {
+            window.heroBannerStyle3Images = {};
+        }
+        window.heroBannerStyle3Images[`image${imageNumber}`] = webpDataUrl;
+        
+        console.log(`✅ Image ${imageNumber} converted to WebP for Style 3`);
+    } catch (error) {
+        console.error('❌ Image conversion error:', error);
+        alert('Error converting image. Please try again.');
+    }
+}
+
+/**
+ * Open modal edit hero banner style 3
+ */
+async function openEditHeroBannerStyle3Modal() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    const style = block.dataset.style || '3';
+    const shortcodeId = block.dataset.shortcodeId;
+    
+    // Hanya style 3 yang bisa dibuka modal ini
+    if (style !== '3') {
+        alert('This modal is only for Hero Banner Style 3');
+        return;
+    }
+    
+    // Load data dari cache jika ada
+    if (blockDataCache[currentEditBlockId]) {
+        const cachedData = blockDataCache[currentEditBlockId];
+        console.log('🔍 Hero Banner Style 3 - Cached data:', cachedData);
+        
+        // Data bisa berupa direct cache atau dari relationship
+        const heroData = cachedData.hero || cachedData;
+        console.log('🎯 Hero data to use:', heroData);
+        
+        // Set titles (cache keys: title, title_2)
+        const title1Input = document.getElementById('heroStyle3Title1');
+        const title2Input = document.getElementById('heroStyle3Title2');
+        if (title1Input && heroData.title) {
+            title1Input.value = heroData.title;
+            console.log('✅ Set title 1:', heroData.title);
+        }
+        if (title2Input && heroData.title_2) {
+            title2Input.value = heroData.title_2;
+            console.log('✅ Set title 2:', heroData.title_2);
+        }
+        
+        // Set description
+        const descInput = document.getElementById('heroStyle3Description');
+        if (descInput && heroData.description) {
+            descInput.value = heroData.description;
+            console.log('✅ Set description:', heroData.description.substring(0, 50));
+        }
+        
+        // Set action labels and URLs (cache keys: action_label, action_label_2)
+        const actionLabel1 = document.getElementById('heroStyle3ActionLabel1');
+        const actionLabel2 = document.getElementById('heroStyle3ActionLabel2');
+        const actionUrl1 = document.getElementById('heroStyle3ActionUrl1');
+        const actionUrl2 = document.getElementById('heroStyle3ActionUrl2');
+        
+        if (actionLabel1 && heroData.action_label) {
+            actionLabel1.value = heroData.action_label;
+            console.log('✅ Set action label 1:', heroData.action_label);
+        }
+        if (actionLabel2 && heroData.action_label_2) {
+            actionLabel2.value = heroData.action_label_2;
+            console.log('✅ Set action label 2:', heroData.action_label_2);
+        }
+        if (actionUrl1 && heroData.action_url) {
+            actionUrl1.value = heroData.action_url;
+            console.log('✅ Set action URL 1:', heroData.action_url);
+        }
+        if (actionUrl2 && heroData.action_url_2) {
+            actionUrl2.value = heroData.action_url_2;
+            console.log('✅ Set action URL 2:', heroData.action_url_2);
+        }
+        
+        // Set images (cache keys: image, image_2, image_3)
+        if (!window.heroBannerStyle3Images) {
+            window.heroBannerStyle3Images = {};
+        }
+        
+        // Image 1
+        if (heroData.image) {
+            const preview = document.getElementById('heroStyle3ImagePreview1');
+            const previewImg = preview?.querySelector('img');
+            if (preview && previewImg) {
+                previewImg.src = '/storage/' + heroData.image;
+                preview.classList.remove('hidden');
+                console.log('✅ Set image 1 preview:', heroData.image.substring(0, 50));
+            }
+            window.heroBannerStyle3Images['image1'] = heroData.image;
+        }
+        
+        // Image 2
+        if (heroData.image_2) {
+            const preview = document.getElementById('heroStyle3ImagePreview2');
+            const previewImg = preview?.querySelector('img');
+            if (preview && previewImg) {
+                previewImg.src = '/storage/' + heroData.image_2;
+                preview.classList.remove('hidden');
+                console.log('✅ Set image 2 preview:', heroData.image_2.substring(0, 50));
+            }
+            window.heroBannerStyle3Images['image2'] = heroData.image_2;
+        }
+        
+        // Image 3
+        if (heroData.image_3) {
+            const preview = document.getElementById('heroStyle3ImagePreview3');
+            const previewImg = preview?.querySelector('img');
+            if (preview && previewImg) {
+                previewImg.src = '/storage/' + heroData.image_3;
+                preview.classList.remove('hidden');
+                console.log('✅ Set image 3 preview:', heroData.image_3.substring(0, 50));
+            }
+            window.heroBannerStyle3Images['image3'] = heroData.image_3;
+        }
+        
+        console.log('✅ Hero Banner Style 3 - Form populated successfully');
+    } else if (shortcodeId) {
+        // Load data dari database jika belum ada di cache
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Store ke cache
+                blockDataCache[currentEditBlockId] = result.data;
+                
+                // Populate form (recursive call)
+                openEditHeroBannerStyle3Modal();
+                return;
+            }
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+        }
+    }
+    
+    // Show modal
+    const modal = document.getElementById('editHeroBannerStyle3Modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/**
+ * Close modal edit hero banner style 3
+ */
+function closeEditHeroBannerStyle3Modal() {
+    closeModalWithTransition('editHeroBannerStyle3Modal', () => {
+        // Reset all inputs
+        const title1 = document.getElementById('heroStyle3Title1');
+        const title2 = document.getElementById('heroStyle3Title2');
+        const description = document.getElementById('heroStyle3Description');
+        const actionLabel1 = document.getElementById('heroStyle3ActionLabel1');
+        const actionLabel2 = document.getElementById('heroStyle3ActionLabel2');
+        const actionUrl1 = document.getElementById('heroStyle3ActionUrl1');
+        const actionUrl2 = document.getElementById('heroStyle3ActionUrl2');
+        
+        if (title1) title1.value = '';
+        if (title2) title2.value = '';
+        if (description) description.value = '';
+        if (actionLabel1) actionLabel1.value = '';
+        if (actionLabel2) actionLabel2.value = '';
+        if (actionUrl1) actionUrl1.value = '';
+        if (actionUrl2) actionUrl2.value = '';
+        
+        // Reset images
+        for (let i = 1; i <= 3; i++) {
+            const imageInput = document.getElementById(`heroStyle3Image${i}`);
+            const preview = document.getElementById(`heroStyle3ImagePreview${i}`);
+            
+            if (imageInput) imageInput.value = '';
+            if (preview) preview.classList.add('hidden');
+        }
+        
+        // Clear temporary image storage
+        if (window.heroBannerStyle3Images) {
+            window.heroBannerStyle3Images = {};
+        }
+        
+        currentEditBlockId = null;
+    });
+}
+
+/**
+ * Save hero banner style 3 block
+ */
+async function saveHeroBannerStyle3Block() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    const style = block.dataset.style || '3';
+    const shortcodeId = block.dataset.shortcodeId;
+    const pageId = window.pageId;
+    const sortId = getCurrentSortId(currentEditBlockId);
+    
+    // Get button elements for loading state
+    const saveBtn = document.getElementById('saveHeroBannerStyle3Btn');
+    const saveIcon = document.getElementById('saveHeroBannerStyle3Icon');
+    const saveLoading = document.getElementById('saveHeroBannerStyle3Loading');
+    const saveText = document.getElementById('saveHeroBannerStyle3Text');
+    
+    // Show loading
+    if (saveBtn) saveBtn.disabled = true;
+    saveIcon?.classList.add('hidden');
+    saveLoading?.classList.remove('hidden');
+    if (saveText) saveText.textContent = 'Saving...';
+    
+    try {
+        // Collect form data
+        const title1 = document.getElementById('heroStyle3Title1')?.value.trim() || '';
+        const title2 = document.getElementById('heroStyle3Title2')?.value.trim() || '';
+        const description = document.getElementById('heroStyle3Description')?.value.trim() || '';
+        const actionLabel1 = document.getElementById('heroStyle3ActionLabel1')?.value.trim() || '';
+        const actionLabel2 = document.getElementById('heroStyle3ActionLabel2')?.value.trim() || '';
+        const actionUrl1 = document.getElementById('heroStyle3ActionUrl1')?.value.trim() || '';
+        const actionUrl2 = document.getElementById('heroStyle3ActionUrl2')?.value.trim() || '';
+        
+        // Collect images
+        const image1 = window.heroBannerStyle3Images?.image1 || '';
+        const image2 = window.heroBannerStyle3Images?.image2 || '';
+        const image3 = window.heroBannerStyle3Images?.image3 || '';
+        
+        // Validation: ALL fields required
+        const missingFields = [];
+        if (!title1) missingFields.push('Title 1');
+        if (!title2) missingFields.push('Title 2');
+        if (!description) missingFields.push('Description');
+        if (!image1) missingFields.push('Image 1');
+        if (!image2) missingFields.push('Image 2');
+        if (!image3) missingFields.push('Image 3');
+        if (!actionLabel1) missingFields.push('Action Label 1');
+        if (!actionUrl1) missingFields.push('Action URL 1');
+        if (!actionLabel2) missingFields.push('Action Label 2');
+        if (!actionUrl2) missingFields.push('Action URL 2');
+        
+        if (missingFields.length > 0) {
+            alert('Please complete all required fields:\n\n' + missingFields.join('\n'));
+            throw new Error('Validation failed');
+        }
+        
+        // Prepare form data
+        const formData = {
+            pages_id: pageId,
+            type: 'hero-banner',
+            hero_style: style,
+            sort_id: sortId,
+            hero_data: {
+                title: title1,
+                title_2: title2,
+                description: description,
+                action_label: actionLabel1,
+                action_label_2: actionLabel2,
+                action_url: actionUrl1,
+                action_url_2: actionUrl2,
+                image: image1,
+                image_2: image2,
+                image_3: image3
+            }
+        };
+        
+        // Determine URL and method
+        const url = shortcodeId 
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}` 
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+        
+        // Send to API
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update block with shortcode_id if new
+            if (data.data?.id && !shortcodeId) {
+                block.dataset.shortcodeId = data.data.id;
+            }
+            
+            // Update cache dengan struktur yang konsisten
+            blockDataCache[currentEditBlockId] = {
+                hero_style: style,
+                hero: {
+                    title: title1,                // Title 1
+                    title_2: title2,              // Title 2
+                    description: description,     // Description
+                    action_label: actionLabel1,   // Action Label 1
+                    action_label_2: actionLabel2, // Action Label 2
+                    action_url: actionUrl1,       // Action URL 1
+                    action_url_2: actionUrl2,     // Action URL 2
+                    image: image1,                // Image 1
+                    image_2: image2,              // Image 2
+                    image_3: image3               // Image 3
+                },
+                type: 'hero-banner'
+            };
+            
+            console.log('💾 Updated cache for Hero Banner Style 3:', blockDataCache[currentEditBlockId]);
+            
+            // Update block title di UI
+            const blockTitle = block.querySelector('.block-title');
+            if (blockTitle) {
+                blockTitle.textContent = `Hero Banner Style 3: ${title1}`;
+            }
+            
+            closeEditHeroBannerStyle3Modal();
+            alert('Hero banner style 3 saved successfully!');
+        } else {
+            throw new Error(data.message || 'Failed to save');
+        }
+        
+    } catch (error) {
+        console.error('❌ Save error:', error);
+        if (error.message !== 'Validation failed') {
+            alert('Error saving hero banner: ' + error.message);
+        }
+    } finally {
+        // Restore button state
+        if (saveBtn) saveBtn.disabled = false;
+        saveIcon?.classList.remove('hidden');
+        saveLoading?.classList.add('hidden');
+        if (saveText) saveText.textContent = 'Save';
+    }
+}
+
+/**
+ * Delete hero banner style 3 block
+ */
+async function deleteHeroBannerStyle3Block() {
+    const block = document.getElementById(currentEditBlockId);
+    if (!block) return;
+    
+    if (!confirm('Are you sure you want to delete this hero banner?')) return;
+    
+    const shortcodeId = block.dataset.shortcodeId;
+    
+    // Get button elements
+    const deleteBtn = document.getElementById('deleteHeroBannerStyle3Btn');
+    const deleteIcon = document.getElementById('deleteHeroBannerStyle3IconTrash');
+    const deleteLoading = document.getElementById('deleteHeroBannerStyle3IconLoading');
+    const deleteText = document.getElementById('deleteHeroBannerStyle3Text');
+    
+    // Show loading
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    try {
+        // Jika sudah tersimpan di database, hapus dari database
+        if (shortcodeId) {
+            console.log('🗑️ Deleting hero banner style 3 from database:', shortcodeId);
+            
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to delete from database');
+            }
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block?.remove();
+        closeEditHeroBannerStyle3Modal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('Hero banner style 3 deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting hero banner: ' + error.message);
+    } finally {
+        // Restore button state (untuk kasus error)
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
     }
 }
 
@@ -1925,6 +3507,24 @@ function addBlock(type) {
         document.getElementById('selectHeroStyleModal').classList.remove('hidden'); // Buka style modal
         document.body.style.overflow = 'hidden';
         return; // Keluar dari fungsi (berhenti di sini)
+    }
+    
+    // Special handling untuk about (butuh pilih style dulu)
+    if (type === 'about') {
+        blockCounter = getNextBlockCounter();
+        pendingAboutBlockId = `block-${blockCounter}`;
+        closeBlockLibrary();
+        openSelectAboutStyleModal();
+        return;
+    }
+    
+    // Special handling untuk product-category (butuh pilih style dulu)
+    if (type === 'product-category') {
+        blockCounter = getNextBlockCounter();
+        pendingProductCategoryBlockId = `block-${blockCounter}`;
+        closeBlockLibrary();
+        openSelectProductCategoryStyleModal();
+        return;
     }
     
     // Special handling untuk featured-services (butuh pilih style dulu)
@@ -2094,6 +3694,7 @@ function getBlockIcon(type) {
         'brands': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>',
         'testimonials': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>',
         'recent-product': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>',
+        'product-category': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>',
         'featured-services': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
         'newsletter': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
         'latestnews': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>',
@@ -2145,7 +3746,7 @@ function checkEmptyState() {
  * 5. Update counter dan empty state
  */
 function loadExistingBlocks() {
-    console.log('📥 Loading existing blocks...');
+    console.log('📥 Loading existing blocks from database...');
     
     // Cek apakah ada data dari server
     // window.existingShortcodes = data yang di-set dari Blade template
@@ -2161,34 +3762,111 @@ function loadExistingBlocks() {
         return;
     }
     
-    // Loop setiap shortcode dari database
+    console.log(`🔄 Found ${window.existingShortcodes.length} existing blocks to load`);
+    
+    // Loop setiap shortcode dari database (sorted by sort_id dari controller)
     window.existingShortcodes.forEach((shortcode, index) => {
-        console.log(`Loading block ${index + 1}:`, shortcode);
+        console.log(`📦 Loading block ${index + 1}/${window.existingShortcodes.length}:`, shortcode.type, shortcode);
         
         // Increment counter untuk ID block baru
         blockCounter++;
         const newBlockId = `block-${blockCounter}`;
+        console.log(`🔢 Assigned block ID: ${newBlockId}`);
+        
+        // ⭐ PENTING: Simpan data ke cache SEBELUM render block
+        // Ini memastikan saat user klik Configure, data langsung tersedia di modal
+        blockDataCache[newBlockId] = {
+            id: shortcode.id,
+            type: shortcode.type,
+            sort_id: shortcode.sort_id,
+            // Common fields
+            title: shortcode.title,
+            subtitle: shortcode.subtitle,
+            heading: shortcode.heading,
+            content: shortcode.content,
+            // Hero fields
+            hero_style: shortcode.hero_style,
+            hero: shortcode.hero, // Relationship data
+            section_hero_id: shortcode.section_hero_id,
+            // About fields
+            about_style: shortcode.about_style,
+            about: shortcode.about, // Relationship data
+            section_about_id: shortcode.section_about_id,
+            // Testimonials fields
+            testimonials_title: shortcode.testimonials_title,
+            testimonials_subtitle: shortcode.testimonials_subtitle,
+            testimonials_style: shortcode.testimonials_style,
+            section_testimoni_id: shortcode.section_testimoni_id,
+            // Product fields
+            product_title: shortcode.product_title,
+            product_subtitle: shortcode.product_subtitle,
+            product_category_id: shortcode.product_category_id,
+            product_category_limit: shortcode.product_category_limit,
+            product_category_style: shortcode.product_category_style,
+            // Service fields
+            service_style: shortcode.service_style,
+            section_service_id: shortcode.section_service_id,
+            // Brand fields
+            section_brand_id: shortcode.section_brand_id,
+            // Complete Counts fields
+            section_completecount_id: shortcode.section_completecount_id,
+            // Newsletter fields
+            section_newsletter_id: shortcode.section_newsletter_id,
+            // Latest News fields
+            latestnews_title: shortcode.latestnews_title,
+            latestnews_style: shortcode.latestnews_style,
+            blog_limit: shortcode.blog_limit,
+            // Contact fields
+            contact_title_1: shortcode.contact_title_1,
+            contact_subtitle: shortcode.contact_subtitle,
+            contact_id: shortcode.contact_id,
+        };
+        
+        console.log(`💾 Cached data for ${newBlockId}:`, blockDataCache[newBlockId]);
         
         // Ambil config untuk block type ini
         const config = blockConfig[shortcode.type] || { name: shortcode.type, icon: 'cube', color: 'gray' };
         
-        // Tentukan label berdasarkan type
+        // Tentukan label berdasarkan type dan data
         let blockLabel = config.name;
         
+        // ⭐ Tambahkan data attributes khusus berdasarkan type block
+        // Ini penting untuk membuka modal yang sesuai dengan style
+        let additionalDataAttributes = '';
+        
+        if (shortcode.type === 'hero-banner') {
+            const heroStyle = shortcode.hero_style || '1';
+            additionalDataAttributes = `data-style="${heroStyle}"`;
+            blockLabel = `${config.name} - Style ${heroStyle}`;
+        } else if (shortcode.type === 'about') {
+            const aboutStyle = shortcode.about_style || '1';
+            additionalDataAttributes = `data-about-style="${aboutStyle}"`;
+            blockLabel = `${config.name} - Style ${aboutStyle}`;
+        } else if (shortcode.type === 'product-category') {
+            const productCategoryStyle = shortcode.product_category_style || '1';
+            additionalDataAttributes = `data-product-category-style="${productCategoryStyle}"`;
+            blockLabel = `${config.name} - Style ${productCategoryStyle}`;
+        } else if (shortcode.type === 'testimonials') {
+            const testimonialsStyle = shortcode.testimonials_style || '1';
+            additionalDataAttributes = `data-style="${testimonialsStyle}"`;
+            blockLabel = `${config.name} - Style ${testimonialsStyle}`;
+        } else if (shortcode.type === 'services') {
+            const serviceStyle = shortcode.service_style || '1';
+            additionalDataAttributes = `data-style="${serviceStyle}"`;
+            blockLabel = `${config.name} - Style ${serviceStyle}`;
+        } else if (shortcode.type === 'latest-news') {
+            const latestnewsStyle = shortcode.latestnews_style || '1';
+            additionalDataAttributes = `data-style="${latestnewsStyle}"`;
+            blockLabel = `${config.name} - Style ${latestnewsStyle}`;
+        }
+        
         // Buat HTML untuk block
-        // Template literal dengan backtick ` ` bisa insert variable dengan ${}
         const blockHTML = `
             <div id="${newBlockId}" 
                  class="block-item bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-lg transition-all duration-300 cursor-move group"
                  data-type="${shortcode.type}"
                  data-shortcode-id="${shortcode.id}"
-                 ${shortcode.section_newsletter_id ? `data-newsletter-id="${shortcode.section_newsletter_id}"` : ''}
-                 ${shortcode.latestnews_title ? `data-title="${shortcode.latestnews_title}"` : ''}
-                 ${shortcode.blog_limit ? `data-blog-limit="${shortcode.blog_limit}"` : ''}
-                 ${shortcode.latestnews_style ? `data-style="${shortcode.latestnews_style}"` : ''}
-                 ${shortcode.contact_title_1 ? `data-contact-title="${shortcode.contact_title_1}"` : ''}
-                 ${shortcode.contact_subtitle ? `data-contact-subtitle="${shortcode.contact_subtitle}"` : ''}
-                 ${shortcode.contact_id ? `data-contact-ids='${JSON.stringify(shortcode.contact_id)}'` : ''}>
+                 ${additionalDataAttributes}>
                 <div class="flex items-center justify-between p-4">
                     <div class="flex items-center gap-3 flex-1">
                         <!-- Drag Handle -->
@@ -2199,7 +3877,7 @@ function loadExistingBlocks() {
                         </div>
                         
                         <!-- Block Order Number -->
-                        <span class="block-order font-bold text-slate-600 text-sm">${blockCounter}</span>
+                        <span class="block-order font-bold text-slate-600 text-sm">${shortcode.sort_id || index + 1}</span>
                         
                         <!-- Block Icon & Name -->
                         <div class="flex items-center gap-2 flex-1">
@@ -2208,7 +3886,10 @@ function loadExistingBlocks() {
                                     ${getBlockIcon(shortcode.type)}
                                 </svg>
                             </div>
-                            <span class="font-semibold text-slate-800">${blockLabel}</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 block">${blockLabel}</span>
+                                ${shortcode.title ? `<span class="text-xs text-slate-500">${shortcode.title.substring(0, 30)}${shortcode.title.length > 30 ? '...' : ''}</span>` : ''}
+                            </div>
                         </div>
                     </div>
                     
@@ -2225,18 +3906,16 @@ function loadExistingBlocks() {
         `;
         
         // Tambahkan block ke list
-        // insertAdjacentHTML = cara efisien menambah HTML tanpa overwrite yang lain
-        // 'beforeend' = tambahkan di akhir (sebelum closing tag)
         blocksList.insertAdjacentHTML('beforeend', blockHTML);
         
-        console.log(`✅ Block ${newBlockId} loaded successfully`);
+        console.log(`✅ Block ${newBlockId} rendered (shortcode ID: ${shortcode.id})`);
     });
     
     // Update empty state setelah semua blocks di-load
     checkEmptyState();
     
-    // Update order numbers
-    updateBlockOrder();
+    // Update order numbers (tidak perlu karena sudah di-set dari sort_id)
+    // updateBlockOrder();
     
     // PENTING: Set blockCounter ke nomor tertinggi yang ada
     // Agar block baru yang ditambahkan tidak bentrok dengan yang lama
@@ -2254,7 +3933,8 @@ function loadExistingBlocks() {
     blockCounter = maxCounter; // Set ke nomor tertinggi
     console.log(`🔢 Block counter initialized to: ${blockCounter}`);
     
-    console.log(`✅ Loaded ${window.existingShortcodes.length} blocks from database`);
+    console.log(`✅ Successfully loaded ${window.existingShortcodes.length} blocks from database`);
+    console.log('📊 Current blockDataCache:', blockDataCache);
 }
 
 // ===================================================================
@@ -2571,8 +4251,8 @@ async function saveTestimonialsBlock() {
         return;
     }
     
-    // Extract sort_id dari block ID
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     const saveBtn = document.getElementById('saveTestimonialsBtn');
     const saveIconCheck = document.getElementById('saveTestimonialsIconCheck');
@@ -2837,8 +4517,8 @@ async function saveRecentProductBlock() {
     const shortcodeId = document.getElementById('recentproduct_shortcode_id').value;
     const pageId = window.pageId;
     
-    // Extract sort_id dari block ID
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     const saveBtn = document.getElementById('saveRecentProductBtn');
     const saveIconCheck = document.getElementById('saveRecentProductIconCheck');
@@ -3217,14 +4897,8 @@ async function saveFeaturedServicesBlock() {
     const shortcodeId = block.dataset.shortcodeId;
     const pageId = window.pageId;
     
-    // Extract sort_id dari block ID
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     const saveBtn = document.getElementById('saveFeaturedServicesBtn');
     const saveIcon = document.getElementById('saveFeaturedServicesIcon');
@@ -3241,7 +4915,7 @@ async function saveFeaturedServicesBlock() {
             pages_id: pageId,
             service_style: style,
             section_service_id: selectedIds,
-            type: 'service',
+            type: 'featured-services',
             sort_id: sortId
         };
         
@@ -3604,14 +5278,8 @@ async function saveNewsletterBlock() {
     // Berisi ID halaman yang sedang di-edit
     const pageId = window.pageId;
     
-    // Extract sort_id dari block ID (block-1, block-2, etc)
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     // Object berisi data yang akan dikirim ke server
     const formData = {
@@ -4084,30 +5752,39 @@ function selectLatestNewsStyle(style) {
 async function openEditLatestNewsModal(blockId) {
     console.log('Opening Latest News modal for block:', blockId);
     
-    const block = document.querySelector(`[data-block-id="${blockId}"]`);
+    // Set current block ID dulu
+    currentEditBlockId = blockId;
+    
+    // Cari block element (konsisten dengan block lain - gunakan getElementById)
+    let block = document.getElementById(blockId);
+    
+    // Fallback: jika tidak ditemukan dengan id, cari dengan data-block-id (backward compatibility)
     if (!block) {
-        console.error('Block not found:', blockId);
-        return;
+        block = document.querySelector(`[data-block-id="${blockId}"]`);
     }
     
-    // Set current block ID
-    currentEditBlockId = blockId;
+    if (!block) {
+        console.error('❌ Block not found:', blockId);
+        return;
+    }
     
     // Load data dari cache atau database jika ada
     let shortcodeData = null;
     let title = '';
     let blogLimit = '4';
+    let style = block.dataset.style || '1';
     
     const shortcodeId = block.dataset.shortcodeId || '';
     
-    // Prioritas 1: Cek cache local
+    // Prioritas 1: Cek cache local (paling cepat!)
     if (blockDataCache[currentEditBlockId]) {
         console.log('📦 Loading latest news from cache:', currentEditBlockId);
         shortcodeData = blockDataCache[currentEditBlockId];
         title = shortcodeData.latestnews_title || '';
         blogLimit = shortcodeData.blog_limit || '4';
+        style = shortcodeData.latestnews_style || style;
     }
-    // Prioritas 2: Fetch dari database
+    // Prioritas 2: Fetch dari database (untuk backward compatibility)
     else if (shortcodeId) {
         console.log('🔄 Loading latest news from database:', shortcodeId);
         try {
@@ -4117,7 +5794,8 @@ async function openEditLatestNewsModal(blockId) {
                 shortcodeData = result.data;
                 title = shortcodeData.latestnews_title || '';
                 blogLimit = shortcodeData.blog_limit || '4';
-                // Simpan ke cache
+                style = shortcodeData.latestnews_style || style;
+                // Simpan ke cache untuk next time
                 blockDataCache[currentEditBlockId] = shortcodeData;
             }
         } catch (error) {
@@ -4129,7 +5807,7 @@ async function openEditLatestNewsModal(blockId) {
         blogLimit = block.dataset.blogLimit || '4';
     }
     
-    console.log('Block data:', { title, blogLimit });
+    console.log('✅ Latest News data loaded:', { title, blogLimit, style, shortcodeId });
     
     // Set nilai ke form
     document.getElementById('latestNewsTitle').value = title;
@@ -4178,24 +5856,24 @@ async function saveLatestNewsBlock() {
         return;
     }
     
-    // Ambil block element dan data
-    const block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    // Ambil block element dan data (konsisten dengan block lain - gunakan getElementById)
+    let block = document.getElementById(currentEditBlockId);
+    
+    // Fallback: jika tidak ditemukan dengan id, cari dengan data-block-id
     if (!block) {
-        console.error('Block not found:', currentEditBlockId);
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
+    if (!block) {
+        console.error('❌ Block not found:', currentEditBlockId);
         return;
     }
     
-    const style = block.dataset.style;
+    const style = block.dataset.style || '1';
     const shortcodeId = block.dataset.shortcodeId || null;
     
-    // Extract sort_id dari block ID
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     console.log('Form data:', { title, blogLimit, style, shortcodeId });
     
@@ -4292,7 +5970,14 @@ async function deleteLatestNewsBlock() {
         return;
     }
     
-    const block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    // Ambil block element (konsisten dengan block lain - gunakan getElementById)
+    let block = document.getElementById(currentEditBlockId);
+    
+    // Fallback: jika tidak ditemukan dengan id, cari dengan data-block-id
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
     const shortcodeId = block?.dataset.shortcodeId;
     
     // Ambil element untuk loading state
@@ -4563,14 +6248,8 @@ async function saveContactBlock() {
     
     const shortcodeId = block.dataset.shortcodeId || null;
     
-    // Extract sort_id dari block ID
-    const sortId = parseInt(currentEditBlockId.replace('block-', ''));
-    
-    console.log('📊 Sort ID calculation:', {
-        blockId: currentEditBlockId,
-        extractedSortId: sortId,
-        currentBlockCounter: blockCounter
-    });
+    // Hitung sort_id dari posisi AKTUAL di blocklist
+    const sortId = getCurrentSortId(currentEditBlockId);
     
     console.log('Form data:', { title, subtitle, selectedContactIds, shortcodeId });
     
@@ -4743,6 +6422,1167 @@ async function deleteContactBlock() {
         }
     }
 }
+
+// ===================================================================
+// BAGIAN 21: FUNGSI ABOUT US BLOCK
+// ===================================================================
+
+// Object untuk menyimpan data gambar About yang sedang diedit
+window.aboutImages = {};
+
+/**
+ * Handle image upload untuk About block
+ */
+async function handleAboutImageUpload(imageNumber, input) {
+    if (!input.files || !input.files[0]) {
+        return;
+    }
+    
+    const file = input.files[0];
+    
+    // Validasi type
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        input.value = '';
+        return;
+    }
+    
+    try {
+        // Convert ke WebP
+        const webpBase64 = await convertImageToWebP(file);
+        
+        // Store in memory
+        window.aboutImages[`image_${imageNumber}`] = webpBase64;
+        
+        // Show preview
+        const preview = document.getElementById(`aboutImage${imageNumber}Preview`);
+        const previewImg = preview?.querySelector('img');
+        if (preview && previewImg) {
+            previewImg.src = webpBase64;
+            preview.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Error processing image: ' + error.message);
+        input.value = '';
+    }
+}
+
+/**
+ * Toggle between upload and URL input for About images
+ */
+function toggleAboutImageInput(imageNumber, type) {
+    const uploadSection = document.getElementById(`aboutImage${imageNumber}UploadSection`);
+    const urlSection = document.getElementById(`aboutImage${imageNumber}UrlSection`);
+    
+    if (type === 'upload') {
+        uploadSection?.classList.remove('hidden');
+        urlSection?.classList.add('hidden');
+    } else if (type === 'url') {
+        uploadSection?.classList.add('hidden');
+        urlSection?.classList.remove('hidden');
+    }
+}
+
+/**
+ * Handle URL input for About images
+ */
+function handleAboutImageUrl(imageNumber, input) {
+    const url = input.value.trim();
+    
+    if (!url) {
+        return;
+    }
+    
+    // Validasi URL format
+    try {
+        new URL(url);
+    } catch (error) {
+        alert('Please enter a valid URL');
+        return;
+    }
+    
+    // Store URL in memory
+    window.aboutImages[`image_${imageNumber}`] = url;
+    
+    // Show preview
+    const preview = document.getElementById(`aboutImage${imageNumber}Preview`);
+    const previewImg = preview?.querySelector('img');
+    if (preview && previewImg) {
+        previewImg.src = url;
+        previewImg.onerror = function() {
+            alert('Failed to load image from URL. Please check the URL.');
+            previewImg.src = '';
+            preview.classList.add('hidden');
+        };
+        preview.classList.remove('hidden');
+    }
+}
+
+/**
+ * Buka modal select About style
+ */
+function openSelectAboutStyleModal() {
+    const modal = document.getElementById('selectAboutStyleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.bg-white')?.classList.add('animate-fade-in');
+        }, 10);
+    }
+}
+
+/**
+ * Tutup modal select About style
+ */
+function closeSelectAboutStyleModal() {
+    const modal = document.getElementById('selectAboutStyleModal');
+    if (modal) {
+        modal.querySelector('.bg-white')?.classList.remove('animate-fade-in');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+}
+
+/**
+ * Proses setelah user memilih About style
+ */
+function selectAboutStyle(style) {
+    console.log('About style selected:', style);
+    
+    if (!pendingAboutBlockId) {
+        console.error('No pending About block ID');
+        return;
+    }
+    
+    // Ambil ID dan config block
+    const blockId = pendingAboutBlockId;
+    const config = blockConfig['about'];
+    const blocksList = document.getElementById('blocksList');
+    
+    // Buat HTML untuk block About
+    const blockHTML = `
+        <div id="${blockId}" data-type="about" data-about-style="${style}" class="block-item bg-white hover:bg-slate-50 transition-all group">
+            <div class="flex items-center gap-4 p-4">
+                <div class="drag-handle cursor-move text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-${config.color}-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-${config.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            ${getBlockIcon('about')}
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="block-order inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs font-bold">${blockCounter}</span>
+                            <h3 class="font-semibold text-slate-800 block-label">${config.name} - Style ${style}</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Click to configure</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        onclick="openEditModal('${blockId}')"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Configure
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Insert block ke dalam list
+    blocksList.insertAdjacentHTML('beforeend', blockHTML);
+    
+    // Close style selection modal
+    closeSelectAboutStyleModal();
+    
+    // Cek empty state
+    checkEmptyState();
+    
+    // Update block order
+    updateBlockOrder();
+    
+    // Re-initialize sortable jika belum ada
+    if (!sortable) {
+        initSortable();
+    }
+    
+    // Reset pendingAboutBlockId
+    pendingAboutBlockId = null;
+    
+    // Notify user untuk style yang belum ready
+    if (style !== '1') {
+        alert('Style ' + style + ' coming soon! Please wait for further updates.');
+    }
+}
+
+/**
+ * Buka modal edit About (Style 1)
+ */
+async function openEditAboutModal() {
+    console.log('Opening About modal for:', currentEditBlockId);
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected');
+        return;
+    }
+    
+    const modal = document.getElementById('editAboutModal');
+    if (!modal) {
+        console.error('About modal not found');
+        return;
+    }
+    
+    // Reset form
+    document.getElementById('aboutSectionLabel').value = '';
+    document.getElementById('aboutSectionTitle').value = '';
+    document.getElementById('aboutSectionDescription').value = '';
+    document.getElementById('aboutBenefitTitle').value = '';
+    
+    // Reset images
+    window.aboutImages = {};
+    for (let i = 1; i <= 3; i++) {
+        const preview = document.getElementById(`aboutImage${i}Preview`);
+        const input = document.getElementById(`aboutImage${i}`);
+        const urlInput = document.getElementById(`aboutImage${i}Url`);
+        const alt = document.getElementById(`aboutImage${i}Alt`);
+        const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
+        const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
+        const uploadSection = document.getElementById(`aboutImage${i}UploadSection`);
+        const urlSection = document.getElementById(`aboutImage${i}UrlSection`);
+        
+        if (preview) preview.classList.add('hidden');
+        if (input) input.value = '';
+        if (urlInput) urlInput.value = '';
+        if (alt) alt.value = '';
+        if (uploadRadio) uploadRadio.checked = true;
+        if (urlRadio) urlRadio.checked = false;
+        if (uploadSection) uploadSection.classList.remove('hidden');
+        if (urlSection) urlSection.classList.add('hidden');
+    }
+    
+    // Reset benefits
+    for (let i = 1; i <= 6; i++) {
+        const textInput = document.getElementById(`aboutBenefit${i}Text`);
+        const iconInput = document.getElementById(`aboutBenefit${i}Icon`);
+        const enabledCheck = document.getElementById(`aboutBenefit${i}Enabled`);
+        
+        if (textInput) textInput.value = '';
+        if (iconInput) iconInput.value = '';
+        if (enabledCheck) enabledCheck.checked = true;
+    }
+    
+    // Cek cache dulu
+    const cachedData = blockDataCache[currentEditBlockId];
+    console.log('📦 About - Cached data:', cachedData);
+    
+    if (cachedData) {
+        // Data bisa berupa direct cache atau dari relationship
+        const aboutData = cachedData.about || cachedData;
+        console.log('🎯 About data to use:', aboutData);
+        
+        // Load dari cache
+        document.getElementById('aboutSectionLabel').value = aboutData.section_label || '';
+        document.getElementById('aboutSectionTitle').value = aboutData.section_title || '';
+        document.getElementById('aboutSectionDescription').value = aboutData.section_description || '';
+        document.getElementById('aboutBenefitTitle').value = aboutData.benefit_title || '';
+        
+        // Load images
+        for (let i = 1; i <= 3; i++) {
+            if (aboutData[`image_${i}_source`]) {
+                window.aboutImages[`image_${i}`] = aboutData[`image_${i}_source`];
+                const imageType = aboutData[`image_${i}_type`] || 'upload';
+                const imageSource = aboutData[`image_${i}_source`];
+                
+                // Set radio button
+                const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
+                const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
+                
+                if (imageType === 'url') {
+                    if (urlRadio) urlRadio.checked = true;
+                    if (uploadRadio) uploadRadio.checked = false;
+                    toggleAboutImageInput(i, 'url');
+                    const urlInput = document.getElementById(`aboutImage${i}Url`);
+                    if (urlInput) urlInput.value = imageSource;
+                } else {
+                    if (uploadRadio) uploadRadio.checked = true;
+                    if (urlRadio) urlRadio.checked = false;
+                    toggleAboutImageInput(i, 'upload');
+                }
+                
+                // Show preview
+                const preview = document.getElementById(`aboutImage${i}Preview`);
+                const previewImg = preview?.querySelector('img');
+                if (preview && previewImg) {
+                    previewImg.src = imageSource;
+                    preview.classList.remove('hidden');
+                }
+            }
+            if (aboutData[`image_${i}_alt`]) {
+                document.getElementById(`aboutImage${i}Alt`).value = aboutData[`image_${i}_alt`];
+            }
+        }
+        
+        // Load benefits
+        for (let i = 1; i <= 6; i++) {
+            if (aboutData[`benefit_${i}_text`]) {
+                document.getElementById(`aboutBenefit${i}Text`).value = aboutData[`benefit_${i}_text`];
+            }
+            if (aboutData[`benefit_${i}_icon`]) {
+                document.getElementById(`aboutBenefit${i}Icon`).value = aboutData[`benefit_${i}_icon`];
+            }
+            if (aboutData[`benefit_${i}_enabled`] !== undefined) {
+                document.getElementById(`aboutBenefit${i}Enabled`).checked = aboutData[`benefit_${i}_enabled`];
+            }
+        }
+    } else {
+        // Load dari database jika ada shortcode_id
+        const block = document.getElementById(currentEditBlockId);
+        const shortcodeId = block?.dataset.shortcodeId;
+        
+        if (shortcodeId) {
+            try {
+                const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+                const data = await response.json();
+                console.log('📨 Loaded from database:', data);
+                
+                if (data.success && data.data.about) {
+                    const aboutData = data.data.about;
+                    
+                    document.getElementById('aboutSectionLabel').value = aboutData.section_label || '';
+                    document.getElementById('aboutSectionTitle').value = aboutData.section_title || '';
+                    document.getElementById('aboutSectionDescription').value = aboutData.section_description || '';
+                    document.getElementById('aboutBenefitTitle').value = aboutData.benefit_title || '';
+                    
+                    // Load images dari database
+                    for (let i = 1; i <= 3; i++) {
+                        if (aboutData[`image_${i}_source`]) {
+                            window.aboutImages[`image_${i}`] = aboutData[`image_${i}_source`];
+                            const imageType = aboutData[`image_${i}_type`] || 'upload';
+                            const imageSource = aboutData[`image_${i}_source`];
+                            
+                            // Set radio button
+                            const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
+                            const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
+                            
+                            if (imageType === 'url') {
+                                if (urlRadio) urlRadio.checked = true;
+                                if (uploadRadio) uploadRadio.checked = false;
+                                toggleAboutImageInput(i, 'url');
+                                const urlInput = document.getElementById(`aboutImage${i}Url`);
+                                if (urlInput) urlInput.value = imageSource;
+                            } else {
+                                if (uploadRadio) uploadRadio.checked = true;
+                                if (urlRadio) urlRadio.checked = false;
+                                toggleAboutImageInput(i, 'upload');
+                            }
+                            
+                            // Show preview
+                            const preview = document.getElementById(`aboutImage${i}Preview`);
+                            const previewImg = preview?.querySelector('img');
+                            if (preview && previewImg) {
+                                previewImg.src = imageSource;
+                                preview.classList.remove('hidden');
+                            }
+                        }
+                        if (aboutData[`image_${i}_alt`]) {
+                            document.getElementById(`aboutImage${i}Alt`).value = aboutData[`image_${i}_alt`];
+                        }
+                    }
+                    
+                    // Load benefits dari database
+                    for (let i = 1; i <= 6; i++) {
+                        if (aboutData[`benefit_${i}_text`]) {
+                            document.getElementById(`aboutBenefit${i}Text`).value = aboutData[`benefit_${i}_text`];
+                        }
+                        if (aboutData[`benefit_${i}_icon`]) {
+                            document.getElementById(`aboutBenefit${i}Icon`).value = aboutData[`benefit_${i}_icon`];
+                        }
+                        if (aboutData[`benefit_${i}_enabled`] !== undefined) {
+                            document.getElementById(`aboutBenefit${i}Enabled`).checked = aboutData[`benefit_${i}_enabled`];
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading About data:', error);
+            }
+        }
+    }
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Tutup modal edit About
+ */
+function closeEditAboutModal() {
+    const modal = document.getElementById('editAboutModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    currentEditBlockId = null;
+}
+
+/**
+ * Simpan About block
+ */
+async function saveAboutBlock() {
+    console.log('Saving About block...');
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected');
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = document.getElementById('saveAboutBtn');
+    const saveIcon = document.getElementById('saveAboutIcon');
+    const saveLoading = document.getElementById('saveAboutLoading');
+    const saveText = document.getElementById('saveAboutText');
+    const deleteBtn = document.getElementById('deleteAboutBtn');
+    
+    if (saveBtn) saveBtn.disabled = true;
+    if (deleteBtn) deleteBtn.disabled = true;
+    if (saveIcon) saveIcon.classList.add('hidden');
+    if (saveLoading) saveLoading.classList.remove('hidden');
+    if (saveText) saveText.textContent = 'Saving...';
+    
+    try {
+        // Validasi required fields
+        const sectionTitle = document.getElementById('aboutSectionTitle').value.trim();
+        
+        if (!sectionTitle) {
+            alert('Please fill in the Section Title');
+            return;
+        }
+        
+        // Validasi images (minimal 3 image required)
+        if (!window.aboutImages.image_1 || !window.aboutImages.image_2 || !window.aboutImages.image_3) {
+            alert('Please upload all 3 images');
+            return;
+        }
+        
+        // Kumpulkan semua data
+        const aboutData = {
+            section_label: document.getElementById('aboutSectionLabel').value.trim(),
+            section_title: sectionTitle,
+            section_description: document.getElementById('aboutSectionDescription').value.trim(),
+            benefit_title: document.getElementById('aboutBenefitTitle').value.trim(),
+        };
+        
+        // Images with type
+        for (let i = 1; i <= 3; i++) {
+            const imageType = document.querySelector(`input[name="aboutImage${i}Type"]:checked`)?.value || 'upload';
+            aboutData[`image_${i}_type`] = imageType;
+            aboutData[`image_${i}_source`] = window.aboutImages[`image_${i}`] || '';
+            aboutData[`image_${i}_alt`] = document.getElementById(`aboutImage${i}Alt`).value.trim();
+        }
+        
+        // Benefits
+        for (let i = 1; i <= 6; i++) {
+            aboutData[`benefit_${i}_text`] = document.getElementById(`aboutBenefit${i}Text`).value.trim();
+            aboutData[`benefit_${i}_icon`] = document.getElementById(`aboutBenefit${i}Icon`).value;
+            aboutData[`benefit_${i}_enabled`] = document.getElementById(`aboutBenefit${i}Enabled`).checked;
+        }
+        
+        console.log('📦 About data to save:', aboutData);
+        
+        // Prepare data untuk API
+        const block = document.getElementById(currentEditBlockId);
+        const shortcodeId = block?.dataset.shortcodeId;
+        const sortId = getCurrentSortId(currentEditBlockId) || 0;
+        const aboutStyle = block?.dataset.aboutStyle || '1';
+        
+        // Update cache dengan struktur yang konsisten
+        blockDataCache[currentEditBlockId] = {
+            about_style: aboutStyle,
+            about: aboutData,
+            type: 'about'
+        };
+        
+        console.log('💾 Updated cache for About block:', blockDataCache[currentEditBlockId]);
+        
+        const payload = {
+            pages_id: window.pageId,
+            type: 'about',
+            about_style: aboutStyle,
+            sort_id: sortId,
+            about_data: aboutData
+        };
+        
+        console.log('📤 Sending payload:', payload);
+        
+        let response;
+        
+        if (shortcodeId) {
+            // Update existing
+            response = await fetch(`/bagoosh/page-shortcode/update/${shortcodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            // Create new
+            response = await fetch('/bagoosh/page-shortcode/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+        
+        const data = await response.json();
+        console.log('📨 Server response:', data);
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to save');
+        }
+        
+        // Update shortcodeId di block element
+        if (data.data && data.data.id) {
+            block.dataset.shortcodeId = data.data.id;
+        }
+        
+        // Update label block
+        const label = block.querySelector('.block-label');
+        if (label) {
+            label.textContent = `About Us - ${sectionTitle.substring(0, 30)}${sectionTitle.length > 30 ? '...' : ''}`;
+        }
+        
+        closeEditAboutModal();
+        alert('About block saved successfully!');
+        
+    } catch (error) {
+        console.error('❌ Save error:', error);
+        alert('Error saving About block: ' + error.message);
+    } finally {
+        // Hide loading state
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (saveIcon) saveIcon.classList.remove('hidden');
+        if (saveLoading) saveLoading.classList.add('hidden');
+        if (saveText) saveText.textContent = 'Save Changes';
+    }
+}
+
+/**
+ * Hapus About block
+ */
+async function deleteAboutBlock() {
+    console.log('Deleting About block...');
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected for deletion');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this About block?')) {
+        return;
+    }
+    
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
+    if (!block) {
+        console.error('Block not found:', currentEditBlockId);
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = document.getElementById('saveAboutBtn');
+    const deleteBtn = document.getElementById('deleteAboutBtn');
+    const deleteIcon = document.getElementById('deleteAboutIcon');
+    const deleteLoading = document.getElementById('deleteAboutLoading');
+    const deleteText = document.getElementById('deleteAboutText');
+    
+    if (saveBtn) saveBtn.disabled = true;
+    if (deleteBtn) deleteBtn.disabled = true;
+    if (deleteIcon) deleteIcon.classList.add('hidden');
+    if (deleteLoading) deleteLoading.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    const shortcodeId = block?.dataset.shortcodeId;
+    
+    try {
+        // Hapus dari database jika sudah tersimpan
+        if (shortcodeId) {
+            console.log('🗑️ Deleting from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
+            console.log('📨 Delete response:', data);
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
+            }
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block.remove();
+        closeEditAboutModal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('About block deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting About block: ' + error.message);
+    } finally {
+        // Hide loading state
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (deleteIcon) deleteIcon.classList.remove('hidden');
+        if (deleteLoading) deleteLoading.classList.add('hidden');
+        if (deleteText) deleteText.textContent = 'Delete Block';
+    }
+}
+
+// ===================================================================
+// PRODUCT CATEGORY BLOCK FUNCTIONS
+// ===================================================================
+
+/**
+ * Buka modal select Product Category style
+ */
+function openSelectProductCategoryStyleModal() {
+    const modal = document.getElementById('selectProductCategoryStyleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.bg-white')?.classList.add('animate-fade-in');
+        }, 10);
+    }
+}
+
+/**
+ * Tutup modal select Product Category style
+ */
+function closeSelectProductCategoryStyleModal() {
+    const modal = document.getElementById('selectProductCategoryStyleModal');
+    if (modal) {
+        modal.querySelector('.bg-white')?.classList.remove('animate-fade-in');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+}
+
+/**
+ * Proses setelah user memilih Product Category style
+ */
+function selectProductCategoryStyle(style) {
+    console.log('Product Category style selected:', style);
+    
+    if (!pendingProductCategoryBlockId) {
+        console.error('No pending Product Category block ID');
+        return;
+    }
+    
+    // Ambil ID dan config block
+    const blockId = pendingProductCategoryBlockId;
+    const config = blockConfig['product-category'];
+    const blocksList = document.getElementById('blocksList');
+    
+    // Buat HTML untuk block Product Category
+    const blockHTML = `
+        <div id="${blockId}" data-type="product-category" data-product-category-style="${style}" class="block-item bg-white hover:bg-slate-50 transition-all group">
+            <div class="flex items-center gap-4 p-4">
+                <div class="drag-handle cursor-move text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-${config.color}-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-${config.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            ${getBlockIcon('product-category')}
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="block-order inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs font-bold">${blockCounter}</span>
+                            <h3 class="font-semibold text-slate-800 block-label">${config.name} - Style ${style}</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Click to configure</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        onclick="openEditModal('${blockId}')"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Configure
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Insert block ke dalam list
+    blocksList.insertAdjacentHTML('beforeend', blockHTML);
+    
+    // Close style selection modal
+    closeSelectProductCategoryStyleModal();
+    
+    // Cek empty state
+    checkEmptyState();
+    
+    // Update block order
+    updateBlockOrder();
+    
+    // Re-initialize sortable jika belum ada
+    if (!sortable) {
+        initSortable();
+    }
+    
+    // Reset pendingProductCategoryBlockId
+    pendingProductCategoryBlockId = null;
+}
+
+/**
+ * Buka modal edit Product Category
+ */
+async function openEditProductCategoryModal() {
+    console.log('Opening Product Category modal for:', currentEditBlockId);
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected');
+        return;
+    }
+    
+    const modal = document.getElementById('editProductCategoryModal');
+    if (!modal) {
+        console.error('Product Category modal not found');
+        return;
+    }
+    
+    // Reset form
+    document.getElementById('productCategoryTitle').value = '';
+    document.getElementById('productCategorySubtitle').value = '';
+    document.getElementById('productCategoryLimit').value = '12';
+    
+    // Cek cache dulu
+    const cachedData = blockDataCache[currentEditBlockId];
+    console.log('📦 Cached data:', cachedData);
+    
+    if (cachedData) {
+        // Load dari cache
+        document.getElementById('productCategoryTitle').value = cachedData.product_title || '';
+        document.getElementById('productCategorySubtitle').value = cachedData.product_subtitle || '';
+        document.getElementById('productCategoryLimit').value = cachedData.product_category_limit || '12';
+    } else {
+        // Load dari database jika ada shortcode_id
+        const block = document.getElementById(currentEditBlockId);
+        const shortcodeId = block?.dataset.shortcodeId;
+        
+        if (shortcodeId) {
+            try {
+                const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+                const data = await response.json();
+                console.log('📨 Loaded from database:', data);
+                
+                if (data.success && data.data) {
+                    const shortcodeData = data.data;
+                    
+                    document.getElementById('productCategoryTitle').value = shortcodeData.product_title || '';
+                    document.getElementById('productCategorySubtitle').value = shortcodeData.product_subtitle || '';
+                    document.getElementById('productCategoryLimit').value = shortcodeData.product_category_limit || '12';
+                }
+            } catch (error) {
+                console.error('Error loading Product Category data:', error);
+            }
+        }
+    }
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Tutup modal edit Product Category
+ */
+function closeEditProductCategoryModal() {
+    const modal = document.getElementById('editProductCategoryModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    currentEditBlockId = null;
+}
+
+/**
+ * Simpan Product Category block
+ */
+async function saveProductCategoryBlock() {
+    console.log('Saving Product Category block...');
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected');
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = document.getElementById('saveProductCategoryBtn');
+    const saveIcon = document.getElementById('saveProductCategoryIcon');
+    const saveLoading = document.getElementById('saveProductCategoryLoading');
+    const saveText = document.getElementById('saveProductCategoryText');
+    const deleteBtn = document.getElementById('deleteProductCategoryBtn');
+    
+    if (saveBtn) saveBtn.disabled = true;
+    if (deleteBtn) deleteBtn.disabled = true;
+    if (saveIcon) saveIcon.classList.add('hidden');
+    if (saveLoading) saveLoading.classList.remove('hidden');
+    if (saveText) saveText.textContent = 'Saving...';
+    
+    try {
+        // Validasi required fields
+        const productTitle = document.getElementById('productCategoryTitle').value.trim();
+        const productCategoryLimit = document.getElementById('productCategoryLimit').value;
+        
+        if (!productTitle) {
+            alert('Please fill in the Section Title');
+            return;
+        }
+        
+        if (!productCategoryLimit || productCategoryLimit < 1) {
+            alert('Please enter a valid Items Per Page value (minimum 1)');
+            return;
+        }
+        
+        // Kumpulkan semua data
+        const productCategoryData = {
+            product_title: productTitle,
+            product_subtitle: document.getElementById('productCategorySubtitle').value.trim(),
+            product_category_limit: parseInt(productCategoryLimit)
+        };
+        
+        console.log('📦 Product Category data to save:', productCategoryData);
+        
+        // Prepare data untuk API
+        const block = document.getElementById(currentEditBlockId);
+        const shortcodeId = block?.dataset.shortcodeId;
+        const sortId = getCurrentSortId(currentEditBlockId) || 0;
+        const productCategoryStyle = block?.dataset.productCategoryStyle || '1';
+        
+        // Update cache dengan semua data termasuk style
+        blockDataCache[currentEditBlockId] = {
+            ...productCategoryData,
+            product_category_style: productCategoryStyle,
+            type: 'product-category'
+        };
+        
+        const payload = {
+            pages_id: window.pageId,
+            type: 'product-category',
+            product_title: productCategoryData.product_title,
+            product_subtitle: productCategoryData.product_subtitle,
+            product_category_limit: productCategoryData.product_category_limit,
+            product_category_style: productCategoryStyle,
+            sort_id: sortId
+        };
+        
+        console.log('📤 Sending payload:', payload);
+        
+        let response;
+        
+        if (shortcodeId) {
+            // Update existing
+            response = await fetch(`/bagoosh/page-shortcode/update/${shortcodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            // Create new
+            response = await fetch('/bagoosh/page-shortcode/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+        
+        const data = await response.json();
+        console.log('📨 Server response:', data);
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to save');
+        }
+        
+        // Update shortcodeId di block element
+        if (data.data && data.data.id) {
+            block.dataset.shortcodeId = data.data.id;
+        }
+        
+        // Update label block
+        const label = block.querySelector('.block-label');
+        if (label) {
+            label.textContent = `Product Category - ${productTitle.substring(0, 30)}${productTitle.length > 30 ? '...' : ''}`;
+        }
+        
+        closeEditProductCategoryModal();
+        alert('Product Category block saved successfully!');
+        
+    } catch (error) {
+        console.error('❌ Save error:', error);
+        alert('Error saving Product Category block: ' + error.message);
+    } finally {
+        // Hide loading state
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (saveIcon) saveIcon.classList.remove('hidden');
+        if (saveLoading) saveLoading.classList.add('hidden');
+        if (saveText) saveText.textContent = 'Save Changes';
+    }
+}
+
+/**
+ * Hapus Product Category block
+ */
+async function deleteProductCategoryBlock() {
+    console.log('Deleting Product Category block...');
+    
+    if (!currentEditBlockId) {
+        console.error('No block selected for deletion');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this Product Category block?')) {
+        return;
+    }
+    
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+    
+    if (!block) {
+        console.error('Block not found:', currentEditBlockId);
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = document.getElementById('saveProductCategoryBtn');
+    const deleteBtn = document.getElementById('deleteProductCategoryBtn');
+    const deleteIcon = document.getElementById('deleteProductCategoryIcon');
+    const deleteLoading = document.getElementById('deleteProductCategoryLoading');
+    const deleteText = document.getElementById('deleteProductCategoryText');
+    
+    if (saveBtn) saveBtn.disabled = true;
+    if (deleteBtn) deleteBtn.disabled = true;
+    if (deleteIcon) deleteIcon.classList.add('hidden');
+    if (deleteLoading) deleteLoading.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+    
+    const shortcodeId = block?.dataset.shortcodeId;
+    
+    try {
+        // Hapus dari database jika sudah tersimpan
+        if (shortcodeId) {
+            console.log('🗑️ Deleting from database:', shortcodeId);
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+            
+            const data = await response.json();
+            console.log('📨 Delete response:', data);
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
+            }
+            console.log('✅ Deleted from database');
+        } else {
+            console.log('ℹ️ Block not saved yet, removing from UI only');
+        }
+        
+        // Hapus dari cache
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+            console.log('🗑️ Deleted from cache:', currentEditBlockId);
+        }
+        
+        // Hapus block dari UI
+        block.remove();
+        closeEditProductCategoryModal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('Product Category block deleted successfully!');
+        
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        alert('Error deleting Product Category block: ' + error.message);
+    } finally {
+        // Hide loading state
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (deleteIcon) deleteIcon.classList.remove('hidden');
+        if (deleteLoading) deleteLoading.classList.add('hidden');
+        if (deleteText) deleteText.textContent = 'Delete Block';
+    }
+}
+
+// ===================================================================
+// EXPOSE FUNCTIONS TO GLOBAL WINDOW OBJECT (FOR HTML ONCLICK)
+// ===================================================================
+// Function-function ini perlu accessible dari onclick attributes di HTML
+// Mendaftarkan semua function ke window object
+
+console.log('🔌 Binding functions to window object...');
+
+// Core functions
+window.openBlockLibrary = openBlockLibrary;
+window.closeBlockLibrary = closeBlockLibrary;
+window.addBlock = addBlock;
+window.openEditModal = openEditModal;
+
+// ⭐ EXPOSE MODAL FUNCTIONS (FIX UNTUK ONCLICK HANDLERS)
+// Title Block
+window.closeEditTitleModal = closeEditTitleModal;
+window.saveTitleBlock = saveTitleBlock;
+window.deleteTitleBlock = deleteTitleBlock;
+
+// Simple Text Block
+window.closeEditSimpleTextModal = closeEditSimpleTextModal;
+window.saveSimpleTextBlock = saveSimpleTextBlock;
+window.deleteSimpleTextBlock = deleteSimpleTextBlock;
+
+// Text Editor Block
+window.closeEditTextEditorModal = closeEditTextEditorModal;
+window.saveTextEditorBlock = saveTextEditorBlock;
+window.deleteTextEditorBlock = deleteTextEditorBlock;
+
+// Brands Block
+window.closeEditBrandsModal = closeEditBrandsModal;
+window.saveBrandsBlock = saveBrandsBlock;
+window.deleteBrandsBlock = deleteBrandsBlock;
+
+// Complete Counts Block
+window.closeEditCompleteCountsModal = closeEditCompleteCountsModal;
+window.saveCompleteCountsBlock = saveCompleteCountsBlock;
+window.deleteCompleteCountsBlock = deleteCompleteCountsBlock;
+
+// Hero Banner Modals
+window.closeSelectHeroStyleModal = closeSelectHeroStyleModal;
+window.selectHeroStyle = selectHeroStyle;
+window.closeEditHeroBannerModal = closeEditHeroBannerModal;
+window.saveHeroBannerBlock = saveHeroBannerBlock;
+window.deleteHeroBannerBlock = deleteHeroBannerBlock;
+window.closeEditHeroBannerStyle2Modal = closeEditHeroBannerStyle2Modal;
+window.saveHeroBannerStyle2Block = saveHeroBannerStyle2Block;
+window.deleteHeroBannerStyle2Block = deleteHeroBannerStyle2Block;
+window.closeEditHeroBannerStyle3Modal = closeEditHeroBannerStyle3Modal;
+window.saveHeroBannerStyle3Block = saveHeroBannerStyle3Block;
+window.deleteHeroBannerStyle3Block = deleteHeroBannerStyle3Block;
+
+// About Block
+window.closeSelectAboutStyleModal = closeSelectAboutStyleModal;
+window.selectAboutStyle = selectAboutStyle;
+window.closeEditAboutModal = closeEditAboutModal;
+window.saveAboutBlock = saveAboutBlock;
+window.deleteAboutBlock = deleteAboutBlock;
+
+// Testimonials Block
+window.closeSelectTestimonialsStyleModal = closeSelectTestimonialsStyleModal;
+window.selectTestimonialsStyle = selectTestimonialsStyle;
+window.closeEditTestimonialsModal = closeEditTestimonialsModal;
+window.saveTestimonialsBlock = saveTestimonialsBlock;
+window.deleteTestimonialsBlock = deleteTestimonialsBlock;
+
+// Recent Product Block
+window.closeEditRecentProductModal = closeEditRecentProductModal;
+window.saveRecentProductBlock = saveRecentProductBlock;
+window.deleteRecentProductBlock = deleteRecentProductBlock;
+
+// Featured Services Block
+window.closeSelectServiceStyleModal = closeSelectServiceStyleModal;
+window.selectServiceStyle = selectServiceStyle;
+window.closeEditFeaturedServicesModal = closeEditFeaturedServicesModal;
+window.saveFeaturedServicesBlock = saveFeaturedServicesBlock;
+window.deleteFeaturedServicesBlock = deleteFeaturedServicesBlock;
+
+// Newsletter Block
+window.closeEditNewsletterModal = closeEditNewsletterModal;
+window.saveNewsletterBlock = saveNewsletterBlock;
+window.deleteNewsletterBlock = deleteNewsletterBlock;
+
+// Latest News Block
+window.closeSelectLatestNewsStyleModal = closeSelectLatestNewsStyleModal;
+window.selectLatestNewsStyle = selectLatestNewsStyle;
+window.closeEditLatestNewsModal = closeEditLatestNewsModal;
+window.saveLatestNewsBlock = saveLatestNewsBlock;
+window.deleteLatestNewsBlock = deleteLatestNewsBlock;
+
+// Contact Block
+window.closeEditContactModal = closeEditContactModal;
+window.saveContactBlock = saveContactBlock;
+window.deleteContactBlock = deleteContactBlock;
+
+// Product Category Block
+window.closeSelectProductCategoryStyleModal = closeSelectProductCategoryStyleModal;
+window.selectProductCategoryStyle = selectProductCategoryStyle;
+window.closeEditProductCategoryModal = closeEditProductCategoryModal;
+window.saveProductCategoryBlock = saveProductCategoryBlock;
+window.deleteProductCategoryBlock = deleteProductCategoryBlock;
+
+// Test function - bisa dipanggil dari console
+window.testModal = function() {
+    console.log('🧪 TEST FUNCTION CALLED');
+    console.log('📌 openBlockLibrary exists?', typeof openBlockLibrary);
+    console.log('📌 window.openBlockLibrary exists?', typeof window.openBlockLibrary);
+    
+    const modal = document.getElementById('blockLibraryModal');
+    console.log('📌 Modal exists?', !!modal);
+    
+    if (modal) {
+        console.log('📌 Modal classes:', modal.className);
+        console.log('📌 Calling openBlockLibrary()...');
+        openBlockLibrary();
+    } else {
+        console.error('❌ Modal NOT found!');
+    }
+};
+
+console.log('✅ All functions successfully bound to window object');
+console.log('💡 Untuk test, ketik di console: window.testModal() atau testModal()');
 
 // ===================================================================
 // END OF FILE
