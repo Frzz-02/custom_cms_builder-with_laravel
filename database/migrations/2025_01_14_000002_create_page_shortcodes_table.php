@@ -25,8 +25,11 @@ return new class extends Migration
             $table->unsignedBigInteger('section_about_id')->nullable();
             $table->foreignId('pages_id')->constrained('pages')->onDelete('cascade');
             $table->unsignedBigInteger('faq_categories_id')->nullable();
+            $table->json('product_category_id')->nullable();
+
             $table->integer('sort_id')->nullable();
             $table->integer('blog_limit')->nullable();
+            $table->integer('product_category_limit')->nullable();
             $table->string('title')->nullable();
             $table->string('subtitle')->nullable();
             $table->string('heading')->nullable();
@@ -58,6 +61,8 @@ return new class extends Migration
             $table->string('comingsoon_subtitle')->nullable();
             $table->string('comingsoon_image')->nullable();
             $table->string('comingsoon_placeholder')->nullable();
+      
+            $table->integer('product_category_style')->nullable();
             $table->string('hero_style')->nullable();
             $table->string('about_style')->nullable();
             $table->string('pricing_style')->nullable();

@@ -15,7 +15,12 @@ return new class extends Migration
             $table->id();                               // BIGINT auto increment primary key
             $table->string('status')->nullable();       // VARCHAR 255
             $table->string('slug')->unique();           // VARCHAR 255 + unique
+            
             $table->string('name');                     // VARCHAR 255
+            $table->string('image_type');                     // VARCHAR 255
+            $table->text('image_source');                     // VARCHAR 255
+            
+            $table->string('background_color');                     // VARCHAR 255
             $table->string('description')->nullable();  // VARCHAR 255
             $table->string('meta_title')->nullable();   // VARCHAR 255
             $table->text('meta_description')->nullable();

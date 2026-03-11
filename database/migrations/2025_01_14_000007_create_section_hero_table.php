@@ -17,14 +17,17 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('title_2')->nullable();
             $table->string('title_3')->nullable();
+            $table->string('title_4')->nullable();
+            $table->string('title_5')->nullable();
+            $table->string('title_6')->nullable();
 
-            $table->string('subtitle_1')->nullable();
-            $table->string('subtitle_2')->nullable();
-            $table->string('subtitle_3')->nullable();
 
             $table->text('description')->nullable();
             $table->text('description_2')->nullable();
             $table->text('description_3')->nullable();
+            $table->text('description_4')->nullable();
+            $table->text('description_5')->nullable();
+            $table->text('description_6')->nullable();
 
             // Image fields
             $table->string('image')->nullable();
@@ -41,10 +44,6 @@ return new class extends Migration
             $table->string('image_12')->nullable();
             $table->string('image_13')->nullable();
             $table->string('image_14')->nullable();
-            $table->string('image_15')->nullable();
-            $table->string('image_16')->nullable();
-            $table->string('image_17')->nullable();
-            $table->string('image_18')->nullable();
 
             $table->string('image_background')->nullable();
             $table->string('image_background_2')->nullable();
@@ -53,10 +52,16 @@ return new class extends Migration
             $table->string('action_label')->nullable();
             $table->string('action_label_2')->nullable();
             $table->string('action_label_3')->nullable();
+            $table->string('action_label_4')->nullable();
+            $table->string('action_label_5')->nullable();
+            $table->string('action_label_6')->nullable();
 
             $table->string('action_url')->nullable();
             $table->string('action_url_2')->nullable();
             $table->string('action_url_3')->nullable();
+            $table->string('action_url_4')->nullable();
+            $table->string('action_url_5')->nullable();
+            $table->string('action_url_6')->nullable();
 
             $table->string('video_url')->nullable();
 
