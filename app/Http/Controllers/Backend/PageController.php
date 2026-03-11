@@ -106,8 +106,15 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        // Page is already loaded by route model binding, just pass it
-        return view('backend.pages.edit', compact('page'));
+        // Fetch all shortcodes for this page, ordered by sort_id
+        // Include relationships untuk complex blocks (hero, about, dll)
+        $existingShortcodes = $page->shortcodes()
+            ->with(['hero', 'about']) // Eager load relationships
+            ->orderBy('sort_id', 'asc')
+            ->get();
+        
+        // Pass page dan existing shortcodes ke view
+        return view('backend.pages.edit', compact('page', 'existingShortcodes'));
     }
 
     public function update(Request $request, Page $page)

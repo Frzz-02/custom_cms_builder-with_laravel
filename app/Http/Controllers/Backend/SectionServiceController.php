@@ -149,6 +149,23 @@ class SectionServiceController extends Controller
     }
 
     /**
+     * Get list of all active services
+     * Used for dropdown/checkbox selections in page builder
+     */
+    public function getList()
+    {
+        $services = SectionService::select('id', 'name')
+            ->where('status', 'active')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $services
+        ]);
+    }
+
+    /**
      * Convert uploaded image to WebP format
      */
     private function convertToWebP($file, $folder = 'services')
