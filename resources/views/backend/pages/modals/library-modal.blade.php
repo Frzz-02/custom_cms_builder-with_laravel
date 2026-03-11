@@ -169,6 +169,22 @@
                         </div>
                     </div>
 
+                    <!-- Product Category Block -->
+                    <div class="group bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                        <div class="bg-gradient-to-br from-green-500 to-teal-500 p-6 h-32 flex items-center justify-center border-b border-slate-200">
+                            <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-slate-800 text-base mb-1">Product Category</h3>
+                            <p class="text-sm text-slate-500 mb-4">Display product categories with pagination</p>
+                            <button type="button" onclick="addBlock('product-category')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                Use
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Featured Services Block -->
                     <div class="group bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-xl transition-all duration-300 overflow-hidden">
                         <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-6 h-32 flex items-center justify-center border-b border-slate-200">

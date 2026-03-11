@@ -1,296 +1,475 @@
 {{-- Edit Hero Banner Modal --}}
-<div id="editHeroBannerModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+<div id="editHeroBannerModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white rounded-t-xl z-10">
-            <h3 class="text-xl font-bold text-gray-900">Configure Hero Banner</h3>
-            <button type="button" onclick="closeEditHeroBannerModal()" 
-                class="text-gray-400 hover:text-gray-600 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
+        <div class="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-indigo-600 to-purple-600 flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Configure Hero Banner</h2>
+                        <p class="text-sm text-indigo-100">Style <span id="heroBannerStyleDisplay">1</span> - Complete all tabs</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeEditHeroBannerModal()" class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
+        <!-- Tabs Navigation -->
+        <div class="border-b border-slate-200 bg-slate-50 flex-shrink-0">
+            <div class="flex overflow-x-auto px-6">
+                <button type="button" onclick="switchHeroTab(1)" data-tab="1" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-indigo-600 text-indigo-600 whitespace-nowrap">
+                    Tab 1
+                </button>
+                <button type="button" onclick="switchHeroTab(2)" data-tab="2" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-transparent text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    Tab 2
+                </button>
+                <button type="button" onclick="switchHeroTab(3)" data-tab="3" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-transparent text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    Tab 3
+                </button>
+                <button type="button" onclick="switchHeroTab(4)" data-tab="4" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-transparent text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    Tab 4
+                </button>
+                <button type="button" onclick="switchHeroTab(5)" data-tab="5" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-transparent text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    Tab 5
+                </button>
+                <button type="button" onclick="switchHeroTab(6)" data-tab="6" class="hero-tab-btn px-4 py-3 font-medium text-sm border-b-2 border-transparent text-slate-600 hover:text-slate-900 whitespace-nowrap">
+                    Tab 6
+                </button>
+            </div>
+        </div>
 
-        <!-- Scrollable Content -->
-        <div class="flex-1 overflow-y-auto px-6 py-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
-            <div class="space-y-6">
-                @csrf
-                <input type="hidden" id="hero_banner_id" name="hero_banner_id">
-
-                <!-- Titles Section -->
-                <div class="bg-indigo-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-indigo-900 mb-3">Titles</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <label for="title" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Title 1
-                            </label>
-                            <input type="text" id="title" name="title"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Enter title 1">
-                        </div>
-                        <div>
-                            <label for="title_2" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Title 2
-                            </label>
-                            <input type="text" id="title_2" name="title_2"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Enter title 2">
-                        </div>
-                        <div>
-                            <label for="title_3" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Title 3
-                            </label>
-                            <input type="text" id="title_3" name="title_3"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Enter title 3">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subtitles Section -->
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-blue-900 mb-3">Subtitles</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <label for="subtitle_1" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Subtitle 1
-                            </label>
-                            <input type="text" id="subtitle_1" name="subtitle_1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Enter subtitle 1">
-                        </div>
-                        <div>
-                            <label for="subtitle_2" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Subtitle 2
-                            </label>
-                            <input type="text" id="subtitle_2" name="subtitle_2"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Enter subtitle 2">
-                        </div>
-                        <div>
-                            <label for="subtitle_3" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Subtitle 3
-                            </label>
-                            <input type="text" id="subtitle_3" name="subtitle_3"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Enter subtitle 3">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Descriptions Section -->
-                <div class="bg-purple-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-purple-900 mb-3">Descriptions</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Description 1
-                            </label>
-                            <textarea id="description" name="description" rows="2"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                placeholder="Enter description 1"></textarea>
-                        </div>
-                        <div>
-                            <label for="description_2" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Description 2
-                            </label>
-                            <textarea id="description_2" name="description_2" rows="2"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                placeholder="Enter description 2"></textarea>
-                        </div>
-                        <div>
-                            <label for="description_3" class="block text-sm font-semibold text-gray-700 mb-1">
-                                Description 3
-                            </label>
-                            <textarea id="description_3" name="description_3" rows="2"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                placeholder="Enter description 3"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Images Section -->
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-green-900 mb-3">Images <span class="text-xs font-normal text-gray-600">(Upload file or enter URL)</span></h4>
+        <!-- Modal Body - Scrollable -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <!-- Tab Content Container -->
+            <div id="heroTabsContainer">
+                <!-- Tab 1 -->
+                <div id="heroTab1" class="hero-tab-content">
                     <div class="space-y-4">
-                        <!-- Image 1 -->
+                        <!-- Category Dropdown -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Image 1</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_file" name="image_file" accept="image/*"
-                                    onchange="handleImageUpload('image', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image" name="image"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    placeholder="https://example.com/image1.jpg">
-                            </div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory1" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
                         </div>
-                        <!-- Image 2 -->
+
+                        <!-- Title Input -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Image 2</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_2_file" name="image_2_file" accept="image/*"
-                                    onchange="handleImageUpload('image_2', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image_2" name="image_2"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    placeholder="https://example.com/image2.jpg">
-                            </div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle1" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                         </div>
-                        <!-- Image 3 -->
+
+                        <!-- Description Textarea -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Image 3</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_3_file" name="image_3_file" accept="image/*"
-                                    onchange="handleImageUpload('image_3', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image_3" name="image_3"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    placeholder="https://example.com/image3.jpg">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription1" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+
+                        <!-- Action Label Input -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel1" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+
+                        <!-- Action URL Input -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl1" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage1" accept="image/*" class="hidden" onchange="handleHeroImageUpload(1, this)">
+                                <div id="heroImagePreview1" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage1').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Background Images Section -->
-                <div class="bg-amber-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-amber-900 mb-3">Background Images <span class="text-xs font-normal text-gray-600">(Upload file or enter URL)</span></h4>
+                <!-- Tab 2 -->
+                <div id="heroTab2" class="hero-tab-content hidden">
                     <div class="space-y-4">
-                        <!-- Background 1 -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Background Image 1</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_background_file" name="image_background_file" accept="image/*"
-                                    onchange="handleImageUpload('image_background', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image_background" name="image_background"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="https://example.com/bg1.jpg">
-                            </div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory2" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                            </select>
                         </div>
-                        <!-- Background 2 -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Background Image 2</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_background_2_file" name="image_background_2_file" accept="image/*"
-                                    onchange="handleImageUpload('image_background_2', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image_background_2" name="image_background_2"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="https://example.com/bg2.jpg">
-                            </div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle2" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                         </div>
-                        <!-- Background 3 -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Background Image 3</label>
-                            <div class="flex gap-2">
-                                <input type="file" id="image_background_3_file" name="image_background_3_file" accept="image/*"
-                                    onchange="handleImageUpload('image_background_3', this)"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm">
-                                <span class="text-gray-500 py-2">or</span>
-                                <input type="text" id="image_background_3" name="image_background_3"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="https://example.com/bg3.jpg">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription2" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel2" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl2" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage2" accept="image/*" class="hidden" onchange="handleHeroImageUpload(2, this)">
+                                <div id="heroImagePreview2" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage2').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Action Buttons Section -->
-                <div class="bg-rose-50 p-4 rounded-lg">
-                    <h4 class="font-bold text-rose-900 mb-3">Action Buttons <span class="text-xs font-normal text-gray-600">(External: https://... or Internal: /produk)</span></h4>
+                <!-- Tab 3 -->
+                <div id="heroTab3" class="hero-tab-content hidden">
                     <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label for="action_label" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 1 Label
-                                </label>
-                                <input type="text" id="action_label" name="action_label"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="e.g., Get Started">
-                            </div>
-                            <div>
-                                <label for="action_url" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 1 URL
-                                </label>
-                                <input type="text" id="action_url" name="action_url"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="https://example.com or /produk">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory3" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle3" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription3" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel3" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl3" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage3" accept="image/*" class="hidden" onchange="handleHeroImageUpload(3, this)">
+                                <div id="heroImagePreview3" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage3').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label for="action_label_2" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 2 Label
-                                </label>
-                                <input type="text" id="action_label_2" name="action_label_2"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="e.g., Learn More">
-                            </div>
-                            <div>
-                                <label for="action_url_2" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 2 URL
-                                </label>
-                                <input type="text" id="action_url_2" name="action_url_2"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="https://example.com or /about">
+                    </div>
+                </div>
+
+                <!-- Tab 4 -->
+                <div id="heroTab4" class="hero-tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory4" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle4" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription4" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel4" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl4" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage4" accept="image/*" class="hidden" onchange="handleHeroImageUpload(4, this)">
+                                <div id="heroImagePreview4" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage4').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label for="action_label_3" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 3 Label
-                                </label>
-                                <input type="text" id="action_label_3" name="action_label_3"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="e.g., Contact Us">
+                    </div>
+                </div>
+
+                <!-- Tab 5 -->
+                <div id="heroTab5" class="hero-tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory5" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle5" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription5" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel5" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl5" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage5" accept="image/*" class="hidden" onchange="handleHeroImageUpload(5, this)">
+                                <div id="heroImagePreview5" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage5').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
-                            <div>
-                                <label for="action_url_3" class="block text-sm font-semibold text-gray-700 mb-1">
-                                    Button 3 URL
-                                </label>
-                                <input type="text" id="action_url_3" name="action_url_3"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                                    placeholder="https://example.com or /contact">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 6 -->
+                <div id="heroTab6" class="hero-tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select id="heroCategory6" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Title
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroTitle6" placeholder="Enter title" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Description
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="heroDescription6" rows="4" placeholder="Enter description" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action Label
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionLabel6" placeholder="e.g., Shop Now, Learn More, View Details" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Action URL
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="heroActionUrl6" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                            <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Image
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                                <input type="file" id="heroImage6" accept="image/*" class="hidden" onchange="handleHeroImageUpload(6, this)">
+                                <div id="heroImagePreview6" class="hidden mb-4">
+                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
+                                </div>
+                                <button type="button" onclick="document.getElementById('heroImage6').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-            
+
         <!-- Modal Footer -->
-        <div class="bg-slate-50 px-6 py-4 flex gap-3 border-t border-slate-200">
-            <button type="button" id="saveHeroBannerBtn" onclick="saveHeroBannerBlock()" 
-                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                <svg id="saveIconCheck" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <svg id="saveIconLoading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span id="saveButtonText">Save</span>
-            </button>
-            <button type="button" id="deleteHeroBannerBtn" onclick="deleteHeroBannerBlock()" 
-                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center gap-2">
-                <svg id="deleteIconTrash" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+            <button type="button" id="deleteHeroBannerBtn" onclick="deleteHeroBannerBlock()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg id="deleteHeroBannerIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
-                <svg id="deleteIconLoading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                <svg id="deleteHeroBannerLoading" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span id="deleteButtonText">Delete</span>
+                <span id="deleteHeroBannerText">Delete</span>
             </button>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeEditHeroBannerModal()" class="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="saveHeroBannerBtn" onclick="saveHeroBannerBlock()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                    <svg id="saveHeroBannerIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <svg id="saveHeroBannerLoading" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="saveHeroBannerText">Save</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
