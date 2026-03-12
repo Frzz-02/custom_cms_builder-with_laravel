@@ -1,5 +1,5 @@
-@if ($shortcode->type == 'about us')
-    @if ($shortcode->about_style == 'Style 1')
+@if ($shortcode->type == 'about')
+    @if ($shortcode->about_style == '1')
     @php
         $aboutSection = $shortcode->about;
         // Helper: resolve image URL based on type (url = direct, upload = from storage)
@@ -175,7 +175,7 @@
         
         
 
-    @elseif ($shortcode->about_style == 'Style 2')
+    @elseif ($shortcode->about_style == '2')
 
         
 
@@ -188,7 +188,7 @@
     
     
     
-    @elseif ($shortcode->about_style == 'Style 3')
+    @elseif ($shortcode->about_style == '3')
 
     
     

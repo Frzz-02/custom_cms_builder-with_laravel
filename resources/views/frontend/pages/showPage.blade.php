@@ -6,8 +6,21 @@
 
 @push('styles')
     <style>
+        /* Hero Section Isolation - Prevents overlapping when multiple hero sections exist */
+        .hero-section-wrapper {
+            position: relative;
+            isolation: isolate;
+            clear: both;
+            display: block;
+            width: 100%;
+        }
+        
+        /* Panel Item for Hero Style 1 */
         .panel-item {
+            position: relative;
             flex: 1;
+            overflow: hidden;
+            cursor: pointer;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .panel-item:hover {
@@ -44,7 +57,6 @@
         }
     </style>
 @endpush
-
 
 
 
@@ -86,28 +98,5 @@
         @include('frontend.section.comingsoon')
 
     @endforeach
-
-
-
-
-
-
-    <style>
-    @keyframes scroll {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(-50%);
-        }
-    }
-    .animate-scroll {
-        animation: scroll 30s linear infinite;
-    }
-    .animate-scroll:hover {
-        animation-play-state: paused;
-    }
-</style>
-    
 
 @endsection

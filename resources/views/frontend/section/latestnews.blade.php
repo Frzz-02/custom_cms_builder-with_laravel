@@ -1,5 +1,5 @@
 @if ($shortcode->type == 'latestnews')
-    @if ($shortcode->latestnews_style == 'Style 1')
+    @if ($shortcode->latestnews_style == '1')
 
         <!-- Blog Slider Section - Auto Animate -->
         <section class="py-16 bg-gray-50">
@@ -102,8 +102,15 @@
             </div>
             @endif
         </section>
+
+
+
+
+
+
+        
       
-    @elseif ($shortcode->latestnews_style == 'Style 2')
+    @elseif ($shortcode->latestnews_style == '2')
 
         <section class="w-full px-8 md:px-16 py-16 bg-gray-50/60 reveal">
             {{-- Section Header --}}
@@ -196,7 +203,7 @@
             @endif
         </section>
         
-    @elseif ($shortcode->latestnews_style == 'Style 3')
+    @elseif ($shortcode->latestnews_style == '3')
     
         <!-- blog -->
         <section class="py-24 bg-[#f8f8f8] max-md:py-14" id="blog">

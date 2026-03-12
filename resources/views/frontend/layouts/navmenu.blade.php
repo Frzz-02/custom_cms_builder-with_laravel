@@ -2,6 +2,9 @@
 {{-- style 1 --}}
 @if ($page->header_style = 'header style 1')
 
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/style/section/hero/style1.css') }}">
+    @endpush
     <nav x-data="{ sidebarOpen: false, searchOpen: false, scrolled: false }"
         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 20 })"
         :class="scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg border-transparent' : 'bg-white border-gray-200'"
@@ -28,7 +31,7 @@
                 <!-- Center - Logo -->
                 <div class="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex-shrink-0">
                     <a href="#" class="flex items-center group">
-                        <img src="{{ asset('images/hero/mitjogja1.png') }}"
+                        <img src="{{ asset('assets/images/logo/mitjogja1.png') }}"
                             alt="MitraJogja Logo"
                             class="h-8 sm:h-12 md:h-16 w-auto object-contain">
                     </a>
@@ -128,7 +131,7 @@
 
                     <!-- Lanyard Shop Button -->
                     <a href="#" class="border border-gray-900 px-6 py-3 text-sm font-medium tracking-wider hover:bg-gray-900 hover:text-white transition-colors">
-                        LANYARD SHOP
+                        Mitracom Shop
                     </a>
                 </div>
             </div>
@@ -164,6 +167,10 @@
 {{-- style 2 --}}
 @elseif ($page->header_style = 'header style 2')
 
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/style/section/navmenu/style2.css') }}">
+    @endpush
+
     <nav
         x-data="{
             scrolled: false,
@@ -183,7 +190,7 @@
 
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="flex items-center">
-            <img src="{{ asset('images/malangmitra.png') }}" alt="Mitra Malang"
+            <img src="{{ asset('assets/images/logo/malangmitra.png') }}" alt="Mitra Malang"
                 :class="(!isHome || scrolled) ? '' : 'brightness-0 invert'"
                 class="h-12 w-auto object-contain transition-all duration-300">
         </a>
@@ -282,6 +289,12 @@
 {{-- style 3 --}}
 @elseif ($page->header_style = 'header style 3')
 
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/style/section/navmenu/style3.css') }}">
+    @endpush
+
+
     <!-- navbar -->
     <div class="fixed inset-x-0 top-0 z-[9999] pt-[18px] px-6 flex flex-col items-center pointer-events-none gap-2" id="navbarWrap">
         <nav class="pointer-events-auto flex items-center bg-[rgba(255,255,255,0.88)] backdrop-saturate-[200%] backdrop-blur-[24px] border border-[rgba(0,0,0,0.08)] rounded-[980px] p-[6px] h-[52px] max-w-[860px] w-full gap-1 transition-shadow duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.08)]" id="navbar">
@@ -292,7 +305,7 @@
             </ul>
 
             <a href="/" class="px-4 shrink-0 flex items-center">
-                <img src="{{ asset('img/logo/mitraoke-removebg-preview.png') }}" alt="MitraOke" class="h-[52px] w-auto block object-contain max-[480px]:h-[38px]">
+                <img src="{{ asset('assets/images/logo/mitraoke-removebg-preview.png') }}" alt="MitraOke" class="h-[52px] w-auto block object-contain max-[480px]:h-[38px]">
             </a>
 
             <ul class="navbar-right-links">

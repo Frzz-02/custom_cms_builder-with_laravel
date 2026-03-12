@@ -24,6 +24,7 @@ use App\Http\Controllers\Backend\SectionNewsletterController;
 use App\Http\Controllers\Backend\NewsletterController;
 use App\Http\Controllers\Backend\SettingController;
 use App\Http\Controllers\Backend\ThemeEditorController;
+use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
@@ -31,6 +32,8 @@ Route::get('/products/{slug}', [FrontendController::class, 'showProduct'])->name
 Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
 
 
+Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
+Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blog.show');
 
 
 
@@ -131,6 +134,10 @@ Route::middleware(['auth'])->group(function () {
         // Newsletter Subscribers Routes
         Route::get('newsletter/subscribers', [NewsletterController::class, 'index'])->name('newsletter.subscribers');
         Route::delete('newsletter/subscribers/{newsletter}', [NewsletterController::class, 'destroy'])->name('newsletter.subscribers.destroy');
+        
+        // Media Routes
+        Route::get('media/list', [MediaController::class, 'getList'])->name('media.list');
+        Route::resource('media', MediaController::class)->only(['index', 'store', 'destroy']);
         
         // Theme Editor Routes (Only for Superadmin)
         Route::get('theme-editor', [ThemeEditorController::class, 'index'])->name('theme-editor.index');

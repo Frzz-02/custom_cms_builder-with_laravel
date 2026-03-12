@@ -53,10 +53,13 @@
     <!-- Alpine.js - Deferred -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    @stack('styles')
+    
+    
     <style>
-        body {
-            font-family: 'DM Sans', sans-serif;
-        }
+       [x-cloak] { display: none !important; }
+
+        
         
         /* Lazy Loading Images */
         img[data-src] {
@@ -123,6 +126,7 @@
                 transition-duration: 0.01ms !important;
             }
         }
+
     </style>
 </head>
 

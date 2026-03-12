@@ -81,6 +81,60 @@
                 transition-duration: 0.01ms !important;
             }
         }
+
+        @if ($page->header_style = 'header style 1')
+            /* Force navbar to be fixed */
+            nav.fixed {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 9999 !important;
+            }
+
+            /* Ensure sidebar and overlay are always on top */
+            [data-sidebar-overlay],
+            [data-sidebar] {
+                position: fixed !important;
+                z-index: 2147483645 !important;
+            }
+            [data-sidebar-overlay] {
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                z-index: 2147483644 !important;
+            }
+            [data-sidebar] {
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                z-index: 2147483645 !important;
+            }
+        
+
+            
+            
+            
+            
+            
+            
+        @elseif ($page->header_style = 'header style 2')
+        
+            /* Navbar underline animation */
+            .nav-link { position: relative; }
+            .nav-link::after {
+                content: '';
+                position: absolute;
+                bottom: -4px; left: 0;
+                width: 0; height: 2px;
+                background: #dc2626;
+                transition: width 0.3s ease;
+            }
+            .nav-link:hover::after,
+            .nav-link.active::after { width: 100%; }
+            
+        @endif
     </style>
 
     @stack('styles')
