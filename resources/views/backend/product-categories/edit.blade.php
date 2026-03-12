@@ -60,58 +60,17 @@
 
             <!-- Category Image -->
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                    Category Image
-                </label>
-                
-                <!-- Image Type Selection -->
-                <div class="flex gap-4 mb-4">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="image_type" value="upload" class="mr-2" onchange="toggleImageInput('upload')" {{ old('image_type', $productCategory->image_type) === 'upload' ? 'checked' : '' }}>
-                        <span class="text-sm text-gray-700">Upload Image</span>
-                    </label>
-                    <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="image_type" value="url" class="mr-2" onchange="toggleImageInput('url')" {{ old('image_type', $productCategory->image_type) === 'url' ? 'checked' : '' }}>
-                        <span class="text-sm text-gray-700">Image URL</span>
-                    </label>
-                </div>
-
-                <!-- Upload Section -->
-                <div id="uploadSection" class="mb-4" style="display: {{ old('image_type', $productCategory->image_type) === 'url' ? 'none' : 'block' }}">
-                    <input type="file" name="image_file" id="image_file" accept="image/*" onchange="previewImage(this)"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image_file') border-red-500 @enderror">
-                    <p class="mt-1 text-xs text-gray-500">Accepted formats: JPEG, PNG, GIF, WebP (max 2MB). Will be converted to WebP automatically.</p>
-                    @error('image_file')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- URL Section -->
-                <div id="urlSection" class="mb-4" style="display: {{ old('image_type', $productCategory->image_type) === 'upload' ? 'none' : 'block' }}">
-                    <input type="url" name="image_url" id="image_url" value="{{ old('image_url', $productCategory->image_type === 'url' ? $productCategory->image_source : '') }}" placeholder="https://example.com/image.jpg" oninput="previewImageUrl(this)"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image_url') border-red-500 @enderror">
-                    <p class="mt-1 text-xs text-gray-500">Enter the full URL of the image</p>
+                <div data-media-picker 
+                     data-field-name="image_url" 
+                     data-field-id="image_url"
+                     data-label="Category Image"
+                     data-placeholder="https://example.com/image.jpg"
+                     data-initial-value="{{ old('image_url', $productCategory->image_type === 'url' ? $productCategory->image_source : '') }}">
+                    @include('backend.components.media-picker')
                     @error('image_url')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
-                </div>
-
-                <!-- Current Image -->
-                @if($productCategory->image_source)
-                <div class="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Current Image:</p>
-                    @if($productCategory->image_type === 'upload')
-                        <img src="{{ asset($productCategory->image_source) }}" alt="{{ $productCategory->name }}" loading="lazy" class="max-w-full h-auto max-h-64 rounded-lg shadow-sm">
-                    @else
-                        <img src="{{ $productCategory->image_source }}" alt="{{ $productCategory->name }}" loading="lazy" class="max-w-full h-auto max-h-64 rounded-lg shadow-sm">
-                    @endif
-                </div>
-                @endif
-
-                <!-- Image Preview (for new upload) -->
-                <div id="imagePreview" class="hidden mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <p class="text-sm font-medium text-gray-700 mb-2">New Preview:</p>
-                    <img id="previewImg" src="" alt="Preview" loading="lazy" class="max-w-full h-auto max-h-64 rounded-lg shadow-sm">
+                    <p class="mt-1 text-xs text-gray-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                 </div>
             </div>
 

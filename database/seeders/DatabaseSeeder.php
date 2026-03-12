@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             SectionServiceSeeder::class,
             BlogCategorySeeder::class,
+            BlogSeeder::class,
             ContactSeeder::class,
             SectionNewsletterSeeder::class,
             SectionCompleteCountSeeder::class,            

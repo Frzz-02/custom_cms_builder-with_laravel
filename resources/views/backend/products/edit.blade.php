@@ -156,19 +156,18 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Product Image</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Image URL -->
-                    <div>
-                        <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Image URL
-                        </label>
-                        <input type="url" name="image" id="image" value="{{ old('image', $product->image) }}"
-                            onchange="previewImageFromUrl(event)"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image') border-red-500 @enderror"
-                            placeholder="https://example.com/image.jpg">
+                    <!-- Image URL with Media Picker -->
+                    <div data-media-picker 
+                         data-field-name="image" 
+                         data-field-id="image"
+                         data-label="Image URL"
+                         data-placeholder="https://example.com/image.jpg"
+                         data-initial-value="{{ old('image', $product->image) }}">
+                        @include('backend.components.media-picker')
                         @error('image')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        <p class="mt-1 text-xs text-gray-500">Enter the URL of the product image</p>
+                        <p class="mt-1 text-xs text-gray-500">Select from media library or enter custom URL</p>
                     </div>
 
                     <!-- Image Title -->
@@ -182,20 +181,6 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
-
-                <!-- Current Image -->
-                @if($product->image)
-                    <div class="mt-4">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Current Image</label>
-                        <img src="{{ $product->image }}" alt="{{ $product->title }}" class="h-48 w-auto object-cover rounded-lg border border-gray-300">
-                    </div>
-                @endif
-
-                <!-- Image Preview -->
-                <div id="imagePreviewContainer" class="mt-4 hidden">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">New Preview</label>
-                    <img id="imagePreview" src="" alt="Preview" class="h-48 w-auto object-cover rounded-lg border border-gray-300">
                 </div>
             </div>
 
