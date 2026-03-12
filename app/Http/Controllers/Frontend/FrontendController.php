@@ -87,7 +87,7 @@ class FrontendController extends Controller
                 $query->where('status', 'active');
             },
         ])
-            ->where('status', 'active')
+            ->where('status', 'published')
             ->whereHas('category', function ($query) {
                 $query->where('status', 'active');
             })
@@ -95,12 +95,12 @@ class FrontendController extends Controller
             ->take($blogLimit)
             ->get();
 
-        $blogss = Blog::where('status', 'active')->latest()->paginate(2);
-        $recent_blogs = Blog::where('status', 'active')->latest()->take(5)->get();
+        $blogss = Blog::where('status', 'published')->latest()->paginate($blogLimit, ['*'], 'blog_page');
+        $recent_blogs = Blog::where('status', 'published')->latest()->take(5)->get();
         $categories = BlogCategory::where('status', 'active')
             ->withCount([
                 'blogs' => function ($query) {
-                    $query->where('status', 'active');
+                    $query->where('status', 'published');
                 },
             ])
             ->get();
@@ -109,7 +109,11 @@ class FrontendController extends Controller
         $users = User::whereIn('name', $authors)->get();
 
 
-        $products = Product::where('status', 'active')
+        $products = Product::with(['category:id,name'])
+            ->where('status', 'active')
+            ->whereHas('category', function ($query) {
+                $query->where('status', 'active');
+            })
             ->latest()
             ->paginate(8, ['*'], 'product_page');
 
@@ -127,6 +131,7 @@ class FrontendController extends Controller
             $layout = 'frontend.layouts.pages.master-comingsoon';
         }
 
+        // dd($products);
         return view('frontend.pages.showPage', compact('products', 'recent_blogs', 'categories', 'blogss', 'users', 'socialLinks', 'blogs', 'page', 'settings', 'footer', 'navbar', 'whatsappButton', 'media', 'shortcodes', 'layout'));
     }
 
@@ -178,4 +183,33 @@ class FrontendController extends Controller
 
         return view('frontend.pages.product.detail', compact('product', 'relatedProducts', 'whatsappUrl', 'footer', 'navbarItems', 'sidebarItems'));
     }
+
+
+
+
+
+    public function blog()
+    {
+        $blogs = Blog::with('category')
+            ->where('status', 'active')
+            ->latest()
+            ->paginate(12);
+        
+        // ... return view with blogs data
+    }
+
+
+
+
+
+    public function showBlog($slug)
+    {
+        $blog = Blog::with('category')
+            ->where('slug', $slug)
+            ->where('status', 'active')
+            ->firstOrFail();
+        
+        // ... return blog detail view
+    }
+
 }
