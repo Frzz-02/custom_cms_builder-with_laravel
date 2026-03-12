@@ -1,0 +1,42 @@
+/* Hero Style 3 - Split Screen */
+
+/* Ensure section is properly positioned and isolated */
+#hero-style-3 {
+    position: relative !important;
+    isolation: isolate !important;
+    display: block !important;
+    width: 100% !important;
+    z-index: 1;
+}
+
+/* Ensure images cover properly */
+#hero-style-3 img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    #hero-style-3 .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #hero-style-3 .md\\:w-1\\/2 {
+        min-height: 50vh;
+    }
+}
+
+/* Smooth transitions for hover effects */
+#hero-style-3 a {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Image hover scale effect */
+#hero-style-3 img {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#hero-style-3 .relative:hover img {
+    transform: scale(1.05);
+}

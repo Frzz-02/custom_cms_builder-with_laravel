@@ -1,0 +1,91 @@
+/* Panel Styles - Universal */
+.panel-item {
+    flex: 1;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.panel-item:hover {
+    flex: 2.5;
+}
+
+.panel-item:hover img {
+    transform: scale(1.05);
+}
+
+.panel-item img {
+    transition: transform 0.7s ease;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.panel-item .content-card {
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel-item:hover .content-card {
+    transform: translateY(0);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    /* Default collapsed state - thin strips */
+    .panel-item {
+        min-height: 70px;
+        max-height: 70px;
+        flex: 0 0 70px !important;
+    }
+
+    /* Active/expanded state - takes most space */
+    .panel-item.active {
+        flex: 1 1 auto !important;
+        min-height: 450px;
+        max-height: none;
+    }
+
+    /* Non-active panels stay collapsed and thin */
+    .panel-item:not(.active) {
+        flex: 0 0 70px !important;
+        max-height: 70px;
+    }
+
+    /* Content card hidden by default on mobile */
+    .panel-item .content-card {
+        transform: translateY(100%);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Show content card when panel is active */
+    .panel-item.active .content-card {
+        transform: translateY(0) !important;
+        opacity: 1;
+    }
+
+    .panel-item .content-card h2 {
+        font-size: 1.25rem;
+    }
+
+    /* Show description on mobile when panel is expanded */
+    .panel-item.active .content-card p {
+        display: block !important;
+    }
+
+    /* Ensure smooth image scaling */
+    .panel-item.active img {
+        transform: scale(1.05);
+    }
+
+    /* Add subtle gradient on collapsed panels to show category */
+    .panel-item:not(.active)::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 50%);
+        pointer-events: none;
+    }
+}
