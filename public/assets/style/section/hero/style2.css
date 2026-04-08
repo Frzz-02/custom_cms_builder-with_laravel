@@ -2,10 +2,10 @@
 
 /* Ensure section is properly positioned and isolated */
 #hero-style-2 {
-    position: relative !important;
-    isolation: isolate !important;
-    display: block !important;
-    width: 100% !important;
+    position: relative;
+    isolation: isolate;
+    display: block;
+    width: 100%;
     z-index: 1;
 }
 
@@ -19,47 +19,47 @@
 }
 
 /* Reveal on scroll */
-.reveal {
+#hero-style-2 .reveal {
     opacity: 0;
     transform: translateY(36px);
     transition: opacity 0.65s cubic-bezier(.4,0,.2,1), transform 0.65s cubic-bezier(.4,0,.2,1);
 }
-.reveal.from-left  { transform: translateX(-40px); }
-.reveal.from-right { transform: translateX(40px); }
-.reveal.visible {
+#hero-style-2 .reveal.from-left  { transform: translateX(-40px); }
+#hero-style-2 .reveal.from-right { transform: translateX(40px); }
+#hero-style-2 .reveal.visible {
     opacity: 1;
     transform: translate(0, 0);
 }
-.reveal.delay-1 { transition-delay: 0.1s; }
-.reveal.delay-2 { transition-delay: 0.2s; }
-.reveal.delay-3 { transition-delay: 0.3s; }
-.reveal.delay-4 { transition-delay: 0.4s; }
-.reveal.delay-5 { transition-delay: 0.5s; }
+#hero-style-2 .reveal.delay-1 { transition-delay: 0.1s; }
+#hero-style-2 .reveal.delay-2 { transition-delay: 0.2s; }
+#hero-style-2 .reveal.delay-3 { transition-delay: 0.3s; }
+#hero-style-2 .reveal.delay-4 { transition-delay: 0.4s; }
+#hero-style-2 .reveal.delay-5 { transition-delay: 0.5s; }
 
 /* Hero parallax helper */
-#hero-text { will-change: transform; }
+#hero-style-2 #hero-text { will-change: transform; }
 
 /* Floating badge pulse */
 @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50%       { transform: translateY(-8px); }
 }
-.float-badge { animation: float 4s ease-in-out infinite; }
-.float-badge-slow { animation: float 6s ease-in-out infinite 1s; }
+#hero-style-2 .float-badge { animation: float 4s ease-in-out infinite; }
+#hero-style-2 .float-badge-slow { animation: float 6s ease-in-out infinite 1s; }
 
 /* Fix z-index for hero content to ensure visibility */
-.relative.z-20 {
+#hero-style-2 .relative.z-20 {
     position: relative;
     z-index: 20;
 }
 
 /* Ensure text is always visible on dark backgrounds */
-.text-white {
+#hero-style-2 .text-white {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Smooth slide transitions */
-.transition-opacity {
+#hero-style-2 .transition-opacity {
     transition: opacity 1000ms ease-in-out;
 }
 
