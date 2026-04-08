@@ -94,7 +94,7 @@ class PageController extends Controller
         ]);
 
         // Auto-generate slug if not provided
-        if (empty($validated['slug'])) {
+        if (empty($validated['slug']) && $validated['title'] != 'Home') {
             $validated['slug'] = Str::slug($validated['title']);
         }
 
@@ -131,7 +131,7 @@ class PageController extends Controller
         ]);
 
         // Auto-generate slug if not provided
-        if (empty($validated['slug'])) {
+        if (empty($validated['slug']) && $validated['title'] != 'Home') {
             $validated['slug'] = Str::slug($validated['title']);
         }
 

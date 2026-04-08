@@ -34,6 +34,7 @@ class ProductController extends Controller
             'price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'stock' => 'nullable|numeric|min:0',
+            'show_price' => 'nullable|boolean',
             'is_featured' => 'nullable|in:yes,no',
             'status' => 'required|in:active,inactive',
             'image' => 'nullable|string|max:500',
@@ -43,6 +44,9 @@ class ProductController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
         ]);
 
+        $validated['show_price'] = $request->has('show_price');
+        
+    
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
         }
@@ -74,6 +78,7 @@ class ProductController extends Controller
             'price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'stock' => 'nullable|numeric|min:0',
+            'show_price' => 'nullable|boolean',
             'is_featured' => 'nullable|in:yes,no',
             'status' => 'required|in:active,inactive',
             'image' => 'nullable|string|max:500',
@@ -83,6 +88,9 @@ class ProductController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
         ]);
 
+        $validated['show_price'] = $request->has('show_price'); 
+
+        
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
         }
