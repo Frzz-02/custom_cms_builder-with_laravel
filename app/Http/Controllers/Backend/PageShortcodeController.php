@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\PageShortcode;
 use App\Models\SectionTestimonial;
 use App\Models\SectionService;
-use App\Models\Newsletter;
 use App\Models\SectionNewsletter;
 use App\Models\Contact;
 use App\Models\SectionHero;
 use App\Models\SectionAbout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -20,7 +20,7 @@ class PageShortcodeController extends Controller
     public function getTestimonialsList()
     {
         $testimonials = SectionTestimonial::select('id', 'name', 'position', 'content', 'star', 'status')
-            ->where('status', 'active')
+            ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['active', 'aktif'])
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -69,6 +69,23 @@ class PageShortcodeController extends Controller
     public function store(Request $request)
     {
         try {
+            if ($request->has('section_testimoni_id') && is_string($request->section_testimoni_id)) {
+                $normalizedTestimoniIds = [];
+                $decodedTestimoniIds = json_decode($request->section_testimoni_id, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTestimoniIds)) {
+                    $normalizedTestimoniIds = $decodedTestimoniIds;
+                } else {
+                    $normalizedTestimoniIds = array_map('trim', explode(',', $request->section_testimoni_id));
+                }
+
+                $request->merge([
+                    'section_testimoni_id' => array_values(array_filter($normalizedTestimoniIds, static function ($id) {
+                        return is_numeric($id) && (int) $id > 0;
+                    })),
+                ]);
+            }
+
             $validated = $request->validate([
                 // Common fields for title, simple-text, text-editor
                 'title' => 'nullable|string|max:255',
@@ -104,6 +121,10 @@ class PageShortcodeController extends Controller
                 'latestnews_title' => 'nullable|string|max:255',
                 'blog_limit' => 'nullable|integer',
                 'latestnews_style' => 'nullable|string|max:255',
+                'comingsoon_image' => 'nullable|string|max:255',
+                'comingsoon_title' => 'nullable|string|max:255',
+                'comingsoon_subtitle' => 'nullable|string|max:255',
+                'comingsoon_placeholder' => 'nullable|string|max:255',
                 'contact_title_1' => 'nullable|string|max:255',
                 'contact_subtitle' => 'nullable|string|max:255',
                 'contact_id' => 'nullable|array',
@@ -182,6 +203,23 @@ class PageShortcodeController extends Controller
     {
         try {
             $shortcode = PageShortcode::findOrFail($id);
+
+            if ($request->has('section_testimoni_id') && is_string($request->section_testimoni_id)) {
+                $normalizedTestimoniIds = [];
+                $decodedTestimoniIds = json_decode($request->section_testimoni_id, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTestimoniIds)) {
+                    $normalizedTestimoniIds = $decodedTestimoniIds;
+                } else {
+                    $normalizedTestimoniIds = array_map('trim', explode(',', $request->section_testimoni_id));
+                }
+
+                $request->merge([
+                    'section_testimoni_id' => array_values(array_filter($normalizedTestimoniIds, static function ($id) {
+                        return is_numeric($id) && (int) $id > 0;
+                    })),
+                ]);
+            }
             
             $validated = $request->validate([
             // Common fields for title, simple-text, text-editor
@@ -218,6 +256,10 @@ class PageShortcodeController extends Controller
             'latestnews_title' => 'nullable|string|max:255',
             'blog_limit' => 'nullable|integer',
             'latestnews_style' => 'nullable|string|max:255',
+            'comingsoon_image' => 'nullable|string|max:255',
+            'comingsoon_title' => 'nullable|string|max:255',
+            'comingsoon_subtitle' => 'nullable|string|max:255',
+            'comingsoon_placeholder' => 'nullable|string|max:255',
             'contact_title_1' => 'nullable|string|max:255',
             'contact_subtitle' => 'nullable|string|max:255',
             'contact_id' => 'nullable|array',
@@ -501,7 +543,19 @@ class PageShortcodeController extends Controller
         try {
             // Check if it's a base64 image
             if (strpos($base64Image, 'data:image') !== 0) {
-                return $base64Image; // Bukan base64, return as is (mungkin URL existing)
+                $normalized = trim((string) $base64Image);
+
+                if (preg_match('/^https?:\/\//', $normalized)) {
+                    $path = parse_url($normalized, PHP_URL_PATH);
+                    if (!empty($path)) {
+                        $normalized = $path;
+                    }
+                }
+
+                $normalized = preg_replace('#^/storage/#', '', $normalized);
+                $normalized = preg_replace('#^storage/#', '', $normalized);
+
+                return ltrim($normalized, '/');
             }
             
             // Extract image data
@@ -520,7 +574,7 @@ class PageShortcodeController extends Controller
             return $path;
             
         } catch (\Exception $e) {
-            \Log::error('Failed to save base64 image: ' . $e->getMessage());
+            Log::error('Failed to save base64 image: ' . $e->getMessage());
             return null;
         }
     }
