@@ -114,7 +114,7 @@ class NavbarSeeder extends Seeder
             ],
             // Button Special
             [
-                'menu_label' => 'APEX SHOP',
+                'menu_label' => 'Mitracom SHOP',
                 'menu_slug' => 'shop',
                 'menu_url' => '/shop',
                 'menu_icon' => 'fas fa-shopping-bag',

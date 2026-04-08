@@ -15,7 +15,7 @@ class SectionTestimonialsSeeder extends Seeder
             [
                 'name' => 'Andi Pratama',
                 'position' => 'Pemilik Bengkel Mobil',
-                'status' => 'Aktif',
+                'status' => 'active',
                 'image' => 'testimonials/andi.jpg',
                 'content' => 'Spare part yang saya beli sangat berkualitas dan original. Pengiriman cepat dan pelayanan sangat memuaskan.',
                 'star' => '5',

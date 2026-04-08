@@ -48,6 +48,7 @@ class DatabaseSeeder extends Seeder
             SectionCompleteCountSeeder::class,            
             whatsappButtonSeeder::class,
             SettingSeeder::class,
+            PageSeeder::class,
         ]);
     }
 }
