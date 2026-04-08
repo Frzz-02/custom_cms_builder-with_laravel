@@ -14,21 +14,23 @@ class SectionHeroSeeder extends Seeder
     public function run(): void
     {
         DB::table('section_hero')->insert([
-            'title' => 'Spare Part Kendaraan Original & Berkualitas',
-            'title_2' => 'Solusi Terbaik Untuk Mobil & Motor Anda',
-            'title_3' => 'Harga Terjangkau, Kualitas Terjamin',
-            'title_4' => 'Harga Terjangkau, Kualitas Terjamin',
-            'title_5' => 'Harga Terjangkau, Kualitas Terjamin',
-            'title_6' => 'Harga Terjangkau, Kualitas Terjamin',
+            // Titles (Mengambil headline utama dari gambar 1)
+            'title' => 'Solusi Pengadaan Barang TKDN Terpercaya untuk Negeri',
+            'title_2' => 'Mitra Strategis Pengadaan Barang Pemerintah & Instansi',
+            'title_3' => 'Produk Berkualitas dengan Sertifikasi Resmi TKDN',
+            'title_4' => 'Proses Pengadaan Transparan, Aman, dan Profesional',
+            'title_5' => 'Dukung Kemandirian Industri Dalam Negeri Bersama Kami',
+            'title_6' => 'Tersedia Lengkap di e-Katalog LKPP & INAPROC',
 
-            'description' => 'Kami menyediakan berbagai spare part kendaraan original dan aftermarket berkualitas tinggi untuk semua jenis mobil dan motor.',
-            'description_2' => 'Mulai dari oli, filter, kampas rem, aki, shockbreaker, hingga komponen mesin lengkap tersedia di toko kami.',
-            'description_3' => 'Dapatkan harga terbaik dengan pelayanan profesional dan pengiriman cepat langsung ke lokasi Anda.',
-            'description_4' => 'Dapatkan harga terbaik dengan pelayanan profesional dan pengiriman cepat langsung ke lokasi Anda.',
-            'description_5' => 'Dapatkan harga terbaik dengan pelayanan profesional dan pengiriman cepat langsung ke lokasi Anda.',
-            'description_6' => 'Dapatkan harga terbaik dengan pelayanan profesional dan pengiriman cepat langsung ke lokasi Anda.',
+            // Descriptions (Penjelasan lebih detail dari gambar 1 & 2)
+            'description' => 'Mitra Com menghadirkan produk berkualitas dengan sertifikasi TKDN dan garansi resmi untuk mendukung kebutuhan instansi Anda.',
+            'description_2' => 'Kami memahami bahwa dalam dunia pengadaan, kepatuhan terhadap regulasi dan kualitas produk adalah prioritas utama bagi operasional bisnis Anda.',
+            'description_3' => 'Tim kami siap mendampingi setiap langkah proses pengadaan, mulai dari konsultasi hingga barang sampai di lokasi dengan aman.',
+            'description_4' => 'Pastikan efisiensi anggaran instansi Anda dengan memilih vendor yang terdaftar resmi di e-Katalog LKPP dan INAPROC.',
+            'description_5' => 'Mendukung program penguatan industri nasional melalui penyediaan produk dalam negeri dengan standar teknis yang ketat.',
+            'description_6' => 'Keamanan dan ketenangan pikiran Anda adalah fokus kami melalui layanan purna jual dan garansi resmi di setiap produk.',
 
-            // Images (contoh path)
+            // Images (Menggunakan placeholder yang relevan dengan procurement & business)
             'image' => 'hero/sparepart-main.jpg',
             'image_2' => 'hero/oli.jpg',
             'image_3' => 'hero/kampas-rem.jpg',
@@ -44,23 +46,25 @@ class SectionHeroSeeder extends Seeder
             'image_13' => null,
             'image_14' => null,
 
+            // Backgrounds (Nuansa gedung kantor atau teknologi sesuai gambar 2)
             'image_background' => 'hero/bg-otomotif.jpg',
             'image_background_2' => 'hero/bg-garasi.jpg',
             'image_background_3' => 'hero/bg-bengkel.jpg',
 
-            'action_label' => 'Belanja Sekarang',
-            'action_label_2' => 'Lihat Katalog',
+            // Action Labels (CTA yang lebih cocok untuk B2B/Pemerintah)
+            'action_label' => 'Konsultasi Gratis',
+            'action_label_2' => 'Lihat e-Katalog',
             'action_label_3' => 'Hubungi Kami',
-            'action_label_4' => 'Hubungi Kami',
-            'action_label_5' => 'Hubungi Kami',
-            'action_label_6' => 'Hubungi Kami',
+            'action_label_4' => 'Pelajari TKDN',
+            'action_label_5' => 'Daftar Produk',
+            'action_label_6' => 'Tentang Kami',
             
-            'action_url' => '/',
-            'action_url_2' => '/',
-            'action_url_3' => '/',
-            'action_url_4' => '/',
-            'action_url_5' => '/',
-            'action_url_6' => '/',
+            'action_url' => '/contact',
+            'action_url_2' => '/katalog',
+            'action_url_3' => '/contact',
+            'action_url_4' => '/about-tkdn',
+            'action_url_5' => '/products',
+            'action_url_6' => '/about',
 
             'video_url' => null,
 

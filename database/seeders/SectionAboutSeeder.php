@@ -14,58 +14,58 @@ class SectionAboutSeeder extends Seeder
         
         DB::table('section_about')->insert([
             // Section Header
-            'section_label' => 'KEUNGGULAN KAMI',
-            'section_title' => 'Distributor Suku Cadang & Sparepart Kendaraan Terpercaya',
-            'section_description' => 'Kami menyediakan solusi suku cadang kendaraan lengkap dengan standar kualitas global. Didukung oleh kemitraan distributor resmi, kami menjamin setiap komponen mesin, sistem pengereman, hingga transmisi memiliki durabilitas tinggi untuk keamanan dan performa maksimal kendaraan Anda di setiap perjalanan.',
+            'section_label' => 'TENTANG MITRA COM',
+            'section_title' => 'Dedikasi untuk Kemandirian Industri Dalam Negeri',
+            'section_description' => 'Mitra Com adalah mitra strategis penyedia barang yang berfokus pada produk berkualitas tinggi dengan sertifikasi Tingkat Komponen Dalam Negeri (TKDN). Kami hadir sebagai solusi pengadaan yang transparan, akuntabel, dan terpercaya untuk mendukung program pemerintah dalam penguatan industri nasional.',
             
-            // Images - Using URL (can be changed to upload later)
+            // Images - Menggunakan placeholder yang relevan dengan office/professional procurement
             'image_1_type' => 'url',
-            'image_1_source' => 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=80',
-            'image_1_alt' => 'Gudang Suku Cadang Lengkap',
+            'image_1_source' => 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80',
+            'image_1_alt' => 'Professional Office Environment',
             
             'image_2_type' => 'url',
-            'image_2_source' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=80',
-            'image_2_alt' => 'Detail Komponen Mesin Presisi',
+            'image_2_source' => 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&q=80',
+            'image_2_alt' => 'Business Handshake Professional',
             
             'image_3_type' => 'url',
-            'image_3_source' => 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=400&q=80',
-            'image_3_alt' => 'Logistik Sparepart Kendaraan',
+            'image_3_source' => 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80',
+            'image_3_alt' => 'Procurement Strategy Meeting',
             
             // Benefits
-            'benefit_title' => 'Keuntungan memilih sparepart kami:',
+            'benefit_title' => 'Kenapa memilih layanan Mitra Com?',
             
             // Column 1
-            'benefit_1_text' => 'Jaminan Produk 100% Asli',
-            'benefit_1_icon' => 'check',
+            'benefit_1_text' => 'Sertifikasi Resmi TKDN',
+            'benefit_1_icon' => 'check-circle',
             'benefit_1_enabled' => true,
             
-            'benefit_2_text' => 'Pengiriman Kilat Seluruh Indonesia',
-            'benefit_2_icon' => 'check',
+            'benefit_2_text' => 'Terdaftar di e-Katalog LKPP',
+            'benefit_2_icon' => 'check-circle',
             'benefit_2_enabled' => true,
             
-            'benefit_3_text' => 'Ready Stock Komponen Langka',
-            'benefit_3_icon' => 'check',
+            'benefit_3_text' => 'Proses Pengadaan Aman & Transparan',
+            'benefit_3_icon' => 'check-circle',
             'benefit_3_enabled' => true,
             
             // Column 2
-            'benefit_4_text' => 'Garansi Kepuasan Pelanggan',
-            'benefit_4_icon' => 'check',
+            'benefit_4_text' => 'Dukungan Pendampingan Penuh',
+            'benefit_4_icon' => 'check-circle',
             'benefit_4_enabled' => true,
             
-            'benefit_5_text' => 'Sertifikasi Standar Pabrikan',
-            'benefit_5_icon' => 'check',
+            'benefit_5_text' => 'Kepatuhan Terhadap Regulasi',
+            'benefit_5_icon' => 'check-circle',
             'benefit_5_enabled' => true,
             
-            'benefit_6_text' => 'Harga Kompetitif & Transparan',
-            'benefit_6_icon' => 'check',
+            'benefit_6_text' => 'Produk Bergaransi Resmi',
+            'benefit_6_icon' => 'check-circle',
             'benefit_6_enabled' => true,
             
-            // Styling
-            'section_background' => 'gray-100',
-            'label_color' => 'blue-600',
-            'title_color' => 'gray-900',
-            'description_color' => 'gray-600',
-            'benefit_icon_color' => 'blue-500',
+            // Styling (disesuaikan dengan nuansa profesional/corporate)
+            'section_background' => 'white',
+            'label_color' => 'blue-700',
+            'title_color' => 'slate-900',
+            'description_color' => 'slate-600',
+            'benefit_icon_color' => 'orange-600', // Sesuai dengan aksen tombol di gambar
             
             // Meta
             'is_active' => true,

@@ -24,62 +24,7 @@ class SectionBrandSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
-            [
-                'name' => 'Zurich',
-                'logo' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Zurich_Insurance_Group_Logo_Horizontal.svg/1280px-Zurich_Insurance_Group_Logo_Horizontal.svg.png?20210708180852',
-                'url' => 'https://www.zurich.com',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Yili',
-                'logo' => null,
-                'url' => '#',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Sampoerna Strategic',
-                'logo' => null,
-                'url' => '#',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'PT.Karya Putra Borneo',
-                'logo' => null,
-                'url' => '#',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Bank Neo',
-                'logo' => null,
-                'url' => 'https://www.bankneocommerce.co.id',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Mitsubishi Motors',
-                'logo' => null,
-                'url' => 'https://www.mitsubishi-motors.com',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Partai Nasdem',
-                'logo' => null,
-                'url' => '#',
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+            
         ];
 
         DB::table('section_brand')->insert($brands);

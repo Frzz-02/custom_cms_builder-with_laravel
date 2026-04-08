@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,89 +13,89 @@ class FooterSeeder extends Seeder
     public function run(): void
     {
         DB::table('footer_content')->insert([
-            // Company Info
-            'company_name' => 'APEX WORKS',
-            'company_tagline' => 'YOGYAKARTA',
-            'company_address' => 'Jl. Cifor Batuhulung No.Rt.03/02, Bogor, Jawa Barat 16116',
-            'company_phone' => '+62 813-1650-9191',
-            'company_email' => 'contact@apexworks.com',
-            'company_whatsapp' => '+62 813-1650-9191',
-            'company_website' => 'apexWorks.com',
+            // Company Info - Berdasarkan Brand Mitra Com
+            'company_name' => 'MITRA COM',
+            'company_tagline' => 'SOLUSI PENGADAAN TKDN',
+            'company_address' => 'Gedung Mitra Com, Lantai 5, Jakarta Selatan, DKI Jakarta 12345',
+            'company_phone' => '+62 812-3456-7890',
+            'company_email' => 'info@mitracom.id',
+            'company_whatsapp' => '+62 812-3456-7890',
+            'company_website' => 'mitracom.id',
             
             // Contact Column
-            'contact_column_title' => 'Hubungi Kami',
-            'contact_phone' => '+62 813-1650-9191',
+            'contact_column_title' => 'Layanan Pelanggan',
+            'contact_phone' => '+62 812-3456-7890',
             'contact_link_1_label' => 'Tentang Kami',
             'contact_link_1_url' => '/tentang-kami',
-            'contact_link_2_label' => 'Portfolio',
-            'contact_link_2_url' => '/portfolio',
-            'contact_link_3_label' => 'Blog',
-            'contact_link_3_url' => '/blog',
+            'contact_link_2_label' => 'Prosedur Pengadaan',
+            'contact_link_2_url' => '/prosedur',
+            'contact_link_3_label' => 'Hubungi Kami',
+            'contact_link_3_url' => '/kontak',
             
             // Product Column
-            'product_column_title' => 'Produk',
-            'product_link_1_label' => 'Produk',
-            'product_link_1_url' => '/produk',
-            'product_link_2_label' => 'FAQ',
-            'product_link_2_url' => '/faq',
-            'product_link_3_label' => 'Karir',
-            'product_link_3_url' => '/karir',
+            'product_column_title' => 'Produk & Sertifikasi',
+            'product_link_1_label' => 'Katalog TKDN',
+            'product_link_1_url' => '/katalog-tkdn',
+            'product_link_2_label' => 'e-Katalog LKPP',
+            'product_link_2_url' => '/e-katalog',
+            'product_link_3_label' => 'Bantuan INAPROC',
+            'product_link_3_url' => '/bantuan-inaproc',
             
-            // Media Coverage
-            'media_column_title' => 'DILIPUT OLEH',
-            'media_1_name' => 'Kompas.com',
-            'media_1_url' => 'https://kompas.com',
-            'media_2_name' => 'Detik.com',
-            'media_2_url' => 'https://detik.com',
-            'media_3_name' => 'Tribunnews.com',
-            'media_3_url' => 'https://tribunnews.com',
-            'media_4_name' => 'CNN Indonesia',
-            'media_4_url' => 'https://cnnindonesia.com',
+            // Media Coverage / Partnerships (Relevan dengan instansi)
+            'media_column_title' => 'MITRA STRATEGIS',
+            'media_1_name' => 'LKPP Indonesia',
+            'media_1_url' => 'https://lkpp.go.id',
+            'media_2_name' => 'Kemenperin (TKDN)',
+            'media_2_url' => 'https://kemenperin.go.id',
+            'media_3_name' => 'LPSE Nasional',
+            'media_3_url' => 'https://lpse.lkpp.go.id',
+            'media_4_name' => 'INAPROC',
+            'media_4_url' => 'https://inaproc.id',
             
             // Legal Column
-            'legal_column_title' => 'Privacy / Legal',
-            'legal_link_1_label' => 'Privacy / Legal',
-            'legal_link_1_url' => '/privacy',
+            'legal_column_title' => 'Informasi Hukum',
+            'legal_link_1_label' => 'Kebijakan Privasi',
+            'legal_link_1_url' => '/privacy-policy',
             'legal_link_2_label' => 'Syarat & Ketentuan',
-            'legal_link_2_url' => '/terms',
-            'legal_whatsapp_label' => 'WA',
-            'legal_whatsapp_number' => '+62 813-1650-9191',
-            'legal_whatsapp_url' => 'https://wa.me/6281316509191',
-            'legal_website_label' => 'apexworks.com',
-            'legal_website_url' => 'https://apexworks.com',
+            'legal_link_2_url' => '/terms-conditions',
+            'legal_whatsapp_label' => 'Konsultasi Gratis',
+            'legal_whatsapp_number' => '+62 812-3456-7890',
+            'legal_whatsapp_url' => 'https://wa.me/6281234567890',
+            'legal_website_label' => 'mitracom.id',
+            'legal_website_url' => 'https://mitracom.id',
             
-            // Social Media
-            'facebook_url' => 'https://facebook.com/lanyardkendal',
+            // Social Media (Professional focus)
+            'facebook_url' => 'https://facebook.com/mitracom.official',
             'facebook_enabled' => true,
-            'instagram_url' => 'https://instagram.com/lanyardkendal',
+            'instagram_url' => 'https://instagram.com/mitracom.id',
             'instagram_enabled' => true,
-            'linkedin_url' => 'https://linkedin.com/company/lanyardkendal',
+            'linkedin_url' => 'https://linkedin.com/company/mitracom-pengadaan',
             'linkedin_enabled' => true,
-            'tiktok_url' => 'https://tiktok.com/@lanyardkendal',
-            'tiktok_enabled' => true,
+            'tiktok_url' => null,
+            'tiktok_enabled' => false,
             
-            // Guarantee Badge
+            // Guarantee Badge (Menonjolkan kualitas dan TKDN)
             'guarantee_enabled' => true,
-            'guarantee_text' => 'GARANSI 100%',
-            'guarantee_subtitle' => 'BEST QUALITY GUARANTEE',
-            'guarantee_icon_path' => 'assets/images/shield-icon.svg',
+            'guarantee_text' => 'GARANSI RESMI',
+            'guarantee_subtitle' => 'SERTIFIKASI TKDN VALID',
+            'guarantee_icon_path' => 'assets/images/shield-verified.svg',
             
-            // WhatsApp Float
+            // WhatsApp Float (Call to Action yang lebih spesifik)
             'whatsapp_float_enabled' => true,
-            'whatsapp_float_number' => '+62 813-1650-9191',
-            'whatsapp_float_message' => 'Halo, saya ingin bertanya tentang produk Lanyard Kendal',
+            'whatsapp_float_number' => '+62 812-3456-7890',
+            'whatsapp_float_message' => 'Halo Mitra Com, saya ingin berkonsultasi mengenai pengadaan barang bersertifikasi TKDN.',
             'whatsapp_float_position' => 'bottom-right',
             
             // Copyright
-            'copyright_text' => 'ApexWorks © 2026',
+            'copyright_text' => 'Mitra Com © 2026. All Rights Reserved.',
             'copyright_year' => 2026,
-            'copyright_credit' => 'by ApexWorks Team',
+            'copyright_credit' => 'Solusi Pengadaan Terpercaya',
             
-            // Styling
-            'footer_background_color' => '#0a0e27',
-            'footer_text_color' => '#ffffff',
+            // Styling (Sesuai dengan nuansa gambar: Putih & Biru Tua/Gelap)
+            'footer_background_color' => '#111827', // Biru gelap profesional
+            'footer_text_color' => '#f9fafb',
             'footer_link_color' => '#9ca3af',
-            'footer_link_hover_color' => '#ffffff',
+            'footer_link_hover_color' => '#fb923c', // Aksen orange dari logo/button gambar 1
             
             'is_active' => true,
             'created_at' => now(),
