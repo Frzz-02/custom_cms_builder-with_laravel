@@ -9,7 +9,6 @@ use App\Http\Controllers\Backend\SocialLinkController;
 use App\Http\Controllers\Backend\FooterController;
 use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\SectionHeroController;
-use App\Http\Controllers\Backend\SectionAboutController;
 use App\Http\Controllers\Backend\HeaderController;
 use App\Http\Controllers\Backend\ProductCategoryController;
 use App\Http\Controllers\Backend\ProductController;
@@ -20,6 +19,7 @@ use App\Http\Controllers\Backend\ContactController;
 use App\Http\Controllers\Backend\WhatsAppButtonController;
 use App\Http\Controllers\Backend\SectionTestimonialController;
 use App\Http\Controllers\Backend\SectionServiceController;
+use App\Http\Controllers\Backend\SectionTeamController;
 use App\Http\Controllers\Backend\SectionNewsletterController;
 use App\Http\Controllers\Backend\NewsletterController;
 use App\Http\Controllers\Backend\SettingController;
@@ -28,14 +28,33 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
+Route::get('/mitraoke', function () {
+    return view('frontend.pages.mitraoke');
+})->name('mitraoke');
+Route::get('/mitra-malang', function () {
+    return view('frontend.pages.mitramalang');
+})->name('mitramalang');
+Route::get('/mitra-jogja', function () {
+    return view('frontend.pages.mitrajogja');
+})->name('mitraJogja');
+
+
 Route::get('/products/{slug}', [FrontendController::class, 'showProduct'])->name('products.detail');
+Route::get('/products/category/{ProductCategory:id,slug}', [FrontendController::class, 'showProductCategory'])->name('product.category');
+Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
+Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blogs.show');
 Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
 
+Route::group(['prefix' => 'cabang' , 'as' => 'cabang.'], function () {
+    Route::get('/jogja', function () {
+        return view('frontend.pages.cabang.jogja');
+    })->name('jogja');
 
-Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
-Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blog.show');
 
-
+    Route::get('/malang', function () {
+        return view('frontend.pages.cabang.malang');
+    })->name('malang');
+});
 
 
 
@@ -126,6 +145,9 @@ Route::middleware(['auth'])->group(function () {
         // Services Routes
         Route::get('section-services/list', [SectionServiceController::class, 'getList'])->name('section-services.list');
         Route::resource('services', SectionServiceController::class);
+
+        // Team Routes
+        Route::resource('teams', SectionTeamController::class)->except(['show']);
         
         // Newsletter Settings Routes
         Route::get('newsletter/settings', [SectionNewsletterController::class, 'index'])->name('newsletter.settings');

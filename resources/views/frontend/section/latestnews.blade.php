@@ -29,7 +29,7 @@
 
                     @forelse($blogs as $blog)
                     <!-- Blog Card -->
-                    <a href="{{ route('blog.show', $blog->slug) }}" class="flex-shrink-0 w-72 group cursor-pointer">
+                    <a href="{{ route('blogs.show', $blog->slug) }}" class="flex-shrink-0 w-72 group cursor-pointer">
                         <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                             <div class="aspect-[4/3] overflow-hidden relative">
                                 <img src="{{ asset('storage/' . $blog->image) }}"
@@ -64,7 +64,7 @@
                     @if($blogs->count() > 0)
                     <!-- Duplicate cards for seamless loop -->
                     @foreach($blogs as $blog)
-                    <a href="{{ route('blog.show', $blog->slug) }}" class="flex-shrink-0 w-72 group cursor-pointer">
+                    <a href="{{ route('blogs.show', $blog->slug) }}" class="flex-shrink-0 w-72 group cursor-pointer">
                         <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                             <div class="aspect-[4/3] overflow-hidden relative">
                                 <img src="{{ asset('storage/' . $blog->image) }}"
@@ -131,8 +131,8 @@
 
                 {{-- Col 1: Featured Large Card --}}
                 @if($blogs->count() >= 1)
-                <a href="{{ route('blog.show', $blogs[0]->slug) }}" class="relative overflow-hidden h-[500px] cursor-pointer group card-hover">
-                    <img src="{{ asset('storage/' . $blogs[0]->image) }}" alt="{{ $blogs[0]->meta_title }}"
+                <a href="{{ route('blogs.show', $blogs[0]->slug) }}" class="relative overflow-hidden h-[500px] cursor-pointer group card-hover">
+                    <img src="{{ \Illuminate\Support\Str::startsWith($blogs[0]->image, ['http://', 'https://']) ? $blogs[0]->image : asset('storage/' . $blogs[0]->image) }}" alt="{{ $blogs[0]->meta_title }}"
                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-6">
@@ -155,9 +155,9 @@
                 {{-- Col 2: 3 Small Horizontal Cards --}}
                 <div class="flex flex-col gap-4 h-[500px]">
                     @foreach($blogs->skip(1)->take(3) as $blog)
-                    <a href="{{ route('blog.show', $blog->slug) }}" class="flex items-center gap-4 bg-white rounded-sm p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer border border-gray-100 flex-1">
+                    <a href="{{ route('blogs.show', $blog->slug) }}" class="flex items-center gap-4 bg-white rounded-sm p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer border border-gray-100 flex-1">
                         <div class="w-24 h-24 overflow-hidden shrink-0">
-                            <img src="{{ asset('storage/' . $blog->image) }}" alt="{{ $blog->meta_title }}"
+                            <img src="{{ \Illuminate\Support\Str::startsWith($blog->image, ['http://', 'https://']) ? $blog->image : asset('storage/' . $blog->image) }}" alt="{{ $blog->meta_title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         </div>
                         <div class="flex-1 min-w-0">
@@ -179,8 +179,8 @@
                 {{-- Col 3: 2 Tall Cards --}}
                 <div class="flex flex-col gap-4 h-[500px]">
                     @foreach($blogs->skip(4)->take(2) as $blog)
-                    <a href="{{ route('blog.show', $blog->slug) }}" class="relative overflow-hidden flex-1 cursor-pointer group card-hover block">
-                        <img src="{{ asset('storage/' . $blog->image) }}" alt="{{ $blog->meta_title }}"
+                    <a href="{{ route('blogs.show', $blog->slug) }}" class="relative overflow-hidden flex-1 cursor-pointer group card-hover block">
+                        <img src="{{ \Illuminate\Support\Str::startsWith($blog->image, ['http://', 'https://']) ? $blog->image : asset('storage/' . $blog->image) }}" alt="{{ $blog->meta_title }}"
                             class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-5">
@@ -204,11 +204,16 @@
         </section>
         
     @elseif ($shortcode->latestnews_style == '3')
+
+        @once
+            <link rel="stylesheet" href="{{ asset('assets/style/section/latestnews/style3.css') }}">
+            <script defer src="{{ asset('assets/js/section/latestnews/style3.js') }}"></script>
+        @endonce
     
         <!-- blog -->
-        <section class="py-24 bg-[#f8f8f8] max-md:py-14" id="blog">
+        <section class="latestnews-style-3-instance py-24 bg-[#f8f8f8] max-md:py-14" id="blog" data-latestnews-style3>
             <div class="container">
-                <div class="reveal flex items-end justify-between gap-6 mb-12 flex-wrap max-md:flex-col max-md:items-start max-md:gap-4 max-md:mb-8">
+                <div class="ln3-reveal flex items-end justify-between gap-6 mb-12 flex-wrap max-md:flex-col max-md:items-start max-md:gap-4 max-md:mb-8">
                     <div>
                         <p class="text-[11px] font-bold tracking-[0.12em] uppercase text-[#999] mb-[10px]">Insight &amp; Tips</p>
                         <h2 class="text-[clamp(1.8rem,3.2vw,2.4rem)] font-extrabold tracking-[-0.04em] text-[#111] leading-[1.15]">
@@ -225,9 +230,9 @@
                 <div class="grid grid-cols-[1.1fr_0.9fr] gap-7 items-stretch max-[900px]:grid-cols-1">
 
                     {{-- artikel utama --}}
-                    <a href="{{ route('blog.show', $blogs[0]->slug) }}" target="_blank" class="group reveal flex flex-col bg-white rounded-[20px] overflow-hidden transition-[box-shadow,transform] duration-300 text-inherit hover:shadow-[0_16px_56px_rgba(0,0,0,0.10)] hover:-translate-y-1">
+                    <a href="{{ route('blogs.show', $blogs[0]->slug) }}" target="_blank" class="group ln3-reveal flex flex-col bg-white rounded-[20px] overflow-hidden transition-[box-shadow,transform] duration-300 text-inherit hover:shadow-[0_16px_56px_rgba(0,0,0,0.10)] hover:-translate-y-1">
                         <div class="w-full aspect-[16/10] overflow-hidden relative shrink-0">
-                            <img src="{{ asset('storage/' . $blogs[0]->image) }}" 
+                            <img src="{{ \Illuminate\Support\Str::startsWith($blogs[0]->image, ['http://', 'https://']) ? $blogs[0]->image : asset('storage/' . $blogs[0]->image) }}" 
                                  alt="{{ $blogs[0]->meta_title }}" 
                                  class="w-full h-full object-cover block transition-transform duration-500 ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.04]"
                                  loading="lazy">
@@ -259,11 +264,11 @@
                     </a>
 
                     {{-- daftar artikel --}}
-                    <div class="reveal reveal-d2 flex flex-col gap-3 h-full">
+                    <div class="ln3-reveal ln3-reveal-d2 flex flex-col gap-3 h-full">
                         @foreach($blogs->skip(1)->take(5) as $blog)
-                        <a href="{{ route('blog.show', $blog->slug) }}" target="_blank" class="group flex flex-1 gap-4 items-center p-4 bg-white rounded-[14px] cursor-pointer transition-[box-shadow,transform] duration-[250ms] text-inherit hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:-translate-y-[2px] max-[480px]:flex-col max-[480px]:items-start">
+                        <a href="{{ route('blogs.show', $blog->slug) }}" target="_blank" class="group flex flex-1 gap-4 items-center p-4 bg-white rounded-[14px] cursor-pointer transition-[box-shadow,transform] duration-[250ms] text-inherit hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:-translate-y-[2px] max-[480px]:flex-col max-[480px]:items-start">
                             <div class="w-[100px] h-[72px] rounded-[10px] overflow-hidden shrink-0 max-md:w-[80px] max-md:h-[60px] max-[480px]:w-full max-[480px]:h-[160px] max-[480px]:rounded-[10px]">
-                                <img src="{{ asset('storage/' . $blog->image) }}" 
+                                <img src="{{ \Illuminate\Support\Str::startsWith($blog->image, ['http://', 'https://']) ? $blog->image : asset('storage/' . $blog->image) }}" 
                                      alt="{{ $blog->meta_title }}" 
                                      class="w-full h-full object-cover block transition-transform duration-[400ms] ease-[cubic-bezier(.4,0,.2,1)] group-hover:scale-[1.08]"
                                      loading="lazy">

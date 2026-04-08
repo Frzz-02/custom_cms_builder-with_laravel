@@ -1,12 +1,34 @@
-@if ($shortcode->type == 'service')
-    @if ($shortcode->service_style == 'Style 1')
-    @php
-        $serviceIds = $shortcode->section_service_id ?? [];
-        $sectionServices = !empty($serviceIds)
-            ? \App\Models\SectionService::whereIn('id', $serviceIds)->where('status', 'active')->get()
-            : collect();
-        $totalServices = max(1, $sectionServices->count());
-    @endphp
+@if (in_array($shortcode->type, ['featured-services', 'service']))
+    @if ($shortcode->service_style == '2')
+        @php
+            $rawServiceIds = $shortcode->section_service_id ?? [];
+
+            if (is_array($rawServiceIds)) {
+                $serviceIds = $rawServiceIds;
+            } elseif ($rawServiceIds instanceof \Illuminate\Support\Collection) {
+                $serviceIds = $rawServiceIds->all();
+            } elseif (is_string($rawServiceIds)) {
+                $decodedServiceIds = json_decode($rawServiceIds, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedServiceIds)) {
+                    $serviceIds = $decodedServiceIds;
+                } else {
+                    $serviceIds = array_map('trim', explode(',', $rawServiceIds));
+                }
+            } elseif (is_numeric($rawServiceIds)) {
+                $serviceIds = [(int) $rawServiceIds];
+            } else {
+                $serviceIds = [];
+            }
+
+            $serviceIds = array_values(array_filter($serviceIds, static function ($id) {
+                return is_numeric($id) && (int) $id > 0;
+            }));
+
+            $sectionServices = !empty($serviceIds)
+                ? \App\Models\SectionService::whereIn('id', $serviceIds)->where('status', 'active')->get()
+                : collect();
+            $totalServices = max(1, $sectionServices->count());
+        @endphp
 
         <!-- Keunggulan Kami - Minimalist Slider -->
         <section class="py-24 bg-[#e8e4df] relative overflow-hidden" data-reveal>
@@ -37,41 +59,41 @@
                             :style="'transform: translateX(-' + (activeSlide * 100) + '%)'">
 
                             @forelse($sectionServices as $service)
-                            <div class="min-w-full">
-                                <div class="text-center">
-                                    <!-- Image -->
-                                    <div class="mb-10">
-                                        <img src="{{ $service->image ? asset('storage/' . $service->image) : asset('images/keunggulan/proses-cepat.jpg') }}"
-                                            alt="{{ $service->name }}"
-                                            class="w-full max-w-md mx-auto aspect-[4/3] object-cover"
-                                            onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80'">
-                                    </div>
+                                <div class="min-w-full">
+                                    <div class="text-center">
+                                        <!-- Image -->
+                                        <div class="mb-10">
+                                            <img src="{{ $service->image ? asset('storage/' . $service->image) : asset('images/keunggulan/proses-cepat.jpg') }}"
+                                                alt="{{ $service->name }}"
+                                                class="w-full max-w-md mx-auto aspect-[4/3] object-cover"
+                                                onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80'">
+                                        </div>
 
-                                    <!-- Text Content -->
-                                    <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
-                                    <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">
-                                        {{ $service->name }}
-                                    </h3>
-                                    <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
-                                        {{ strip_tags($service->content ?? '') }}
-                                    </p>
-                                </div>
-                            </div>
-                            @empty
-                            <div class="min-w-full">
-                                <div class="text-center">
-                                    <div class="mb-10">
-                                        <img src="{{ asset('images/keunggulan/proses-cepat.jpg') }}"
-                                            alt="Layanan"
-                                            class="w-full max-w-md mx-auto aspect-[4/3] object-cover">
+                                        <!-- Text Content -->
+                                        <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
+                                        <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">
+                                            {{ $service->name }}
+                                        </h3>
+                                        <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
+                                            {{ strip_tags($service->content ?? '') }}
+                                        </p>
                                     </div>
-                                    <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
-                                    <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">Layanan Kami</h3>
-                                    <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
-                                        Kami menyediakan berbagai layanan terbaik untuk mendukung kebutuhan bisnis Anda.
-                                    </p>
                                 </div>
-                            </div>
+                            @empty
+                                <div class="min-w-full">
+                                    <div class="text-center">
+                                        <div class="mb-10">
+                                            <img src="{{ asset('images/keunggulan/proses-cepat.jpg') }}"
+                                                alt="Layanan"
+                                                class="w-full max-w-md mx-auto aspect-[4/3] object-cover">
+                                        </div>
+                                        <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-3">BY MITRAJOGJA</p>
+                                        <h3 class="text-3xl md:text-4xl text-gray-900 mb-6">Layanan Kami</h3>
+                                        <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
+                                            Kami menyediakan berbagai layanan terbaik untuk mendukung kebutuhan bisnis Anda.
+                                        </p>
+                                    </div>
+                                </div>
                             @endforelse
 
                         </div>
@@ -94,14 +116,36 @@
         
         
         
-    @elseif ($shortcode->service_style == 'Style 2')
-    @php
-        $serviceIds2 = $shortcode->section_service_id ?? [];
-        $sectionServices2 = !empty($serviceIds2)
-            ? \App\Models\SectionService::whereIn('id', $serviceIds2)->where('status', 'active')->get()
-            : collect();
-        $featuredService = $sectionServices2->firstWhere('is_featured', true) ?? $sectionServices2->first();
-    @endphp
+    @elseif ($shortcode->service_style == '1')
+        @php
+            $rawServiceIds2 = $shortcode->section_service_id ?? [];
+
+            if (is_array($rawServiceIds2)) {
+                $serviceIds2 = $rawServiceIds2;
+            } elseif ($rawServiceIds2 instanceof \Illuminate\Support\Collection) {
+                $serviceIds2 = $rawServiceIds2->all();
+            } elseif (is_string($rawServiceIds2)) {
+                $decodedServiceIds2 = json_decode($rawServiceIds2, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedServiceIds2)) {
+                    $serviceIds2 = $decodedServiceIds2;
+                } else {
+                    $serviceIds2 = array_map('trim', explode(',', $rawServiceIds2));
+                }
+            } elseif (is_numeric($rawServiceIds2)) {
+                $serviceIds2 = [(int) $rawServiceIds2];
+            } else {
+                $serviceIds2 = [];
+            }
+
+            $serviceIds2 = array_values(array_filter($serviceIds2, static function ($id) {
+                return is_numeric($id) && (int) $id > 0;
+            }));
+
+            $sectionServices2 = !empty($serviceIds2)
+                ? \App\Models\SectionService::whereIn('id', $serviceIds2)->where('status', 'active')->get()
+                : collect();
+            $featuredService = $sectionServices2->firstWhere('is_featured', true) ?? $sectionServices2->first();
+        @endphp
     
         <section class="w-full px-8 md:px-16 py-16 bg-gray-50/60">
 
@@ -212,7 +256,7 @@
                         <h3 class="text-sm font-bold text-gray-900 mb-1">{{ $svcCard->name }}</h3>
                         <p class="text-xs text-gray-500 leading-relaxed">{{ Str::limit(strip_tags($svcCard->content ?? ''), 120) }}</p>
                     </div>
-                    <a href="{{ $svcCard->slug ? route('service.show', $svcCard->slug) : '#' }}" class="mt-auto inline-flex items-center justify-center border border-gray-300 text-xs font-semibold text-gray-700 px-4 py-2 rounded-full hover:border-red-600 hover:text-red-600 transition-colors w-fit">
+                    <a href="{{ $svcCard->slug ? '' : '#' }}" class="mt-auto inline-flex items-center justify-center border border-gray-300 text-xs font-semibold text-gray-700 px-4 py-2 rounded-full hover:border-red-600 hover:text-red-600 transition-colors w-fit">
                         Lihat Detail
                     </a>
                 </div>
@@ -240,13 +284,6 @@
 
         </section>
     
-
-
-
-
-    @elseif ($shortcode->service_style == 'Style 3')
-
-        
     
     
     

@@ -1,10 +1,38 @@
-@if ($shortcode->type == 'completecount')
+@if ($shortcode->type == 'complete-counts')
 @php
-    $countIds = $shortcode->section_completecount_id ?? [];
+    $rawCountIds = $shortcode->section_completecount_id ?? [];
+    $title = $shortcode->title ?? 'Solusi Mitra Jogja';
+    $subtitle = $shortcode->subtitle ?? 'Partner Terpercaya Untuk Bisnis Anda';
+    $description = $shortcode->content ?? 'Kami hadir sebagai mitra terpercaya untuk memenuhi kebutuhan bisnis Anda. Dari alat tulis kantor, perlengkapan kebersihan, hingga teknologi IT — semua tersedia dengan harga kompetitif dan layanan profesional.';
+
+
+    if (is_array($rawCountIds)) {
+        $countIds = $rawCountIds;
+    } elseif ($rawCountIds instanceof \Illuminate\Support\Collection) {
+        $countIds = $rawCountIds->all();
+    } elseif (is_string($rawCountIds)) {
+        $decodedCountIds = json_decode($rawCountIds, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedCountIds)) {
+            $countIds = $decodedCountIds;
+        } else {
+            $countIds = array_map('trim',  explode(',', $rawCountIds));
+        }
+    } elseif (is_numeric($rawCountIds)) {
+        $countIds = [(int) $rawCountIds];
+    } else {
+        $countIds = [];
+    }
+
+    $countIds = array_values(array_filter($countIds, static function ($id) {
+        return is_numeric($id) && (int) $id > 0;
+    }));
+
     $completeCounts = !empty($countIds)
         ? \App\Models\SectionCompletecount::whereIn('id', $countIds)->where('status', 'active')->get()
         : collect();
 @endphp
+
+    {{-- {{ dd($completeCounts) }} --}}
 
     <!-- Solusi Mitra Jogja Section - Mediterranean Style -->
     <section class="py-20 bg-white relative" data-reveal>
@@ -12,12 +40,12 @@
             <div class="grid lg:grid-cols-2 gap-16 items-start">
                 <!-- Left Content -->
                 <div class="max-w-xl">
-                    <p class="text-gray-500 text-sm tracking-wide mb-4">Solusi Mitra Jogja</p>
+                    <p class="text-gray-500 text-sm tracking-wide mb-4">{{ $title }}</p>
                     <h2 class="text-4xl md:text-5xl font-light text-gray-900 leading-tight mb-6">
-                        Partner Terpercaya<br>Untuk Bisnis Anda
+                        {{ $subtitle }}
                     </h2>
                     <p class="text-gray-600 leading-relaxed mb-6">
-                        Kami hadir sebagai mitra terpercaya untuk memenuhi kebutuhan bisnis Anda. Dari alat tulis kantor, perlengkapan kebersihan, hingga teknologi IT — semua tersedia dengan harga kompetitif dan layanan profesional.
+                        {{ $description }}
                     </p>
                     <a href="#produk" class="text-gray-900 text-sm font-medium hover:text-red-600 transition-colors mb-8 inline-block">
                         Read more
@@ -39,56 +67,56 @@
                     <h3 class="text-center text-xl tracking-[0.3em] text-gray-400 font-light mb-12">BENEFITS</h3>
                     <div class="grid grid-cols-2 gap-x-12 gap-y-8">
                         @forelse($completeCounts as $count)
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm font-semibold">{{ $count->amount ? number_format($count->amount) . '+' : '' }}</p>
+                                <p class="text-gray-700 text-sm">{{ $count->title }}</p>
                             </div>
-                            <p class="text-gray-700 text-sm font-semibold">{{ $count->amount ? number_format($count->amount) . '+' : '' }}</p>
-                            <p class="text-gray-700 text-sm">{{ $count->title }}</p>
-                        </div>
                         @empty
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm">Pengiriman Cepat</p>
                             </div>
-                            <p class="text-gray-700 text-sm">Pengiriman Cepat</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm">1250+ Klien Puas</p>
                             </div>
-                            <p class="text-gray-700 text-sm">1250+ Klien Puas</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm">Garansi Resmi</p>
                             </div>
-                            <p class="text-gray-700 text-sm">Garansi Resmi</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm">Produk Original</p>
                             </div>
-                            <p class="text-gray-700 text-sm">Produk Original</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="border-t border-gray-300 pt-4 mb-3">
-                                <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
+                            <div class="text-center">
+                                <div class="border-t border-gray-300 pt-4 mb-3">
+                                    <svg class="w-6 h-6 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-700 text-sm">Harga Kompetitif</p>
                             </div>
-                            <p class="text-gray-700 text-sm">Harga Kompetitif</p>
-                        </div>
                         @endforelse
                     </div>
                 </div>

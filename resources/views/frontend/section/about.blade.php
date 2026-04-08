@@ -184,13 +184,5 @@
     
     
     
-    
-    
-    
-    
-    @elseif ($shortcode->about_style == '3')
-
-    
-    
     @endif
 @endif

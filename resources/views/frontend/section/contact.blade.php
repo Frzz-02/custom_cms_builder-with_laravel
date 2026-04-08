@@ -1,6 +1,28 @@
 @if ($shortcode->type == 'contact')
 @php
-    $contactIds = $shortcode->contact_id ?? [];
+    $rawContactIds = $shortcode->contact_id ?? [];
+
+    if (is_array($rawContactIds)) {
+        $contactIds = $rawContactIds;
+    } elseif ($rawContactIds instanceof \Illuminate\Support\Collection) {
+        $contactIds = $rawContactIds->all();
+    } elseif (is_string($rawContactIds)) {
+        $decodedContactIds = json_decode($rawContactIds, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedContactIds)) {
+            $contactIds = $decodedContactIds;
+        } else {
+            $contactIds = array_map('trim', explode(',', $rawContactIds));
+        }
+    } elseif (is_numeric($rawContactIds)) {
+        $contactIds = [(int) $rawContactIds];
+    } else {
+        $contactIds = [];
+    }
+
+    $contactIds = array_values(array_filter($contactIds, static function ($id) {
+        return is_numeric($id) && (int) $id > 0;
+    }));
+
     $contactItems = !empty($contactIds)
         ? \App\Models\Contact::whereIn('id', $contactIds)->where('status', 'active')->get()
         : collect();
@@ -9,7 +31,11 @@
         ? preg_replace('/[^0-9]/', '', $primaryContact->contact_1)
         : '6281316509191';
     $waLink = 'https://wa.me/' . $waNumber . '?text=' . urlencode('Halo, saya ingin konsultasi');
+    $contactPageUrl = \Illuminate\Support\Facades\Route::has('kontak') ? route('kontak') : url('/kontak');
 @endphp
+
+    {{-- {{  dd($contactItems) }} --}}
+
 
     <!-- CTA Section -->
     <section class="py-24 bg-[#e8e4df] relative overflow-hidden" data-reveal>
@@ -32,7 +58,7 @@
                         </svg>
                         Chat WhatsApp Sekarang
                     </a>
-                    <a href="{{ route('kontak') }}"
+                    <a href="{{ $contactPageUrl }}"
                     class="btn-elegant inline-flex items-center justify-center px-8 py-4 border border-gray-900 text-gray-900 hover:bg-red-600 hover:text-white hover:border-red-600 font-medium text-lg transition-all hover:scale-105">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -41,33 +67,69 @@
                     </a>
                 </div>
 
-                <!-- Trust Badges -->
-                <div class="flex flex-wrap justify-center gap-6 text-gray-600 text-sm">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        Respon Cepat
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        Konsultasi Gratis
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        Sample Gratis
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        Garansi 100%
-                    </div>
+                
+
+
+                <div class="flex flex-wrap justify-center gap-5">
+                    @forelse($contactItems as $contact)
+                        <div class="group w-44 bg-white border border-gray-200 rounded-xl px-5 py-5 text-center 
+                                    shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+
+                            <!-- Icon -->
+                            <div class="flex justify-center mb-3">
+                                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-gray-900 transition">
+                                    <i data-feather="{{ $contact->icon ? str_replace('icon-feather-', '', $contact->icon) : 'check'  }}" 
+                                    class="w-5 h-5 text-gray-700 group-hover:text-white"></i>
+                                </div>
+                            </div>
+
+                            <!-- Title -->
+                            <h3 class="text-sm font-semibold text-gray-800 mb-1">
+                                {{ $contact->title }}
+                            </h3>
+
+                            <!-- Subtitle -->
+                            <p class="text-xs text-gray-500 font-medium leading-relaxed">
+                                {{ $contact->contact_1 }}
+                            </p>
+
+                        </div>
+                    @empty
+                        <!-- Trust Badges -->
+                        <div class="flex flex-wrap justify-center gap-6 text-gray-600 text-sm">
+
+                            
+                            
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Respon Cepat
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Konsultasi Gratis
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Sample Gratis
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Garansi 100%
+                            </div>
+                        </div>
+                    @endforelse
                 </div>
+
+                
+                
             </div>
         </div>
     </section>
