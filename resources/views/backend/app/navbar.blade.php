@@ -1,4 +1,4 @@
-<nav class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg">
+<nav class="fixed top-0 left-0 right-0 z-50 bg-indigo-500 text-white shadow-lg">
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center">
@@ -8,7 +8,7 @@
             <div class="flex items-center gap-5">
                 <div class="text-right hidden sm:block">
                     <div class="font-semibold text-sm">{{ Auth::user()->name }}</div>
-                    <div class="text-xs opacity-90 capitalize">{{ Auth::user()->role }}</div>
+                    <div class="text-xs opacity-90 capitalize">{{ Auth::user()->role->name }}</div>
                 </div>
                 
                 <div class="relative" x-data="{ open: false }">

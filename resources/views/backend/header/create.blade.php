@@ -170,7 +170,7 @@
                                 <input type="checkbox" 
                                        name="show_in_footer" 
                                        value="1" 
-                                       {{ old('show_in_footer') ? 'checked' : '' }}
+                                       {{ old('show_in_footer', true) ? 'checked' : '' }}
                                        class="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
                                 <span class="ml-3 text-sm font-medium text-slate-700">Show in Footer</span>
                             </label>

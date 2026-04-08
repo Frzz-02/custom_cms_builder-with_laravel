@@ -17,11 +17,11 @@
     </div>
 
     <!-- Welcome Card -->
-    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-10 rounded-xl shadow-xl mb-8">
+    <div class="bg-purple-600 text-white p-10 rounded-xl shadow-xl mb-8">
         <h2 class="text-3xl font-bold mb-2">👋 Hello, {{ $user->name }}!</h2>
-        <p class="text-base opacity-90">You are logged in as <strong class="font-bold">{{ strtoupper($user->role) }}</strong>. Manage your content and settings from here.</p>
+        <p class="text-base opacity-90">You are logged in as <strong class="font-bold">{{ strtoupper($user->role->name) }}</strong>. Manage your content and settings from here.</p>
     </div>
-
+    
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5 mb-8">
         <!-- Total Users Card -->
@@ -80,7 +80,7 @@
                                         </div>
                                         <div class="ml-3">
                                             <p class="text-sm font-medium text-gray-900">{{ $history->user->name }}</p>
-                                            <p class="text-xs text-gray-500 capitalize">{{ $history->user->role }}</p>
+                                            <p class="text-xs text-gray-500 capitalize">{{ $history->user->role->name }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -118,13 +118,13 @@
         <div class="bg-white p-6 rounded-xl shadow-sm">
             <h3 class="text-lg font-bold text-gray-900 mb-5">🚀 Quick Actions</h3>
             <div class="space-y-3">
-                <a href="{{ route('backend.pages.index') }}" class="block bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-lg text-center font-medium transition-all duration-300 hover:shadow-lg">
+                <a href="{{ route('backend.pages.index') }}" class="block bg-blue-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-lg text-center font-medium transition-all duration-300 hover:shadow-lg">
                     📄 Manage Pages
                 </a>
                 <a href="{{ route('backend.users.index') }}" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
                     👥 Manage Users
                 </a>
-                <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
+                <a href="{{ route('backend.settings.index') }}" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">
                     ⚙️ Settings
                 </a>
                 {{-- <a href="#" class="block bg-gray-100 hover:bg-indigo-500 hover:text-white text-gray-700 p-4 rounded-lg text-center font-medium transition-all duration-300">

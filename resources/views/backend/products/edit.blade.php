@@ -215,6 +215,21 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+
+
+                    <!-- Show Price -->
+                    <div>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                    name="show_price" 
+                                    value="1" 
+                                    {{ old('show_price', $product->show_price) ? 'checked' : '' }}
+                                    class="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                            <span class="ml-3 text-sm font-medium text-slate-700">Displays Prices</span>
+                        </label>
+                    </div>
+                    
+                    
                 </div>
             </div>
 
