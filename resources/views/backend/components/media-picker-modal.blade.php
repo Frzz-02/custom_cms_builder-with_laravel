@@ -1,38 +1,8 @@
-<!-- Media Picker Component -->
-<div x-data="mediaPicker()" x-init="init()">
-    <!-- Trigger Button -->
-    <div>
-        <label :for="fieldId" class="block text-sm font-semibold text-gray-700 mb-2">
-            <span x-text="label"></span>
-        </label>
-        <div class="flex gap-2">
-            <input :type="inputType" 
-                   :name="fieldName" 
-                   :id="fieldId" 
-                   x-model="selectedUrl"
-                   :readonly="readonly"
-                   :class="inputClass"
-                   :placeholder="placeholder">
-            <button type="button" 
-                    @click="openPicker" 
-                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors whitespace-nowrap">
-                <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                Browse
-            </button>
-        </div>
-        
-        <!-- Preview -->
-        <div x-show="selectedUrl" class="mt-3">
-            <img :src="selectedUrl" alt="Preview" class="h-32 w-auto object-cover rounded-lg border border-gray-300">
-        </div>
-    </div>
-
+<!-- Media Picker Modal (Outside Form) -->
+<div x-data="mediaPickerModal()" x-init="init()" x-cloak>
     <!-- Media Picker Modal -->
-    <div x-show="isOpen" 
-         x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto" 
+        <div x-show="isOpen" 
+            class="fixed inset-0 z-[100] overflow-y-auto" 
          role="dialog" 
          aria-modal="true"
          @keydown.escape.window="closePicker()">
@@ -82,7 +52,7 @@
                             </svg>
                             Add Media
                         </button>
-                        <a :href="viewAllUrl" 
+                        <a href="/bagoosh/media" 
                            target="_blank"
                            class="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +76,7 @@
                             <template x-for="media in mediaList" :key="media.id">
                                 <div @click="selectImage(media)" 
                                      class="group relative bg-gray-50 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200"
-                                     :class="selectedUrl === media.url ? 'border-indigo-600 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-400'">
+                                     :class="tempSelectedUrl === media.url ? 'border-indigo-600 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-400'">
                                     <div class="aspect-square overflow-hidden bg-white">
                                         <img :src="media.url" 
                                              :alt="media.alternative_text" 
@@ -118,7 +88,7 @@
                                         </div>
                                     </div>
                                     <!-- Selected checkmark -->
-                                    <div x-show="selectedUrl === media.url" 
+                                    <div x-show="tempSelectedUrl === media.url" 
                                          class="absolute top-2 right-2 bg-indigo-600 rounded-full p-1">
                                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -150,7 +120,7 @@
                         </button>
                         <button @click="confirmSelection()" 
                                 type="button"
-                                :disabled="!selectedUrl"
+                                :disabled="!tempSelectedUrl"
                                 class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             Select Image
                         </button>
@@ -160,10 +130,9 @@
         </div>
     </div>
 
-    <!-- Upload Modal (Nested inside picker) -->
-    <div x-show="showUploadModal" 
-         x-cloak
-         class="fixed inset-0 z-[60] overflow-y-auto" 
+    <!-- Upload Modal -->
+        <div x-show="showUploadModal" 
+            class="fixed inset-0 z-[110] overflow-y-auto" 
          role="dialog" 
          aria-modal="true"
          @keydown.escape.window="showUploadModal = false">
@@ -188,7 +157,7 @@
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                  x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
                  class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form enctype="multipart/form-data">
+                <form id="uploadMediaForm" enctype="multipart/form-data">
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
                         <div class="sm:flex sm:items-start">
                             <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -214,9 +183,9 @@
                                                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                                 </svg>
                                                 <div class="flex text-sm text-gray-600">
-                                                    <label for="upload-file" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                                                    <label for="modal-upload-file" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
                                                         <span>Upload a file</span>
-                                                        <input id="upload-file" 
+                                                        <input id="modal-upload-file" 
                                                                name="file" 
                                                                type="file" 
                                                                accept="image/*"
@@ -234,12 +203,12 @@
 
                                     <!-- Alternative Text -->
                                     <div>
-                                        <label for="upload-alt-text" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <label for="modal-alt-text" class="block text-sm font-medium text-gray-700 mb-2">
                                             Alternative Text (Optional)
                                         </label>
                                         <input type="text" 
                                                name="alternative_text" 
-                                               id="upload-alt-text"
+                                               id="modal-alt-text"
                                                x-model="uploadAltText"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                                placeholder="Describe the image">
@@ -262,7 +231,7 @@
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button type="button"
-                                @click="uploadImage($event)"
+                                @click="uploadImage()"
                                 :disabled="uploading"
                                 :class="uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'"
                                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
@@ -276,7 +245,7 @@
                             </span>
                         </button>
                         <button type="button"
-                                @click="closeUploadModal"
+                                @click="closeUploadModal()"
                                 :disabled="uploading"
                                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancel
@@ -293,56 +262,42 @@
 </style>
 
 <script>
-function mediaPicker() {
+function mediaPickerModal() {
     return {
-        // Config
-        fieldName: '',
-        fieldId: '',
-        label: 'Image',
-        placeholder: 'https://example.com/image.jpg',
-        inputType: 'text',
-        inputClass: 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
-        readonly: false,
-        viewAllUrl: '/bagoosh/media',
-        apiUrl: '/bagoosh/media/list',
-        uploadUrl: '/bagoosh/media',
-        csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-
-        // State
         isOpen: false,
         showUploadModal: false,
         loading: false,
         uploading: false,
         mediaList: [],
-        selectedUrl: '',
         tempSelectedUrl: '',
+        currentFieldId: '',
         
-        // Upload state
         uploadFileName: '',
         uploadAltText: '',
         uploadPreviewUrl: '',
+        
+        apiUrl: '/bagoosh/media/list',
+        uploadUrl: '/bagoosh/media',
+        csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
 
         init() {
-            // Get config from data attributes if available
-            const container = this.$el.closest('[data-media-picker]');
-            if (container) {
-                this.fieldName = container.dataset.fieldName || this.fieldName;
-                this.fieldId = container.dataset.fieldId || this.fieldId;
-                this.label = container.dataset.label || this.label;
-                this.placeholder = container.dataset.placeholder || this.placeholder;
-                this.selectedUrl = container.dataset.initialValue || this.selectedUrl;
-            }
+            // Listen for open picker event
+            window.addEventListener('open-media-picker', (event) => {
+                this.currentFieldId = event.detail.fieldId;
+                this.tempSelectedUrl = event.detail.currentUrl || '';
+                this.openPicker();
+            });
         },
 
         openPicker() {
             this.isOpen = true;
-            this.tempSelectedUrl = this.selectedUrl;
             this.loadMedia();
         },
 
         closePicker() {
             this.isOpen = false;
             this.tempSelectedUrl = '';
+            this.currentFieldId = '';
         },
 
         async loadMedia() {
@@ -370,15 +325,14 @@ function mediaPicker() {
         },
 
         confirmSelection() {
-            this.selectedUrl = this.tempSelectedUrl;
+            // Dispatch event to update input field
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { 
+                    fieldId: this.currentFieldId,
+                    url: this.tempSelectedUrl
+                }
+            }));
             this.closePicker();
-            
-            // Trigger preview update
-            const imageInput = document.getElementById(this.fieldId);
-            if (imageInput) {
-                const event = new Event('change', { bubbles: true });
-                imageInput.dispatchEvent(event);
-            }
         },
 
         handleFileSelect(event) {
@@ -395,7 +349,7 @@ function mediaPicker() {
         handleFileDrop(event) {
             const file = event.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
-                document.getElementById('upload-file').files = event.dataTransfer.files;
+                document.getElementById('modal-upload-file').files = event.dataTransfer.files;
                 this.uploadFileName = file.name;
                 this.uploadPreviewUrl = URL.createObjectURL(file);
                 if (!this.uploadAltText) {
@@ -404,11 +358,10 @@ function mediaPicker() {
             }
         },
 
-        async uploadImage(event) {
+        async uploadImage() {
             this.uploading = true;
             
-            // Build FormData manually to avoid nested form issues
-            const fileInput = document.getElementById('upload-file');
+            const fileInput = document.getElementById('modal-upload-file');
             if (!fileInput || !fileInput.files || !fileInput.files[0]) {
                 alert('Please select a file');
                 this.uploading = false;
@@ -437,15 +390,9 @@ function mediaPicker() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Close upload modal
                     this.closeUploadModal();
-                    
-                    // Reload media list
                     await this.loadMedia();
-                    
-                    // Auto-select the new image
                     this.tempSelectedUrl = data.url;
-                    
                     alert('Image uploaded successfully!');
                 } else {
                     alert(data.message || 'Failed to upload image');
@@ -463,7 +410,7 @@ function mediaPicker() {
             this.uploadFileName = '';
             this.uploadAltText = '';
             this.uploadPreviewUrl = '';
-            const uploadInput = document.getElementById('upload-file');
+            const uploadInput = document.getElementById('modal-upload-file');
             if (uploadInput) uploadInput.value = '';
         }
     }
