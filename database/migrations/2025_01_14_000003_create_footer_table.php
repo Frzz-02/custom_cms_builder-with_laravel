@@ -19,7 +19,7 @@ return new class extends Migration
             // ====================================
             $table->string('company_name', 100)->default('LANYARD KENDAL');
             $table->string('company_tagline', 100)->default('BOGOR');
-            $table->text('company_address')->nullable();
+            $table->string('company_address')->nullable();
             $table->string('company_phone', 50)->nullable();
             $table->string('company_email', 100)->nullable();
             $table->string('company_whatsapp', 50)->nullable();
@@ -104,7 +104,7 @@ return new class extends Migration
             // ====================================
             $table->boolean('whatsapp_float_enabled')->default(true);
             $table->string('whatsapp_float_number', 50)->nullable();
-            $table->text('whatsapp_float_message')->default('Halo, saya ingin bertanya tentang produk Lanyard Kendal');
+            $table->string('whatsapp_float_message')->default('Halo, saya ingin bertanya tentang produk Lanyard Kendal');
             $table->string('whatsapp_float_position', 20)->default('bottom-right');
             
             // ====================================

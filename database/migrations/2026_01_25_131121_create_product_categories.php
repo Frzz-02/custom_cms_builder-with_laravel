@@ -18,7 +18,7 @@ return new class extends Migration
             
             $table->string('name');                     // VARCHAR 255
             $table->string('image_type');                     // VARCHAR 255
-            $table->text('image_source');                     // VARCHAR 255
+            $table->string('image_source');                     // VARCHAR 255
             
             $table->string('background_color');                     // VARCHAR 255
             $table->string('description')->nullable();  // VARCHAR 255

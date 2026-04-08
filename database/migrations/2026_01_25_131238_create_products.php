@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->string('slug')->unique();                   // slug unik untuk URL
             $table->string('title');                            // judul produk
-            $table->longText('content')->nullable();            // isi/konten lengkap
+            $table->text('content')->nullable();            // isi/konten lengkap
             $table->text('overview')->nullable();               // ringkasan singkat
 
             $table->string('image')->nullable();                // nama file gambar / path
