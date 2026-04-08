@@ -15,6 +15,7 @@ class Product extends Model
         'stock',
         'price',
         'sale_price',
+        'show_price',
         'is_featured',
         'status',
         'product_categories_id',
