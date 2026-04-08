@@ -23,7 +23,7 @@
                 
                 <div class="flex items-center gap-3">
                     @if($page->status === 'published')
-                        <a href="{{ url($page->slug) }}" 
+                        <a href="{{ is_null($page->slug) ? route('home') : url($page->slug) }}" 
                            target="_blank"
                            class="px-4 py-2 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors font-medium flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +119,8 @@
                                            id="slug" 
                                            value="{{ old('slug', $page->slug) }}"
                                            class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                           placeholder="page-url-slug">
+                                           placeholder="page-url-slug"
+                                           @if (is_null($page->slug)) readonly disabled autocomplete="off" @endif >
                                 </div>
                                 <p class="mt-2 text-xs text-slate-500">Leave empty to auto-generate from title</p>
                                 @error('slug')
@@ -269,7 +270,7 @@
                                 <p class="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide">Search Result Preview</p>
                                 <div class="space-y-1">
                                     <div class="text-blue-600 text-lg font-medium" id="seoPreviewTitle">{{ $page->meta_title ?? $page->title }}</div>
-                                    <div class="text-green-700 text-sm" id="seoPreviewUrl">{{ url('/') }}/{{ $page->slug }}</div>
+                                    <div class="text-green-700 text-sm" id="seoPreviewUrl">{{ url('/') }}/{{ $page->slug ?? '' }}</div>
                                     <div class="text-slate-600 text-sm leading-relaxed" id="seoPreviewDesc">{{ $page->meta_description ?? 'Your meta description will appear here...' }}</div>
                                 </div>
                             </div>
@@ -403,6 +404,7 @@
 @include('backend.pages.modals.edit-newsletter')
 @include('backend.pages.modals.select-latestnews-style')
 @include('backend.pages.modals.edit-latestnews')
+@include('backend.pages.modals.edit-comingsoon')
 @include('backend.pages.modals.edit-contact')
 @include('backend.pages.modals.edit-default')
 
@@ -429,6 +431,7 @@
     // Data ini akan di-load saat halaman pertama kali dibuka
     // Format: array of objects dengan semua field dari tabel page_shortcodes
     window.existingShortcodes = @json($existingShortcodes);
+    window.isHomePageSlugLocked = @json(is_null($page->slug));
     
     console.log('🔍 Existing shortcodes loaded:', window.existingShortcodes);
     
@@ -490,9 +493,9 @@
                     previewTitle.textContent = this.value;
                 }
                 
-                // Auto-generate slug if slug is empty
+                // Auto-generate slug if slug is empty (non-home page only)
                 const slugInput = document.getElementById('slug');
-                if (slugInput && !slugInput.value) {
+                if (!window.isHomePageSlugLocked && slugInput && !slugInput.value) {
                     const slug = this.value.toLowerCase()
                         .replace(/[^a-z0-9]+/g, '-')
                         .replace(/^-+|-+$/g, '');

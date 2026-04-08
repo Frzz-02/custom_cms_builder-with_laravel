@@ -64,67 +64,31 @@
                         Images <span class="text-red-500">* (3 images required)</span>
                     </label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {{-- Image 1 --}}
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-rose-400 transition-colors">
-                            <div class="text-center mb-3">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-rose-100 rounded-full mb-2">
-                                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                                <p class="text-sm font-medium text-slate-700">Image 1</p>
-                            </div>
-                            <input 
-                                type="file" 
-                                id="heroStyle3Image1"
-                                accept="image/*" 
-                                onchange="handleHeroStyle3ImageUpload(1, this)"
-                                class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition-all">
-                            <div id="heroStyle3ImagePreview1" class="mt-3 hidden">
-                                <img src="" alt="Preview" class="w-full h-32 object-cover rounded-lg">
-                            </div>
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image1"
+                             data-field-id="heroStyle3Image1"
+                             data-label="Image 1"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
 
-                        {{-- Image 2 --}}
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-rose-400 transition-colors">
-                            <div class="text-center mb-3">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-rose-100 rounded-full mb-2">
-                                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                                <p class="text-sm font-medium text-slate-700">Image 2</p>
-                            </div>
-                            <input 
-                                type="file" 
-                                id="heroStyle3Image2"
-                                accept="image/*" 
-                                onchange="handleHeroStyle3ImageUpload(2, this)"
-                                class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition-all">
-                            <div id="heroStyle3ImagePreview2" class="mt-3 hidden">
-                                <img src="" alt="Preview" class="w-full h-32 object-cover rounded-lg">
-                            </div>
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image2"
+                             data-field-id="heroStyle3Image2"
+                             data-label="Image 2"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
 
-                        {{-- Image 3 --}}
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-rose-400 transition-colors">
-                            <div class="text-center mb-3">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-rose-100 rounded-full mb-2">
-                                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                                <p class="text-sm font-medium text-slate-700">Image 3</p>
-                            </div>
-                            <input 
-                                type="file" 
-                                id="heroStyle3Image3"
-                                accept="image/*" 
-                                onchange="handleHeroStyle3ImageUpload(3, this)"
-                                class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition-all">
-                            <div id="heroStyle3ImagePreview3" class="mt-3 hidden">
-                                <img src="" alt="Preview" class="w-full h-32 object-cover rounded-lg">
-                            </div>
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image3"
+                             data-field-id="heroStyle3Image3"
+                             data-label="Image 3"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
                     </div>
                 </div>

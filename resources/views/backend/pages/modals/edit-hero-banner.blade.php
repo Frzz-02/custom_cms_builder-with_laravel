@@ -104,24 +104,14 @@
                         </div>
 
                         <!-- Image Upload -->
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage1" accept="image/*" class="hidden" onchange="handleHeroImageUpload(1, this)">
-                                <div id="heroImagePreview1" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage1').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage1" 
+                             data-field-id="heroImage1"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -167,24 +157,14 @@
                             <input type="text" id="heroActionUrl2" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                             <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage2" accept="image/*" class="hidden" onchange="handleHeroImageUpload(2, this)">
-                                <div id="heroImagePreview2" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage2').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage2" 
+                             data-field-id="heroImage2"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -230,24 +210,14 @@
                             <input type="text" id="heroActionUrl3" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                             <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage3" accept="image/*" class="hidden" onchange="handleHeroImageUpload(3, this)">
-                                <div id="heroImagePreview3" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage3').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage3" 
+                             data-field-id="heroImage3"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -293,24 +263,14 @@
                             <input type="text" id="heroActionUrl4" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                             <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage4" accept="image/*" class="hidden" onchange="handleHeroImageUpload(4, this)">
-                                <div id="heroImagePreview4" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage4').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage4" 
+                             data-field-id="heroImage4"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -356,24 +316,14 @@
                             <input type="text" id="heroActionUrl5" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                             <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage5" accept="image/*" class="hidden" onchange="handleHeroImageUpload(5, this)">
-                                <div id="heroImagePreview5" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage5').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage5" 
+                             data-field-id="heroImage5"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -419,24 +369,14 @@
                             <input type="text" id="heroActionUrl6" placeholder="e.g., /products or https://example.com" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                             <p class="text-xs text-slate-500 mt-1">Internal route: /products, /about | External: https://example.com</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Image
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
-                                <input type="file" id="heroImage6" accept="image/*" class="hidden" onchange="handleHeroImageUpload(6, this)">
-                                <div id="heroImagePreview6" class="hidden mb-4">
-                                    <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg">
-                                </div>
-                                <button type="button" onclick="document.getElementById('heroImage6').click()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <p class="text-xs text-slate-500 mt-2">Image will be converted to WebP format</p>
-                            </div>
+                        <div data-media-picker 
+                             data-field-name="heroImage6" 
+                             data-field-id="heroImage6"
+                             data-label="Image"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom URL. Images will be converted to WebP automatically.</p>
                         </div>
                     </div>
                 </div>
@@ -473,3 +413,6 @@
         </div>
     </div>
 </div>
+
+<!-- Media Picker Modal (Outside Form) -->
+@include('backend.components.media-picker-modal')

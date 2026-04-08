@@ -51,64 +51,40 @@
                         <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-4">
-                        <!-- Image 1 -->
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-                            <input type="file" id="heroStyle2Image1" accept="image/*" class="hidden" onchange="handleHeroStyle2ImageUpload(1, this)">
-                            <div id="heroStyle2ImagePreview1" class="hidden mb-3">
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg">
-                            </div>
-                            <button type="button" onclick="document.getElementById('heroStyle2Image1').click()" class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                Image 1
-                            </button>
-                            <p class="text-xs text-slate-500 mt-2">WebP format</p>
+                        <div data-media-picker
+                             data-field-name="heroStyle2Image1"
+                             data-field-id="heroStyle2Image1"
+                             data-label="Image 1"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
 
-                        <!-- Image 2 -->
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-                            <input type="file" id="heroStyle2Image2" accept="image/*" class="hidden" onchange="handleHeroStyle2ImageUpload(2, this)">
-                            <div id="heroStyle2ImagePreview2" class="hidden mb-3">
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg">
-                            </div>
-                            <button type="button" onclick="document.getElementById('heroStyle2Image2').click()" class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                Image 2
-                            </button>
-                            <p class="text-xs text-slate-500 mt-2">WebP format</p>
+                        <div data-media-picker
+                             data-field-name="heroStyle2Image2"
+                             data-field-id="heroStyle2Image2"
+                             data-label="Image 2"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
 
-                        <!-- Image 3 -->
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-                            <input type="file" id="heroStyle2Image3" accept="image/*" class="hidden" onchange="handleHeroStyle2ImageUpload(3, this)">
-                            <div id="heroStyle2ImagePreview3" class="hidden mb-3">
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg">
-                            </div>
-                            <button type="button" onclick="document.getElementById('heroStyle2Image3').click()" class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                Image 3
-                            </button>
-                            <p class="text-xs text-slate-500 mt-2">WebP format</p>
+                        <div data-media-picker
+                             data-field-name="heroStyle2Image3"
+                             data-field-id="heroStyle2Image3"
+                             data-label="Image 3"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
 
-                        <!-- Image 4 -->
-                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-                            <input type="file" id="heroStyle2Image4" accept="image/*" class="hidden" onchange="handleHeroStyle2ImageUpload(4, this)">
-                            <div id="heroStyle2ImagePreview4" class="hidden mb-3">
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg">
-                            </div>
-                            <button type="button" onclick="document.getElementById('heroStyle2Image4').click()" class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                Image 4
-                            </button>
-                            <p class="text-xs text-slate-500 mt-2">WebP format</p>
+                        <div data-media-picker
+                             data-field-name="heroStyle2Image4"
+                             data-field-id="heroStyle2Image4"
+                             data-label="Image 4"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
                         </div>
                     </div>
                 </div>

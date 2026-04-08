@@ -233,6 +233,22 @@
                         </div>
                     </div>
 
+                    <!-- Coming Soon Block -->
+                    <div class="group bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                        <div class="bg-gradient-to-br from-violet-500 to-purple-500 p-6 h-32 flex items-center justify-center border-b border-slate-200">
+                            <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l2.5 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-slate-800 text-base mb-1">Coming Soon</h3>
+                            <p class="text-sm text-slate-500 mb-4">Add coming soon teaser section</p>
+                            <button type="button" onclick="addBlock('comingsoon')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                Use
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Contact Block -->
                     <div class="group bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-xl transition-all duration-300 overflow-hidden">
                         <div class="bg-gradient-to-br from-teal-500 to-cyan-500 p-6 h-32 flex items-center justify-center border-b border-slate-200">

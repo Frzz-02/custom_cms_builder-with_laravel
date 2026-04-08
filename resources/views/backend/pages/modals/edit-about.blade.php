@@ -66,44 +66,16 @@
                         <!-- Image 1 -->
                         <div class="space-y-3">
                             <label class="block text-sm font-medium text-gray-700">Image 1 <span class="text-red-500">*</span></label>
-                            
-                            <!-- Radio Options -->
-                            <div class="flex gap-4 mb-2">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage1Type" value="upload" checked onchange="toggleAboutImageInput(1, 'upload')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">Upload</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage1Type" value="url" onchange="toggleAboutImageInput(1, 'url')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">URL</span>
-                                </label>
+
+                            <div data-media-picker
+                                 data-field-name="aboutImage1"
+                                 data-field-id="aboutImage1"
+                                 data-label="Image 1"
+                                 data-placeholder="Select from media library"
+                                 data-initial-value="">
+                                @include('backend.components.media-picker-input')
                             </div>
-                            
-                            <!-- Upload Section -->
-                            <div id="aboutImage1UploadSection">
-                                <input type="file" id="aboutImage1" accept="image/*" 
-                                       onchange="handleAboutImageUpload(1, this)"
-                                       class="hidden">
-                                <button type="button" onclick="document.getElementById('aboutImage1').click()"
-                                        class="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 transition-colors flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    Upload Image
-                                </button>
-                            </div>
-                            
-                            <!-- URL Section -->
-                            <div id="aboutImage1UrlSection" class="hidden">
-                                <input type="url" id="aboutImage1Url" 
-                                       onchange="handleAboutImageUrl(1, this)"
-                                       class="w-full px-4 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                       placeholder="https://example.com/image.jpg">
-                            </div>
-                            
-                            <div id="aboutImage1Preview" class="hidden">
-                                <img src="" alt="Preview" class="w-full h-40 object-cover rounded-lg border border-indigo-200">
-                            </div>
+
                             <input type="text" id="aboutImage1Alt" 
                                    class="w-full px-3 py-2 text-sm border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                    placeholder="Image alt text (optional)">
@@ -112,44 +84,16 @@
                         <!-- Image 2 -->
                         <div class="space-y-3">
                             <label class="block text-sm font-medium text-gray-700">Image 2 <span class="text-red-500">*</span></label>
-                            
-                            <!-- Radio Options -->
-                            <div class="flex gap-4 mb-2">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage2Type" value="upload" checked onchange="toggleAboutImageInput(2, 'upload')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">Upload</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage2Type" value="url" onchange="toggleAboutImageInput(2, 'url')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">URL</span>
-                                </label>
+
+                            <div data-media-picker
+                                 data-field-name="aboutImage2"
+                                 data-field-id="aboutImage2"
+                                 data-label="Image 2"
+                                 data-placeholder="Select from media library"
+                                 data-initial-value="">
+                                @include('backend.components.media-picker-input')
                             </div>
-                            
-                            <!-- Upload Section -->
-                            <div id="aboutImage2UploadSection">
-                                <input type="file" id="aboutImage2" accept="image/*" 
-                                       onchange="handleAboutImageUpload(2, this)"
-                                       class="hidden">
-                                <button type="button" onclick="document.getElementById('aboutImage2').click()"
-                                        class="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 transition-colors flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    Upload Image
-                                </button>
-                            </div>
-                            
-                            <!-- URL Section -->
-                            <div id="aboutImage2UrlSection" class="hidden">
-                                <input type="url" id="aboutImage2Url" 
-                                       onchange="handleAboutImageUrl(2, this)"
-                                       class="w-full px-4 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                       placeholder="https://example.com/image.jpg">
-                            </div>
-                            
-                            <div id="aboutImage2Preview" class="hidden">
-                                <img src="" alt="Preview" class="w-full h-40 object-cover rounded-lg border border-indigo-200">
-                            </div>
+
                             <input type="text" id="aboutImage2Alt" 
                                    class="w-full px-3 py-2 text-sm border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                    placeholder="Image alt text (optional)">
@@ -158,44 +102,16 @@
                         <!-- Image 3 -->
                         <div class="space-y-3">
                             <label class="block text-sm font-medium text-gray-700">Image 3 <span class="text-red-500">*</span></label>
-                            
-                            <!-- Radio Options -->
-                            <div class="flex gap-4 mb-2">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage3Type" value="upload" checked onchange="toggleAboutImageInput(3, 'upload')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">Upload</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="aboutImage3Type" value="url" onchange="toggleAboutImageInput(3, 'url')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm text-gray-700">URL</span>
-                                </label>
+
+                            <div data-media-picker
+                                 data-field-name="aboutImage3"
+                                 data-field-id="aboutImage3"
+                                 data-label="Image 3"
+                                 data-placeholder="Select from media library"
+                                 data-initial-value="">
+                                @include('backend.components.media-picker-input')
                             </div>
-                            
-                            <!-- Upload Section -->
-                            <div id="aboutImage3UploadSection">
-                                <input type="file" id="aboutImage3" accept="image/*" 
-                                       onchange="handleAboutImageUpload(3, this)"
-                                       class="hidden">
-                                <button type="button" onclick="document.getElementById('aboutImage3').click()"
-                                        class="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 transition-colors flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    Upload Image
-                                </button>
-                            </div>
-                            
-                            <!-- URL Section -->
-                            <div id="aboutImage3UrlSection" class="hidden">
-                                <input type="url" id="aboutImage3Url" 
-                                       onchange="handleAboutImageUrl(3, this)"
-                                       class="w-full px-4 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                       placeholder="https://example.com/image.jpg">
-                            </div>
-                            
-                            <div id="aboutImage3Preview" class="hidden">
-                                <img src="" alt="Preview" class="w-full h-40 object-cover rounded-lg border border-indigo-200">
-                            </div>
+
                             <input type="text" id="aboutImage3Alt" 
                                    class="w-full px-3 py-2 text-sm border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                    placeholder="Image alt text (optional)">
