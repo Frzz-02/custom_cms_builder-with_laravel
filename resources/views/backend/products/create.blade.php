@@ -162,7 +162,7 @@
                          data-label="Image URL"
                          data-placeholder="https://example.com/image.jpg"
                          data-initial-value="{{ old('image') }}">
-                        @include('backend.components.media-picker')
+                        @include('backend.components.media-picker-input')
                         @error('image')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -302,4 +302,7 @@
         }
     }
 </script>
+
+<!-- Media Picker Modal (Outside Form) -->
+@include('backend.components.media-picker-modal')
 @endsection
