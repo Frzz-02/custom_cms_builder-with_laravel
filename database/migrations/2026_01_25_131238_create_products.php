@@ -19,6 +19,7 @@ return new class extends Migration
             $table->double('price')->nullable();                // DOUBLE
             $table->double('sale_price')->nullable();           // DOUBLE
 
+            $table->boolean('show_price')->nullable();          // VARCHAR 255 (bisa 'yes'/'no' atau '1'/'0')
             $table->string('is_featured')->nullable();          // VARCHAR 255 (bisa 'yes'/'no' atau '1'/'0')
 
             $table->string('status')->nullable();               // status produk
