@@ -220,6 +220,16 @@
                 </a>
             </li>
 
+            <!-- Teams -->
+            <li>
+                <a href="{{ route('backend.teams.index') }}" class="flex items-center p-3 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-200 {{ request()->routeIs('backend.teams.*') ? 'bg-slate-700 text-white' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-1a4 4 0 00-5-3.87M17 20H7m10 0v-1c0-1.657-1.343-3-3-3h-4a3 3 0 00-3 3v1m0 0H2v-1a4 4 0 015-3.87M7 20v-1m0 0a3 3 0 013-3h4a3 3 0 013 3v1M9 7a3 3 0 116 0 3 3 0 01-6 0zm-4 3a2 2 0 100-4 2 2 0 000 4zm14 0a2 2 0 100-4 2 2 0 000 4z"/>
+                    </svg>
+                    Teams
+                </a>
+            </li>
+
             <!-- Newsletter with Dropdown -->
             <li>
                 <button 
