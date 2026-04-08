@@ -3,7 +3,7 @@
 
 @section('content')
     <!-- Breadcrumb -->
-    <div class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+    {{-- <div class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav class="flex items-center space-x-2 text-sm">
                 <a href="/" class="text-slate-600 hover:text-indigo-600 transition-colors">
@@ -15,22 +15,23 @@
                 <span class="text-slate-900 font-medium">{{ Str::limit($product->title, 30) }}</span>
             </nav>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <!-- Product Detail Card -->
-        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-white mt-20 rounded-3xl shadow-xl overflow-hidden border border-slate-200">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 <!-- Left: Product Image -->
                 <div class="relative bg-gradient-to-br from-slate-50 to-slate-100 p-6 lg:p-10">
                     <div class="sticky top-24">
                         <!-- Main Image -->
-                        <div class="aspect-square rounded-2xl overflow-hidden bg-white shadow-lg mb-4 group">
+                        <div class="rounded-2xl overflow-hidden bg-white shadow-lg mb-4 group">
                             @if($product->image)
                                 <img src="{{ $product->image }}" 
                                      alt="{{ $product->image_title ?? $product->title }}" 
-                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                     loading="lazy"
+                                     class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full flex items-center justify-center">
                                     <div class="text-center">
@@ -200,6 +201,7 @@
                                 @if($related->image)
                                     <img src="{{ $related->image }}" 
                                          alt="{{ $related->title }}" 
+                                         loading="lazy"
                                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
