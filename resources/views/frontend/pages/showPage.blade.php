@@ -61,6 +61,7 @@
 
 
 @section('content')
+{{-- {{ $layout }} --}}
 {{-- {{ env('DB_HOST') }} --}}
     @foreach ($shortcodes as $shortcode)
         @include('frontend.section.title')
@@ -77,7 +78,7 @@
 
         @include('frontend.section.about')
 
-        @include('frontend.section.pricing')
+        {{-- @include('frontend.section.pricing') --}}
         
         @include('frontend.section.productCategory')
 
