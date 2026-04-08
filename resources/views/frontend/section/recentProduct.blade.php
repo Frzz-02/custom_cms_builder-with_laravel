@@ -90,7 +90,6 @@
                         $prodPrice = $product->sale_price && $product->sale_price < $product->price
                             ? $product->sale_price
                             : $product->price;
-
                         $productRouteParams = ['slug' => $product->slug];
                         if (isset($page) && $page instanceof \App\Models\Page && !empty($page->id)) {
                             $productRouteParams['ctx'] = encrypt($page->id);
@@ -116,7 +115,7 @@
                             </div>
                             <div class="flex justify-between items-center mb-3">
                                 <p class="text-xs text-gray-500">{{ $product->overview ? \Illuminate\Support\Str::limit(strip_tags($product->overview), 30) : '' }}</p>
-                                @if($prodPrice)
+                                @if($prodPrice && $product->show_price)
                                 <span class="text-sm font-medium text-gray-900">Rp {{ number_format($prodPrice, 0, ',', '.') }}</span>
                                 @endif
                             </div>

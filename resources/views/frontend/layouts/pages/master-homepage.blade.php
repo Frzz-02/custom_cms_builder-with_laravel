@@ -57,12 +57,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Optimize images */
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-
         /* Lazy Load Images */
         img[loading="lazy"] {
             opacity: 0;
@@ -82,68 +76,30 @@
             }
         }
 
-        @if (in_array($page->header_style, ['header style 1', 'header style s1']))
-            /* Force navbar to be fixed */
-            nav.fixed {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                z-index: 9999 !important;
-            }
+        /* Accessibility - Skip to Content */
+        .skip-to-content {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: #0094e2;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            z-index: 9999;
+        }
 
-            /* Ensure sidebar and overlay are always on top */
-            [data-sidebar-overlay],
-            [data-sidebar] {
-                position: fixed !important;
-                z-index: 2147483645 !important;
-            }
-            [data-sidebar-overlay] {
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                z-index: 2147483644 !important;
-            }
-            [data-sidebar] {
-                top: 0 !important;
-                left: 0 !important;
-                height: 100vh !important;
-                z-index: 2147483645 !important;
-            }
-        
-
-            
-            
-            
-            
-            
-            
-        @elseif (in_array($page->header_style, ['header style 2', 'header style s2']))
-        
-            /* Navbar underline animation */
-            .nav-link { position: relative; }
-            .nav-link::after {
-                content: '';
-                position: absolute;
-                bottom: -4px; left: 0;
-                width: 0; height: 2px;
-                background: #dc2626;
-                transition: width 0.3s ease;
-            }
-            .nav-link:hover::after,
-            .nav-link.active::after { width: 100%; }
-            
-        @endif
+        .skip-to-content:focus {
+            top: 0;
+        }
     </style>
 
     @stack('styles')
 </head>
-<body class="bg-white text-gray-900 antialiased">
+<body class="mitracom-page">
     
 
     <!-- Skip to main content (accessibility) -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-gray-900 text-white px-4 py-2 z-50">
+    <a href="#main-content" class="skip-to-content">
         Skip to main content
     </a>
 
@@ -151,7 +107,7 @@
     @include('frontend.layouts.navmenu')
 
     <!-- Main Content -->
-    <main id="main-content">
+    <main id="main-content" class="min-h-screen pt-14 sm:pt-20">
         @yield('content')
     </main>
 
