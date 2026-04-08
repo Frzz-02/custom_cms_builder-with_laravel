@@ -62,6 +62,10 @@ let isDataLoaded = false;
 // Setiap block punya data sendiri-sendiri, meskipun tipenya sama
 let blockDataCache = {};
 
+// State untuk mencegah race condition saat sync urutan block ke database
+let isSyncingBlockOrder = false;
+let pendingBlockOrderSync = false;
+
 // ===================================================================
 // BAGIAN 2: KONFIGURASI BLOCKS
 // ===================================================================
@@ -128,6 +132,11 @@ const blockConfig = {
         name: 'Latest News & Blog', 
         icon: 'newspaper', 
         color: 'rose' 
+    },
+    'comingsoon': {
+        name: 'Coming Soon',
+        icon: 'clock',
+        color: 'violet'
     },
     'contact': { 
         name: 'Contact', 
@@ -297,9 +306,12 @@ function initSortable() {
             
             // onEnd: function yang dipanggil saat selesai drag
             // Ini adalah "callback function" - fungsi yang dipanggil otomatis
-            onEnd: function() {
+            onEnd: async function() {
                 // Update nomor urutan setelah drag selesai
                 updateBlockOrder();
+
+                // Sinkronkan sort_id terbaru ke database
+                await syncBlockOrderToDatabase();
             }
         });
     }
@@ -338,6 +350,88 @@ function updateBlockOrder() {
             console.log(`🔄 Updated sort_id in cache: ${blockId} → ${newSortId}`);
         }
     });
+}
+
+/**
+ * Sinkronisasi urutan block (sort_id) ke database
+ * Dipanggil setiap selesai drag & drop
+ */
+async function syncBlockOrderToDatabase() {
+    // Jika sedang sync, tandai ada sync baru dan biarkan loop yang sedang jalan memproses ulang
+    if (isSyncingBlockOrder) {
+        pendingBlockOrderSync = true;
+        return;
+    }
+
+    isSyncingBlockOrder = true;
+
+    try {
+        do {
+            pendingBlockOrderSync = false;
+
+            const blocks = document.querySelectorAll('#blocksList .block-item');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            const updates = [];
+
+            blocks.forEach((block, index) => {
+                const shortcodeId = block.dataset.shortcodeId;
+                const blockId = block.id;
+                const newSortId = index + 1;
+
+                if (!shortcodeId || !blockId) return;
+
+                // Selalu update ke database setelah drag-drop agar konsisten
+                updates.push({ shortcodeId, blockId, sort_id: newSortId });
+            });
+
+            if (updates.length === 0) {
+                continue;
+            }
+
+            console.log('🔄 Syncing block order to database:', updates);
+
+            const results = await Promise.all(
+                updates.map(async (item) => {
+                    const response = await fetch(`/bagoosh/page-shortcode/update/${item.shortcodeId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({ sort_id: item.sort_id })
+                    });
+
+                    let payload = {};
+                    try {
+                        payload = await response.json();
+                    } catch (error) {
+                        payload = {};
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(payload.message || `Failed to update sort_id for shortcode ${item.shortcodeId}`);
+                    }
+
+                    return item;
+                })
+            );
+
+            // Pastikan cache ikut sinkron setelah update DB berhasil
+            results.forEach((item) => {
+                if (blockDataCache[item.blockId]) {
+                    blockDataCache[item.blockId].sort_id = item.sort_id;
+                }
+            });
+
+            console.log('✅ Block order synced to database successfully');
+        } while (pendingBlockOrderSync);
+    } catch (error) {
+        console.error('❌ Failed to sync block order:', error);
+        alert('Failed to update block order in database: ' + error.message);
+    } finally {
+        isSyncingBlockOrder = false;
+    }
 }
 
 /**
@@ -696,6 +790,9 @@ async function openEditModal(blockId) {
     } else if (blockType === 'latestnews') {
         // Untuk block latest news (punya fungsi khusus)
         openEditLatestNewsModal(blockId);
+    } else if (blockType === 'comingsoon') {
+        // Untuk block coming soon
+        openEditComingSoonModal(blockId);
     } else if (blockType === 'contact') {
         // Untuk block contact (punya fungsi khusus)
         openEditContactModal(blockId);
@@ -1913,6 +2010,94 @@ function switchHeroTab(tabNumber) {
 /**
  * Handle image upload dan konversi ke WebP
  */
+function normalizeHeroImageForStorage(imageUrl) {
+    if (!imageUrl) return '';
+
+    const raw = String(imageUrl).trim();
+    if (!raw) return '';
+
+    if (raw.startsWith('data:image')) return raw;
+
+    let value = raw;
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+        try {
+            const parsed = new URL(value);
+            value = parsed.pathname || value;
+        } catch (e) {
+            return raw;
+        }
+    }
+
+    if (value.startsWith('/storage/')) {
+        return value.replace(/^\/storage\//, '');
+    }
+
+    if (value.startsWith('storage/')) {
+        return value.replace(/^storage\//, '');
+    }
+
+    return value.replace(/^\//, '');
+}
+
+function normalizeHeroImageForPreview(imageUrl) {
+    if (!imageUrl) return '';
+
+    const raw = String(imageUrl).trim();
+    if (!raw) return '';
+
+    if (raw.startsWith('data:image') || raw.startsWith('http://') || raw.startsWith('https://')) {
+        return raw;
+    }
+
+    if (raw.startsWith('/storage/')) {
+        return raw;
+    }
+
+    if (raw.startsWith('storage/')) {
+        return `/${raw}`;
+    }
+
+    if (raw.startsWith('/')) {
+        return raw;
+    }
+
+    return `/storage/${raw}`;
+}
+
+function setHeroBannerImage(tabNumber, imageUrl) {
+    if (!window.heroBannerImages) {
+        window.heroBannerImages = {};
+    }
+
+    const storageValue = normalizeHeroImageForStorage(imageUrl);
+    const previewValue = normalizeHeroImageForPreview(imageUrl);
+    window.heroBannerImages[`tab${tabNumber}`] = storageValue;
+
+    window.dispatchEvent(new CustomEvent('media-selected', {
+        detail: {
+            fieldId: `heroImage${tabNumber}`,
+            url: previewValue,
+        }
+    }));
+}
+
+window.addEventListener('media-selected', (event) => {
+    const fieldId = event?.detail?.fieldId || '';
+    if (!fieldId.startsWith('heroImage')) return;
+
+    const tabNumber = fieldId.replace('heroImage', '');
+    if (!tabNumber) return;
+
+    const url = event?.detail?.url || '';
+    const storageValue = normalizeHeroImageForStorage(url);
+
+    if (!window.heroBannerImages) {
+        window.heroBannerImages = {};
+    }
+
+    window.heroBannerImages[`tab${tabNumber}`] = storageValue;
+});
+
 async function handleHeroImageUpload(tabNumber, input) {
     const file = input.files[0];
     if (!file) return;
@@ -1938,10 +2123,7 @@ async function handleHeroImageUpload(tabNumber, input) {
         }
         
         // Store in temporary variable (akan di-upload saat save)
-        if (!window.heroBannerImages) {
-            window.heroBannerImages = {};
-        }
-        window.heroBannerImages[`tab${tabNumber}`] = webpDataUrl;
+        setHeroBannerImage(tabNumber, webpDataUrl);
         
         console.log(`✅ Image for tab ${tabNumber} converted to WebP`);
     } catch (error) {
@@ -2125,22 +2307,13 @@ async function openEditHeroBannerModal() {
                 }
             }
             
-            // Set image preview
+            // Set image preview / media picker value
             const imageValue = heroData[imageField];
             if (imageValue) {
-                const preview = document.getElementById(`heroImagePreview${i}`);
-                const previewImg = preview?.querySelector('img');
-                if (preview && previewImg) {
-                    previewImg.src = '/storage/' + imageValue;
-                    preview.classList.remove('hidden');
-                    console.log(`✅ Tab ${i} - Set image preview:`, imageValue.substring(0, 50) + '...');
-                }
-                
-                // Store in temporary variable
-                if (!window.heroBannerImages) {
-                    window.heroBannerImages = {};
-                }
-                window.heroBannerImages[`tab${i}`] = imageValue;
+                setHeroBannerImage(i, imageValue);
+                console.log(`✅ Tab ${i} - Set image preview:`, imageValue.substring(0, 50) + '...');
+            } else {
+                setHeroBannerImage(i, '');
             }
         }
         
@@ -2205,6 +2378,7 @@ function closeEditHeroBannerModal() {
             if (actionUrlInput) actionUrlInput.value = '';
             if (imageInput) imageInput.value = '';
             if (preview) preview.classList.add('hidden');
+            setHeroBannerImage(i, '');
         }
         
         currentEditBlockId = null;
@@ -2247,7 +2421,11 @@ async function saveHeroBannerBlock() {
             const description = document.getElementById(`heroDescription${i}`)?.value.trim() || '';
             const actionLabel = document.getElementById(`heroActionLabel${i}`)?.value.trim() || '';
             const actionUrl = document.getElementById(`heroActionUrl${i}`)?.value.trim() || '';
-            const image = window.heroBannerImages?.[`tab${i}`] || '';
+            const image = normalizeHeroImageForStorage(
+                window.heroBannerImages?.[`tab${i}`]
+                || document.getElementById(`heroImage${i}`)?.value.trim()
+                || ''
+            );
             
             // Validation: SEMUA field wajib diisi (required)
             const missingFields = [];
@@ -2492,6 +2670,25 @@ async function handleHeroStyle2ImageUpload(imageNumber, input) {
     }
 }
 
+window.addEventListener('media-selected', (event) => {
+    const fieldId = event?.detail?.fieldId || '';
+    const selectedUrl = event?.detail?.url || '';
+
+    if (fieldId.startsWith('heroStyle2Image')) {
+        const imageNumber = fieldId.replace('heroStyle2Image', '');
+        if (!window.heroBannerStyle2Images) {
+            window.heroBannerStyle2Images = {};
+        }
+        window.heroBannerStyle2Images[`image${imageNumber}`] = normalizeHeroImageForStorage(selectedUrl);
+    } else if (fieldId.startsWith('heroStyle3Image')) {
+        const imageNumber = fieldId.replace('heroStyle3Image', '');
+        if (!window.heroBannerStyle3Images) {
+            window.heroBannerStyle3Images = {};
+        }
+        window.heroBannerStyle3Images[`image${imageNumber}`] = normalizeHeroImageForStorage(selectedUrl);
+    }
+});
+
 /**
  * Populate checkboxes untuk services dengan limit 3
  */
@@ -2658,27 +2855,23 @@ async function openEditHeroBannerStyle2Modal() {
         
         // Image 1
         if (heroData.image) {
-            const preview = document.getElementById('heroStyle2ImagePreview1');
-            const previewImg = preview?.querySelector('img');
-            if (preview && previewImg) {
-                previewImg.src = '/storage/' + heroData.image;
-                preview.classList.remove('hidden');
-                console.log('✅ Set image 1 preview:', heroData.image.substring(0, 50));
-            }
-            window.heroBannerStyle2Images['image1'] = heroData.image;
+            const normalizedPreview = normalizeHeroImageForPreview(heroData.image);
+            const normalizedStorage = normalizeHeroImageForStorage(heroData.image);
+            window.heroBannerStyle2Images['image1'] = normalizedStorage;
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: 'heroStyle2Image1', url: normalizedPreview }
+            }));
         }
         
         // Images 2-4
         for (let i = 2; i <= 4; i++) {
             if (heroData[`image_${i}`]) {
-                const preview = document.getElementById(`heroStyle2ImagePreview${i}`);
-                const previewImg = preview?.querySelector('img');
-                if (preview && previewImg) {
-                    previewImg.src = '/storage/' + heroData[`image_${i}`];
-                    preview.classList.remove('hidden');
-                    console.log(`✅ Set image ${i} preview:`, heroData[`image_${i}`].substring(0, 50));
-                }
-                window.heroBannerStyle2Images[`image${i}`] = heroData[`image_${i}`];
+                const normalizedPreview = normalizeHeroImageForPreview(heroData[`image_${i}`]);
+                const normalizedStorage = normalizeHeroImageForStorage(heroData[`image_${i}`]);
+                window.heroBannerStyle2Images[`image${i}`] = normalizedStorage;
+                window.dispatchEvent(new CustomEvent('media-selected', {
+                    detail: { fieldId: `heroStyle2Image${i}`, url: normalizedPreview }
+                }));
             }
         }
         
@@ -2763,10 +2956,11 @@ function closeEditHeroBannerStyle2Modal() {
         // Reset images
         for (let i = 1; i <= 4; i++) {
             const imageInput = document.getElementById(`heroStyle2Image${i}`);
-            const preview = document.getElementById(`heroStyle2ImagePreview${i}`);
             
             if (imageInput) imageInput.value = '';
-            if (preview) preview.classList.add('hidden');
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: `heroStyle2Image${i}`, url: '' }
+            }));
         }
         
         // Reset checkboxes
@@ -2818,10 +3012,18 @@ async function saveHeroBannerStyle2Block() {
         const actionUrl2 = document.getElementById('heroStyle2ActionUrl2')?.value.trim() || '';
         
         // Collect images
-        const image1 = window.heroBannerStyle2Images?.image1 || '';
-        const image2 = window.heroBannerStyle2Images?.image2 || '';
-        const image3 = window.heroBannerStyle2Images?.image3 || '';
-        const image4 = window.heroBannerStyle2Images?.image4 || '';
+        const image1 = normalizeHeroImageForStorage(
+            window.heroBannerStyle2Images?.image1 || document.getElementById('heroStyle2Image1')?.value || ''
+        );
+        const image2 = normalizeHeroImageForStorage(
+            window.heroBannerStyle2Images?.image2 || document.getElementById('heroStyle2Image2')?.value || ''
+        );
+        const image3 = normalizeHeroImageForStorage(
+            window.heroBannerStyle2Images?.image3 || document.getElementById('heroStyle2Image3')?.value || ''
+        );
+        const image4 = normalizeHeroImageForStorage(
+            window.heroBannerStyle2Images?.image4 || document.getElementById('heroStyle2Image4')?.value || ''
+        );
         
         // Collect selected services
         const checkboxes = document.querySelectorAll('.hero-style2-service-checkbox:checked');
@@ -3132,38 +3334,32 @@ async function openEditHeroBannerStyle3Modal() {
         
         // Image 1
         if (heroData.image) {
-            const preview = document.getElementById('heroStyle3ImagePreview1');
-            const previewImg = preview?.querySelector('img');
-            if (preview && previewImg) {
-                previewImg.src = '/storage/' + heroData.image;
-                preview.classList.remove('hidden');
-                console.log('✅ Set image 1 preview:', heroData.image.substring(0, 50));
-            }
-            window.heroBannerStyle3Images['image1'] = heroData.image;
+            const normalizedPreview = normalizeHeroImageForPreview(heroData.image);
+            const normalizedStorage = normalizeHeroImageForStorage(heroData.image);
+            window.heroBannerStyle3Images['image1'] = normalizedStorage;
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: 'heroStyle3Image1', url: normalizedPreview }
+            }));
         }
         
         // Image 2
         if (heroData.image_2) {
-            const preview = document.getElementById('heroStyle3ImagePreview2');
-            const previewImg = preview?.querySelector('img');
-            if (preview && previewImg) {
-                previewImg.src = '/storage/' + heroData.image_2;
-                preview.classList.remove('hidden');
-                console.log('✅ Set image 2 preview:', heroData.image_2.substring(0, 50));
-            }
-            window.heroBannerStyle3Images['image2'] = heroData.image_2;
+            const normalizedPreview = normalizeHeroImageForPreview(heroData.image_2);
+            const normalizedStorage = normalizeHeroImageForStorage(heroData.image_2);
+            window.heroBannerStyle3Images['image2'] = normalizedStorage;
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: 'heroStyle3Image2', url: normalizedPreview }
+            }));
         }
         
         // Image 3
         if (heroData.image_3) {
-            const preview = document.getElementById('heroStyle3ImagePreview3');
-            const previewImg = preview?.querySelector('img');
-            if (preview && previewImg) {
-                previewImg.src = '/storage/' + heroData.image_3;
-                preview.classList.remove('hidden');
-                console.log('✅ Set image 3 preview:', heroData.image_3.substring(0, 50));
-            }
-            window.heroBannerStyle3Images['image3'] = heroData.image_3;
+            const normalizedPreview = normalizeHeroImageForPreview(heroData.image_3);
+            const normalizedStorage = normalizeHeroImageForStorage(heroData.image_3);
+            window.heroBannerStyle3Images['image3'] = normalizedStorage;
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: 'heroStyle3Image3', url: normalizedPreview }
+            }));
         }
         
         console.log('✅ Hero Banner Style 3 - Form populated successfully');
@@ -3225,10 +3421,11 @@ function closeEditHeroBannerStyle3Modal() {
         // Reset images
         for (let i = 1; i <= 3; i++) {
             const imageInput = document.getElementById(`heroStyle3Image${i}`);
-            const preview = document.getElementById(`heroStyle3ImagePreview${i}`);
             
             if (imageInput) imageInput.value = '';
-            if (preview) preview.classList.add('hidden');
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: { fieldId: `heroStyle3Image${i}`, url: '' }
+            }));
         }
         
         // Clear temporary image storage
@@ -3275,9 +3472,15 @@ async function saveHeroBannerStyle3Block() {
         const actionUrl2 = document.getElementById('heroStyle3ActionUrl2')?.value.trim() || '';
         
         // Collect images
-        const image1 = window.heroBannerStyle3Images?.image1 || '';
-        const image2 = window.heroBannerStyle3Images?.image2 || '';
-        const image3 = window.heroBannerStyle3Images?.image3 || '';
+        const image1 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image1 || document.getElementById('heroStyle3Image1')?.value || ''
+        );
+        const image2 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image2 || document.getElementById('heroStyle3Image2')?.value || ''
+        );
+        const image3 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image3 || document.getElementById('heroStyle3Image3')?.value || ''
+        );
         
         // Validation: ALL fields required
         const missingFields = [];
@@ -3698,6 +3901,7 @@ function getBlockIcon(type) {
         'featured-services': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
         'newsletter': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
         'latestnews': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>',
+        'comingsoon': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l2.5 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         'contact': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>'
     };
     
@@ -3816,6 +4020,11 @@ function loadExistingBlocks() {
             latestnews_title: shortcode.latestnews_title,
             latestnews_style: shortcode.latestnews_style,
             blog_limit: shortcode.blog_limit,
+            // Coming Soon fields
+            comingsoon_image: shortcode.comingsoon_image,
+            comingsoon_title: shortcode.comingsoon_title,
+            comingsoon_subtitle: shortcode.comingsoon_subtitle,
+            comingsoon_placeholder: shortcode.comingsoon_placeholder,
             // Contact fields
             contact_title_1: shortcode.contact_title_1,
             contact_subtitle: shortcode.contact_subtitle,
@@ -3870,7 +4079,7 @@ function loadExistingBlocks() {
                 <div class="flex items-center justify-between p-4">
                     <div class="flex items-center gap-3 flex-1">
                         <!-- Drag Handle -->
-                        <div class="cursor-move text-slate-400 group-hover:text-indigo-500 transition-colors">
+                        <div class="drag-handle cursor-move text-slate-400 group-hover:text-indigo-500 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
                             </svg>
@@ -5507,6 +5716,7 @@ document.addEventListener('keydown', function(e) {
         closeSelectServiceStyleModal();
         closeEditFeaturedServicesModal();
         closeEditNewsletterModal();
+        closeEditComingSoonModal();
         closeEditDefaultModal();
     }
 });
@@ -5575,6 +5785,13 @@ document.getElementById('editNewsletterModal')?.addEventListener('click', functi
     }
 });
 
+// Coming Soon Modal
+document.getElementById('editComingSoonModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditComingSoonModal();
+    }
+});
+
 // ===================================================================
 // BAGIAN 22: SEO & SLUG AUTO-GENERATE
 // ===================================================================
@@ -5590,6 +5807,7 @@ const titleInput = document.getElementById('title');
 const slugInput = document.getElementById('slug');
 const metaTitleInput = document.getElementById('meta_title');
 const metaDescInput = document.getElementById('meta_description');
+const isHomePageSlugLocked = window.isHomePageSlugLocked === true;
 
 // Simpan slug original (untuk page yang sudah ada)
 // Agar tidak berubah-ubah saat edit title
@@ -5597,10 +5815,13 @@ const originalSlug = slugInput?.value || '';
 
 // Event listener untuk input title
 titleInput?.addEventListener('input', function() {
-    // Jika slug masih original atau kosong, generate slug baru
-    if (!originalSlug || slugInput.value === '' || slugInput.value === originalSlug) {
-        // generateSlug() = function untuk ubah text jadi slug
-        slugInput.value = generateSlug(this.value);
+    // Jika halaman home/index, slug tidak boleh auto-generate
+    if (!isHomePageSlugLocked && slugInput) {
+        // Jika slug masih original atau kosong, generate slug baru
+        if (!originalSlug || slugInput.value === '' || slugInput.value === originalSlug) {
+            // generateSlug() = function untuk ubah text jadi slug
+            slugInput.value = generateSlug(this.value);
+        }
     }
     // Update SEO preview
     updateSEOPreview();
@@ -6045,6 +6266,253 @@ async function deleteLatestNewsBlock() {
 }
 
 // ===================================================================
+// BAGIAN 30B: COMING SOON FUNCTIONS
+// ===================================================================
+
+/**
+ * Membuka modal edit coming soon
+ */
+async function openEditComingSoonModal(blockId) {
+    console.log('Opening Coming Soon modal for block:', blockId);
+
+    currentEditBlockId = blockId;
+
+    let block = document.getElementById(blockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${blockId}"]`);
+    }
+
+    if (!block) {
+        console.error('❌ Block not found:', blockId);
+        return;
+    }
+
+    let shortcodeData = null;
+    let image = '';
+    let title = '';
+    let subtitle = '';
+    let placeholder = '';
+
+    const shortcodeId = block.dataset.shortcodeId || '';
+
+    if (blockDataCache[currentEditBlockId]) {
+        console.log('📦 Loading coming soon from cache:', currentEditBlockId);
+        shortcodeData = blockDataCache[currentEditBlockId];
+        image = shortcodeData.comingsoon_image || '';
+        title = shortcodeData.comingsoon_title || '';
+        subtitle = shortcodeData.comingsoon_subtitle || '';
+        placeholder = shortcodeData.comingsoon_placeholder || '';
+    } else if (shortcodeId) {
+        console.log('🔄 Loading coming soon from database:', shortcodeId);
+        try {
+            const response = await fetch(`/bagoosh/page-shortcode/show/${shortcodeId}`);
+            const result = await response.json();
+            if (result.success) {
+                shortcodeData = result.data;
+                image = shortcodeData.comingsoon_image || '';
+                title = shortcodeData.comingsoon_title || '';
+                subtitle = shortcodeData.comingsoon_subtitle || '';
+                placeholder = shortcodeData.comingsoon_placeholder || '';
+                blockDataCache[currentEditBlockId] = shortcodeData;
+            }
+        } catch (error) {
+            console.error('Error loading coming soon data:', error);
+        }
+    }
+
+    document.getElementById('comingSoonImage').value = image;
+    document.getElementById('comingSoonTitle').value = title;
+    document.getElementById('comingSoonSubtitle').value = subtitle;
+    document.getElementById('comingSoonPlaceholder').value = placeholder;
+
+    const mediaInput = document.querySelector('[name="comingSoonImage"]');
+    if (mediaInput) {
+        mediaInput.value = image;
+        mediaInput.dispatchEvent(new Event('input', { bubbles: true }));
+        mediaInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    document.getElementById('editComingSoonModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Menutup modal edit coming soon
+ */
+function closeEditComingSoonModal() {
+    closeModalWithTransition('editComingSoonModal', () => {
+        currentEditBlockId = null;
+    });
+}
+
+/**
+ * Menyimpan coming soon block ke database
+ */
+async function saveComingSoonBlock() {
+    if (!currentEditBlockId) {
+        alert('Error: No block selected');
+        return;
+    }
+
+    const image = document.getElementById('comingSoonImage').value.trim();
+    const title = document.getElementById('comingSoonTitle').value.trim();
+    const subtitle = document.getElementById('comingSoonSubtitle').value.trim();
+    const placeholder = document.getElementById('comingSoonPlaceholder').value.trim();
+
+    if (!title) {
+        alert('Please enter a title');
+        document.getElementById('comingSoonTitle').focus();
+        return;
+    }
+
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+
+    if (!block) {
+        console.error('❌ Block not found:', currentEditBlockId);
+        return;
+    }
+
+    const shortcodeId = block.dataset.shortcodeId || null;
+    const sortId = getCurrentSortId(currentEditBlockId);
+
+    document.getElementById('comingSoonLoadingState').classList.remove('hidden');
+    document.getElementById('comingSoonFormContent').classList.add('hidden');
+
+    try {
+        const formData = {
+            pages_id: window.pageId,
+            type: 'comingsoon',
+            comingsoon_image: image,
+            comingsoon_title: title,
+            comingsoon_subtitle: subtitle,
+            comingsoon_placeholder: placeholder,
+            sort_id: sortId
+        };
+
+        const url = shortcodeId
+            ? `/bagoosh/page-shortcode/update/${shortcodeId}`
+            : '/bagoosh/page-shortcode/store';
+        const method = shortcodeId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to save');
+        }
+
+        if (data.data && data.data.id) {
+            blockDataCache[currentEditBlockId] = {
+                id: data.data.id,
+                type: 'comingsoon',
+                comingsoon_image: image,
+                comingsoon_title: title,
+                comingsoon_subtitle: subtitle,
+                comingsoon_placeholder: placeholder,
+                sort_id: sortId
+            };
+
+            block.dataset.shortcodeId = data.data.id;
+        }
+
+        const blockContent = block.querySelector('.block-content');
+        if (blockContent) {
+            blockContent.innerHTML = `
+                <div class="space-y-1">
+                    ${title ? `<div class="font-semibold text-slate-700">${title}</div>` : ''}
+                    ${subtitle ? `<div class="text-sm text-slate-600">${subtitle}</div>` : ''}
+                    ${placeholder ? `<div class="text-xs text-slate-500">Placeholder: ${placeholder}</div>` : ''}
+                </div>
+            `;
+        }
+
+        closeEditComingSoonModal();
+        alert('Coming Soon block saved successfully!');
+    } catch (error) {
+        console.error('Save error:', error);
+        alert('Error saving Coming Soon block: ' + error.message);
+    } finally {
+        document.getElementById('comingSoonLoadingState').classList.add('hidden');
+        document.getElementById('comingSoonFormContent').classList.remove('hidden');
+    }
+}
+
+/**
+ * Hapus coming soon block
+ */
+async function deleteComingSoonBlock() {
+    if (!currentEditBlockId) return;
+
+    if (!confirm('Are you sure you want to delete this Coming Soon block?')) {
+        return;
+    }
+
+    let block = document.getElementById(currentEditBlockId);
+    if (!block) {
+        block = document.querySelector(`[data-block-id="${currentEditBlockId}"]`);
+    }
+
+    const shortcodeId = block?.dataset.shortcodeId;
+
+    const deleteBtn = document.getElementById('deleteComingSoonBtn');
+    const deleteIcon = document.getElementById('deleteComingSoonIcon');
+    const deleteLoading = document.getElementById('deleteComingSoonLoading');
+    const deleteText = document.getElementById('deleteComingSoonText');
+
+    if (deleteBtn) deleteBtn.disabled = true;
+    deleteIcon?.classList.add('hidden');
+    deleteLoading?.classList.remove('hidden');
+    if (deleteText) deleteText.textContent = 'Deleting...';
+
+    try {
+        if (shortcodeId) {
+            const response = await fetch(`/bagoosh/page-shortcode/delete/${shortcodeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete from database');
+            }
+        }
+
+        if (blockDataCache[currentEditBlockId]) {
+            delete blockDataCache[currentEditBlockId];
+        }
+
+        block?.remove();
+        closeEditComingSoonModal();
+        checkEmptyState();
+        updateBlockOrder();
+        alert('Coming Soon block deleted successfully!');
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('Error deleting Coming Soon block: ' + error.message);
+    } finally {
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteIcon?.classList.remove('hidden');
+            deleteLoading?.classList.add('hidden');
+            if (deleteText) deleteText.textContent = 'Delete';
+        }
+    }
+}
+
+// ===================================================================
 // BAGIAN 31: CONTACT FUNCTIONS
 // ===================================================================
 
@@ -6430,6 +6898,17 @@ async function deleteContactBlock() {
 // Object untuk menyimpan data gambar About yang sedang diedit
 window.aboutImages = {};
 
+window.addEventListener('media-selected', (event) => {
+    const fieldId = event?.detail?.fieldId || '';
+    if (!fieldId.startsWith('aboutImage')) return;
+
+    const imageNumber = fieldId.replace('aboutImage', '');
+    if (!imageNumber) return;
+
+    const selectedUrl = event?.detail?.url || '';
+    window.aboutImages[`image_${imageNumber}`] = normalizeHeroImageForStorage(selectedUrl);
+});
+
 /**
  * Handle image upload untuk About block
  */
@@ -6649,23 +7128,15 @@ async function openEditAboutModal() {
     // Reset images
     window.aboutImages = {};
     for (let i = 1; i <= 3; i++) {
-        const preview = document.getElementById(`aboutImage${i}Preview`);
         const input = document.getElementById(`aboutImage${i}`);
-        const urlInput = document.getElementById(`aboutImage${i}Url`);
         const alt = document.getElementById(`aboutImage${i}Alt`);
-        const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
-        const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
-        const uploadSection = document.getElementById(`aboutImage${i}UploadSection`);
-        const urlSection = document.getElementById(`aboutImage${i}UrlSection`);
-        
-        if (preview) preview.classList.add('hidden');
+
         if (input) input.value = '';
-        if (urlInput) urlInput.value = '';
         if (alt) alt.value = '';
-        if (uploadRadio) uploadRadio.checked = true;
-        if (urlRadio) urlRadio.checked = false;
-        if (uploadSection) uploadSection.classList.remove('hidden');
-        if (urlSection) urlSection.classList.add('hidden');
+
+        window.dispatchEvent(new CustomEvent('media-selected', {
+            detail: { fieldId: `aboutImage${i}`, url: '' }
+        }));
     }
     
     // Reset benefits
@@ -6697,33 +7168,16 @@ async function openEditAboutModal() {
         // Load images
         for (let i = 1; i <= 3; i++) {
             if (aboutData[`image_${i}_source`]) {
-                window.aboutImages[`image_${i}`] = aboutData[`image_${i}_source`];
-                const imageType = aboutData[`image_${i}_type`] || 'upload';
                 const imageSource = aboutData[`image_${i}_source`];
-                
-                // Set radio button
-                const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
-                const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
-                
-                if (imageType === 'url') {
-                    if (urlRadio) urlRadio.checked = true;
-                    if (uploadRadio) uploadRadio.checked = false;
-                    toggleAboutImageInput(i, 'url');
-                    const urlInput = document.getElementById(`aboutImage${i}Url`);
-                    if (urlInput) urlInput.value = imageSource;
-                } else {
-                    if (uploadRadio) uploadRadio.checked = true;
-                    if (urlRadio) urlRadio.checked = false;
-                    toggleAboutImageInput(i, 'upload');
-                }
-                
-                // Show preview
-                const preview = document.getElementById(`aboutImage${i}Preview`);
-                const previewImg = preview?.querySelector('img');
-                if (preview && previewImg) {
-                    previewImg.src = imageSource;
-                    preview.classList.remove('hidden');
-                }
+
+                window.aboutImages[`image_${i}`] = normalizeHeroImageForStorage(imageSource);
+
+                window.dispatchEvent(new CustomEvent('media-selected', {
+                    detail: {
+                        fieldId: `aboutImage${i}`,
+                        url: normalizeHeroImageForPreview(imageSource)
+                    }
+                }));
             }
             if (aboutData[`image_${i}_alt`]) {
                 document.getElementById(`aboutImage${i}Alt`).value = aboutData[`image_${i}_alt`];
@@ -6764,33 +7218,16 @@ async function openEditAboutModal() {
                     // Load images dari database
                     for (let i = 1; i <= 3; i++) {
                         if (aboutData[`image_${i}_source`]) {
-                            window.aboutImages[`image_${i}`] = aboutData[`image_${i}_source`];
-                            const imageType = aboutData[`image_${i}_type`] || 'upload';
                             const imageSource = aboutData[`image_${i}_source`];
-                            
-                            // Set radio button
-                            const uploadRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="upload"]`);
-                            const urlRadio = document.querySelector(`input[name="aboutImage${i}Type"][value="url"]`);
-                            
-                            if (imageType === 'url') {
-                                if (urlRadio) urlRadio.checked = true;
-                                if (uploadRadio) uploadRadio.checked = false;
-                                toggleAboutImageInput(i, 'url');
-                                const urlInput = document.getElementById(`aboutImage${i}Url`);
-                                if (urlInput) urlInput.value = imageSource;
-                            } else {
-                                if (uploadRadio) uploadRadio.checked = true;
-                                if (urlRadio) urlRadio.checked = false;
-                                toggleAboutImageInput(i, 'upload');
-                            }
-                            
-                            // Show preview
-                            const preview = document.getElementById(`aboutImage${i}Preview`);
-                            const previewImg = preview?.querySelector('img');
-                            if (preview && previewImg) {
-                                previewImg.src = imageSource;
-                                preview.classList.remove('hidden');
-                            }
+
+                            window.aboutImages[`image_${i}`] = normalizeHeroImageForStorage(imageSource);
+
+                            window.dispatchEvent(new CustomEvent('media-selected', {
+                                detail: {
+                                    fieldId: `aboutImage${i}`,
+                                    url: normalizeHeroImageForPreview(imageSource)
+                                }
+                            }));
                         }
                         if (aboutData[`image_${i}_alt`]) {
                             document.getElementById(`aboutImage${i}Alt`).value = aboutData[`image_${i}_alt`];
@@ -6864,6 +7301,14 @@ async function saveAboutBlock() {
             return;
         }
         
+        // Sync images from media picker input values
+        for (let i = 1; i <= 3; i++) {
+            const inputValue = document.getElementById(`aboutImage${i}`)?.value.trim() || '';
+            if (inputValue) {
+                window.aboutImages[`image_${i}`] = normalizeHeroImageForStorage(inputValue);
+            }
+        }
+
         // Validasi images (minimal 3 image required)
         if (!window.aboutImages.image_1 || !window.aboutImages.image_2 || !window.aboutImages.image_3) {
             alert('Please upload all 3 images');
@@ -6880,8 +7325,7 @@ async function saveAboutBlock() {
         
         // Images with type
         for (let i = 1; i <= 3; i++) {
-            const imageType = document.querySelector(`input[name="aboutImage${i}Type"]:checked`)?.value || 'upload';
-            aboutData[`image_${i}_type`] = imageType;
+            aboutData[`image_${i}_type`] = 'url';
             aboutData[`image_${i}_source`] = window.aboutImages[`image_${i}`] || '';
             aboutData[`image_${i}_alt`] = document.getElementById(`aboutImage${i}Alt`).value.trim();
         }
@@ -7550,6 +7994,11 @@ window.selectLatestNewsStyle = selectLatestNewsStyle;
 window.closeEditLatestNewsModal = closeEditLatestNewsModal;
 window.saveLatestNewsBlock = saveLatestNewsBlock;
 window.deleteLatestNewsBlock = deleteLatestNewsBlock;
+
+// Coming Soon Block
+window.closeEditComingSoonModal = closeEditComingSoonModal;
+window.saveComingSoonBlock = saveComingSoonBlock;
+window.deleteComingSoonBlock = deleteComingSoonBlock;
 
 // Contact Block
 window.closeEditContactModal = closeEditContactModal;
