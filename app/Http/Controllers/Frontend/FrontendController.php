@@ -89,13 +89,13 @@ class FrontendController extends Controller
         $users = User::whereIn('name', $authors)->get();
 
 
-        $products = Product::with(['category:id,name'])
+        $products = Product::with(['category:id,name,slug'])
             ->where('status', 'active')
             ->whereHas('category', function ($query) {
                 $query->where('status', 'active');
             })
-            ->latest()
-            ->paginate(8, ['*'], 'product_page');
+            ->latest()->get();
+        // dd($products);
 
         $layout = 'frontend.layouts.pages.master-default';
 
@@ -112,7 +112,7 @@ class FrontendController extends Controller
         }
 
         $isBlogPage = false;
-
+        
         return view('frontend.pages.showPage', compact('products', 'recent_blogs', 'categories', 'blogss', 'users', 'socialLinks', 'blogs', 'page', 'settings', 'footer', 'navbar', 'navbarItems', 'sidebarItems', 'whatsappButton', 'media', 'shortcodes', 'layout', 'isBlogPage'));
     }
 
@@ -194,7 +194,8 @@ class FrontendController extends Controller
             })
             ->latest()->get();
             // ->paginate(8, ['*'], 'product_page');
-
+            
+        
         $layout = 'frontend.layouts.pages.master-default';
 
         if ($page->template == 'homepage') {
