@@ -82,7 +82,7 @@
             }
         }
 
-        @if ($page->header_style = 'header style 1')
+        @if (in_array($page->header_style, ['header style 1', 'header style s1']))
             /* Force navbar to be fixed */
             nav.fixed {
                 position: fixed !important;
@@ -119,7 +119,7 @@
             
             
             
-        @elseif ($page->header_style = 'header style 2')
+        @elseif (in_array($page->header_style, ['header style 2', 'header style s2']))
         
             /* Navbar underline animation */
             .nav-link { position: relative; }
@@ -140,6 +140,7 @@
     @stack('styles')
 </head>
 <body class="bg-white text-gray-900 antialiased">
+    
 
     <!-- Skip to main content (accessibility) -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-gray-900 text-white px-4 py-2 z-50">
@@ -238,6 +239,16 @@
     })();
     </script>
 
+
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        feather.replace();
+    });
+    </script>
+    
+    
+    
     @stack('scripts')
 </body>
 </html>

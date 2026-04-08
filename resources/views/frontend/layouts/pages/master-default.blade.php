@@ -29,7 +29,7 @@
     <meta property="twitter:title" content="{{ $page->meta_title }}">
     <meta property="twitter:description" content="{{ $page->meta_description }}">
     @if($settings->logo ?? null)
-    <meta property="twitter:image" content="{{ asset('storage/' . $settings->logo) }}">
+        <meta property="twitter:image" content="{{ asset('storage/' . $settings->logo) }}">
     @endif
 
     <!-- Favicon -->
@@ -40,8 +40,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     
     <!-- Font Awesome - Deferred Loading -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
@@ -51,8 +50,14 @@
     </noscript>
 
     <!-- Alpine.js - Deferred -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    <!-- Scripts - Load Alpine.js first -->
+    <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Tailwind CSS -->
+    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     @stack('styles')
     
     
@@ -130,15 +135,21 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased">
+<body class="mitracom-page">
+    
+    
+    
+{{-- bg-gray-50 text-gray-800 antialiased --}}
     <!-- Skip to Content Link for Accessibility -->
     <a href="#main-content" class="skip-to-content">Skip to content</a>
-
+    
+{{-- {{ dd($layout) }} --}}
     <!-- Navigation Menu -->
     @include('frontend.layouts.navmenu')
 
     <!-- Main Content -->
     <main id="main-content" class="min-h-screen pt-14 sm:pt-20">
+        {{-- {{ $page->header_style }} --}}
         @yield('content')
     </main>
 
@@ -307,6 +318,15 @@
         </div>
     @endif
 
+
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        feather.replace();
+    });
+    </script>
+    
+    
     @stack('scripts')
 </body>
 

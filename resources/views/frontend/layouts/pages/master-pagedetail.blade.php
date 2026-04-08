@@ -61,6 +61,7 @@
     @stack('styles')
 </head>
 <body class="bg-white text-gray-900 antialiased">
+    
 
     <!-- Navigation -->
     @include('frontend.layouts.navmenu')
@@ -133,6 +134,16 @@
     });
     </script>
 
+
+    <!-- Feather Icons (TARUH DI SINI) -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        feather.replace();
+    });
+    </script>
+    
+    
     @stack('scripts')
 </body>
 </html>
