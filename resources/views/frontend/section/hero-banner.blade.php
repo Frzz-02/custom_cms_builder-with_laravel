@@ -233,6 +233,7 @@
             $heroStyle3 = [
                 'title_line_1' => $heroSection?->title ?: 'Solusi Peralatan Kantor Premium',
                 'title_line_2' => $heroSection?->title_2 ?: 'Terlengkap & Terpercaya',
+                'subtitle' => $shortcode->subtitle ?: '10',
                 'description' => $heroSection?->description ?: 'Dari sistem konferensi hingga furnitur kantor, kami menghadirkan solusi terpadu bersertifikasi TKDN untuk instansi & korporasi Indonesia.',
                 'primary' => [
                     'label' => $heroSection?->action_label ?: 'Lihat Produk',
@@ -322,7 +323,7 @@
                             <div class="absolute right-0 top-1/2 -translate-y-1/2 text-right z-[3] max-[900px]:hidden">
                                 <div class="inline-flex flex-col items-end">
                                     <span class="text-[#fbbf24] text-[14px] tracking-[3px] mb-[2px]">★★★★★</span>
-                                    <strong class="text-[2.2rem] font-black text-[#111] leading-[1] tracking-[-0.04em] block">15 Tahun</strong>
+                                    <strong class="text-[2.2rem] font-black text-[#111] leading-[1] tracking-[-0.04em] block">{{ $heroStyle3['subtitle'] }} Tahun</strong>
                                     <small class="text-[12px] text-[#999] mt-[2px]">Pengalaman</small>
                                 </div>
                             </div>
