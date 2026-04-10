@@ -3284,6 +3284,14 @@ async function openEditHeroBannerStyle3Modal() {
         // Data bisa berupa direct cache atau dari relationship
         const heroData = cachedData.hero || cachedData;
         console.log('🎯 Hero data to use:', heroData);
+
+        // Set experience (stored in page_shortcodes.subtitle)
+        const subtitleInput = document.getElementById('heroStyle3Subtitle');
+        const experienceValue = cachedData.subtitle ?? heroData.subtitle ?? '1';
+        if (subtitleInput) {
+            subtitleInput.value = experienceValue;
+            console.log('✅ Set experience/subtitle:', experienceValue);
+        }
         
         // Set titles (cache keys: title, title_2)
         const title1Input = document.getElementById('heroStyle3Title1');
@@ -3404,6 +3412,7 @@ function closeEditHeroBannerStyle3Modal() {
         // Reset all inputs
         const title1 = document.getElementById('heroStyle3Title1');
         const title2 = document.getElementById('heroStyle3Title2');
+        const subtitle = document.getElementById('heroStyle3Subtitle');
         const description = document.getElementById('heroStyle3Description');
         const actionLabel1 = document.getElementById('heroStyle3ActionLabel1');
         const actionLabel2 = document.getElementById('heroStyle3ActionLabel2');
@@ -3412,6 +3421,7 @@ function closeEditHeroBannerStyle3Modal() {
         
         if (title1) title1.value = '';
         if (title2) title2.value = '';
+        if (subtitle) subtitle.value = '1';
         if (description) description.value = '';
         if (actionLabel1) actionLabel1.value = '';
         if (actionLabel2) actionLabel2.value = '';
@@ -3465,6 +3475,12 @@ async function saveHeroBannerStyle3Block() {
         // Collect form data
         const title1 = document.getElementById('heroStyle3Title1')?.value.trim() || '';
         const title2 = document.getElementById('heroStyle3Title2')?.value.trim() || '';
+        const subtitleInput = document.getElementById('heroStyle3Subtitle');
+        const subtitleRaw = subtitleInput?.value?.trim() || '';
+        const subtitleNumber = Number.parseInt(subtitleRaw, 10);
+        const subtitle = Number.isInteger(subtitleNumber) && subtitleNumber >= 1
+            ? String(subtitleNumber)
+            : '';
         const description = document.getElementById('heroStyle3Description')?.value.trim() || '';
         const actionLabel1 = document.getElementById('heroStyle3ActionLabel1')?.value.trim() || '';
         const actionLabel2 = document.getElementById('heroStyle3ActionLabel2')?.value.trim() || '';
@@ -3486,6 +3502,7 @@ async function saveHeroBannerStyle3Block() {
         const missingFields = [];
         if (!title1) missingFields.push('Title 1');
         if (!title2) missingFields.push('Title 2');
+        if (!subtitle) missingFields.push('Experience (minimum 1)');
         if (!description) missingFields.push('Description');
         if (!image1) missingFields.push('Image 1');
         if (!image2) missingFields.push('Image 2');
@@ -3497,6 +3514,10 @@ async function saveHeroBannerStyle3Block() {
         
         if (missingFields.length > 0) {
             alert('Please complete all required fields:\n\n' + missingFields.join('\n'));
+            if (!subtitle && subtitleInput) {
+                subtitleInput.value = '1';
+                subtitleInput.focus();
+            }
             throw new Error('Validation failed');
         }
         
@@ -3505,6 +3526,7 @@ async function saveHeroBannerStyle3Block() {
             pages_id: pageId,
             type: 'hero-banner',
             hero_style: style,
+            subtitle: subtitle,
             sort_id: sortId,
             hero_data: {
                 title: title1,
@@ -3547,9 +3569,11 @@ async function saveHeroBannerStyle3Block() {
             // Update cache dengan struktur yang konsisten
             blockDataCache[currentEditBlockId] = {
                 hero_style: style,
+                subtitle: subtitle,
                 hero: {
                     title: title1,                // Title 1
                     title_2: title2,              // Title 2
+                    subtitle: subtitle,           // Experience (mirror)
                     description: description,     // Description
                     action_label: actionLabel1,   // Action Label 1
                     action_label_2: actionLabel2, // Action Label 2
