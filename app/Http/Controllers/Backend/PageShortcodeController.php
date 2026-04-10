@@ -133,6 +133,11 @@ class PageShortcodeController extends Controller
                 'sort_id' => 'nullable|integer',
                 'type' => 'required|string|max:255',
             ]);
+
+        // Force experience (subtitle) for Hero Banner Style 3 to minimum 1
+        if (($request->type ?? null) === 'hero-banner' && (string) ($validated['hero_style'] ?? '') === '3') {
+            $validated['subtitle'] = (string) max(1, (int) ($validated['subtitle'] ?? 1));
+        }
         
         // Handle hero banner - create section_hero record
         if ($request->type === 'hero-banner' && isset($validated['hero_data'])) {
@@ -267,6 +272,11 @@ class PageShortcodeController extends Controller
             'sort_id' => 'nullable|integer',
             
         ]);
+
+        // Force experience (subtitle) for Hero Banner Style 3 to minimum 1
+        if (($request->type ?? null) === 'hero-banner' && (string) ($validated['hero_style'] ?? '') === '3') {
+            $validated['subtitle'] = (string) max(1, (int) ($validated['subtitle'] ?? 1));
+        }
         
         // Handle hero banner - update existing or create new section_hero record
         if ($request->type === 'hero-banner' && isset($validated['hero_data'])) {
