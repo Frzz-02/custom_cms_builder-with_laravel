@@ -1,4 +1,4 @@
-<h1 align="center">⚡ Apex Works CMS Builder</h1>
+<h1 align="center">⚡ Custom CMS Builder</h1>
 <h3 align="center">High-Performance Dynamic Landing Page Engine</h3>
 
 <p align="center">
@@ -39,8 +39,6 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 
 ### 4) Product & Category Module
 ![Product Placeholder](./docs/showcase/product-module.png)
-
-> Kamu bisa ganti path gambar di atas sesuai folder screenshot final kamu.
 
 ---
 
@@ -157,9 +155,18 @@ Aplikasi siap diakses di:
 ```bash
 app/
   Http/Controllers/
+    Auth/
+    Backend/
+    Frontend/
   Models/
 resources/
   views/
+    auth/
+    backend/
+    frontend/
+      layouts/
+      pages/
+      section/
   js/
   css/
 public/
@@ -183,15 +190,12 @@ Project ini menunjukkan kemampuan pada area:
 ---
 
 ## 👤 Penutup & Kontak
-Project ini dikembangkan oleh **[Nama Kamu]**  
+Project ini dikembangkan oleh **Feri Irawan**  
 Siswa Rekayasa Perangkat Lunak - **SMK Negeri 1 Bantul**.  
-Fokus pada pengembangan **Back-End** dan optimasi sistem web.
-
-Jika kamu ingin, bagian ini bisa kamu lanjutkan dengan:
-- LinkedIn
-- GitHub
-- Email
-- Website/Portfolio pribadi
+Fokus pada pengembangan **Back-End** dan optimasi sistem website.
+- LinkedIn : https://www.linkedin.com/in/feri-irawan-633178339/
+- GitHub : Frzz-02
+- Email : pc.feriirawan0211@gmail.com
 
 ---
 
