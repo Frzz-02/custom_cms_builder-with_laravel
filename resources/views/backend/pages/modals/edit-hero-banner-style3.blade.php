@@ -45,7 +45,29 @@
                         placeholder="Enter second title..." 
                         class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all">
                 </div>
+                
+                
+                
+                {{-- Experience Input --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Experience <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" 
+                               id="heroStyle3Subtitle" 
+                               min="1"
+                               step="1"
+                               value="1"
+                               inputmode="numeric"
+                               placeholder="Minimum 1"
+                               onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value === '' || parseInt(this.value, 10) < 1){ this.value = '1'; }"
+                               class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all">
+                        <p class="text-xs text-slate-500">Only positive number is allowed (minimum: 1)</p>
+                </div>
 
+
+                
                 {{-- Description Input --}}
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
