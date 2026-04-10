@@ -1,4 +1,8 @@
 @extends('frontend.layouts.pages.master-sidebar')
+@section('page_title', $blog->title ?? $settings->site_title ?? 'MitraCom - Detail Blog')
+@section('meta_title', $blog->meta_title ?? $blog->title)
+@section('meta_description', $blog->meta_description ?? Str::limit(strip_tags($blog->content), 160))
+@section('meta_keywords', $blog->meta_keywords ?? $blog->category->name ?? 'blog')
 
 @section('content')
 <article class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" itemscope itemtype="https://schema.org/BlogPosting">

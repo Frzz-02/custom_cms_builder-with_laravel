@@ -1,4 +1,8 @@
 @extends('frontend.layouts.pages.master-sidebar')
+@section('page_title', 'Blog - MitraCom')
+@section('meta_title', 'Blog Mitra Com: Info Terkini Pengadaan Barang & Regulasi TKDN')
+@section('meta_description', 'Jelajahi berbagai artikel menarik seputar dunia peralatan kantor, kebersihan, kesehatan, dan furniture. Dapatkan tips, panduan, dan informasi terbaru untuk kebutuhan Anda.')
+@section('meta_keywords', 'blog, artikel, tips, panduan, peralatan kantor, kebersihan, kesehatan, furniture, informasi terbaru')
 
 @section('content')
     <div class="space-y-6">
