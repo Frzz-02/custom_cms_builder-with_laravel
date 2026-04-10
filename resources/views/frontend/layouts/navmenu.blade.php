@@ -110,7 +110,7 @@
                 <!-- Center - Logo -->
                 <div class="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex-shrink-0">
                     <a href="#" class="flex items-center group">
-                        <img src="{{ asset('assets/images/logo/mitjogja1.png') }}"
+                        <img src="{{ asset('storage/' . $settings->site_logo ?? '') }}"
                             alt="MitraJogja Logo"
                             class="h-8 sm:h-12 md:h-16 w-auto object-contain">
                     </a>
@@ -265,16 +265,14 @@
             }
         }"
         :class="(!isHome || scrolled)
-            ? 'bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm py-4'
-            : 'bg-transparent border-b
-            border-transparent py-5'"
-        class="w-full px-8 md:px-16 flex items-center justify-between fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+            ? 'bg-white/95 border border-gray-100 shadow-[0_10px_30px_rgba(15,23,42,0.08)] py-2 mt-2'
+            : 'bg-white/75 backdrop-blur-lg border border-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.08)] py-2 mt-3'"
+        class="fixed top-0 left-3 right-3 md:left-8 md:right-8 lg:left-16 lg:right-16 z-50 px-3 md:px-5 rounded-4xl flex items-center justify-between transition-all duration-300">
 
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="flex items-center">
-            <img src="{{ asset('assets/images/logo/malangmitra.png') }}" alt="Mitra Malang"
-                :class="(!isHome || scrolled) ? '' : 'brightness-0 invert'"
-                class="h-12 w-auto object-contain transition-all duration-300">
+            <img src="{{ asset('storage/' . $settings->site_logo ?? '') }}" alt="Mitra Malang"
+                class="h-10 md:h-11 w-auto object-contain transition-all duration-300">
         </a>
 
         {{-- Nav Links (Desktop) --}}
@@ -284,7 +282,7 @@
                 <li>
                     <a href="{{ $resolveMenuUrl($menu) }}"
                         @if ($menu->open_new_tab || $menu->is_external) target="_blank" rel="noopener noreferrer" @endif
-                        :class="(!isHome || scrolled) ? '{{ $isActiveMenu ? 'text-gray-900' : 'text-gray-500 hover:text-red-600' }}' : 'text-white/90 hover:text-white'"
+                        :class="'{{ $isActiveMenu ? 'text-gray-900' : 'text-gray-600 hover:text-red-600' }}'"
                         class="nav-link text-sm font-medium transition-colors {{ $isActiveMenu ? 'active' : '' }}">
                         {{ $menu->menu_label }}
                     </a>
@@ -297,7 +295,7 @@
                 {{-- Search --}}
                 @if ($style2SearchItem)
                     <button
-                        :class="(!isHome || scrolled) ? 'text-gray-500 hover:text-red-600' : 'text-white/80 hover:text-white'"
+                        :class="'text-gray-600 hover:text-red-600'"
                         class="p-2 transition-colors" aria-label="Cari">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor" stroke-width="2">
@@ -312,8 +310,8 @@
                     <a href="{{ $resolveMenuUrl($style2CtaItem) }}"
                     @if ($style2CtaItem->open_new_tab || $style2CtaItem->is_external) target="_blank" rel="noopener noreferrer" @endif
                     :class="(!isHome || scrolled)
-                        ? 'bg-gray-900 text-white hover:bg-red-600'
-                        : 'bg-white/10 backdrop-blur-sm border border-white/30 text-white hover:bg-white/20'"
+                        ? 'bg-gray-900 text-white hover:bg-red-600 shadow-sm'
+                        : 'bg-red-600 text-white hover:bg-red-700 shadow-[0_8px_20px_rgba(220,38,38,0.25)]'"
                     class="hidden md:inline-flex items-center text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300">
                         {{ $style2CtaItem->menu_label }}
                     </a>
@@ -321,7 +319,7 @@
 
                 {{-- Mobile Hamburger --}}
                 <button id="mobile-menu-btn"
-                        :class="(!isHome || scrolled) ? 'text-gray-500 hover:text-red-600' : 'text-white/80 hover:text-white'"
+                    :class="'text-gray-600 hover:text-red-600'"
                         class="md:hidden p-2 transition-colors"
                         aria-label="Menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
@@ -333,7 +331,7 @@
     </nav>
 
     {{-- Mobile Menu --}}
-    <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 px-8 py-4">
+    <div id="mobile-menu" class="hidden md:hidden fixed left-3 right-3 top-[86px] z-40 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl shadow-[0_12px_28px_rgba(15,23,42,0.12)] px-6 py-4">
         <ul class="flex flex-col gap-4">
             @foreach ($style2TopItems as $menu)
                 <li>
@@ -414,7 +412,7 @@
             </ul>
 
             <a href="/" class="px-4 shrink-0 flex items-center">
-                <img src="{{ asset('img/logo/mitraoke-removebg-preview.png') }}" alt="MitraOke" class="h-[52px] w-auto block object-contain max-[480px]:h-[38px]">
+                <img src="{{ asset('storage/' . $settings->site_logo ?? '') }}" alt="MitraOke" class="h-[52px] w-auto block object-contain max-[480px]:h-[38px]">
             </a>
 
             <ul class="navbar-right-links">

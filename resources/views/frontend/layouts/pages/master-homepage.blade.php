@@ -38,20 +38,6 @@
     <style>
         [x-cloak] { display: none !important; }
 
-        /* Modern Typography */
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 400;
-            letter-spacing: 0.01em;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
 
         /* Smooth Scroll */
         html {
