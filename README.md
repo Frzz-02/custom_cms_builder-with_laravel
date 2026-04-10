@@ -1,59 +1,199 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1 align="center">⚡ Apex Works CMS Builder</h1>
+<h3 align="center">High-Performance Dynamic Landing Page Engine</h3>
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  CMS Builder berbasis Laravel untuk menyusun landing page dinamis dengan sistem block, manajemen konten terstruktur, dan arsitektur yang ringan untuk performa produksi.
 </p>
 
-## About Laravel
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
+  <img src="https://img.shields.io/badge/TailwindCSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📌 Deskripsi Singkat
+Aplikasi ini adalah **Custom CMS Builder** (bukan WordPress clone penuh) yang berfokus pada:
+- penyusunan halaman berbasis block/shortcode,
+- manajemen section konten yang fleksibel,
+- dashboard admin untuk update konten cepat,
+- dan rendering frontend yang modular untuk kebutuhan landing page modern.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Cocok untuk company profile, product showcase, campaign page, dan website konten dinamis dengan workflow editing yang terstruktur.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🖼️ Showcase
+> Tempat screenshot kamu nanti (disiapkan untuk portofolio)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1) Dashboard Admin
+![Dashboard Placeholder](./docs/showcase/dashboard.png)
 
-## Laravel Sponsors
+### 2) Page Builder (Drag & Drop Blocks)
+![Page Builder Placeholder](./docs/showcase/page-builder.png)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3) Frontend Landing Page
+![Frontend Placeholder](./docs/showcase/frontend-landing.png)
 
-### Premium Partners
+### 4) Product & Category Module
+![Product Placeholder](./docs/showcase/product-module.png)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+> Kamu bisa ganti path gambar di atas sesuai folder screenshot final kamu.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🧰 Tech Stack
+### Backend
+- **PHP 8.2+**
+- **Laravel 12**
+- **Eloquent ORM**
+- **Laravel Validator & Policies**
 
-## Code of Conduct
+### Frontend
+- **Blade Templating**
+- **Tailwind CSS 4**
+- **Vite 7**
+- **Vanilla JavaScript** (Page Builder logic)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Database & Dev Tools
+- **MySQL/MariaDB** (via Laravel migration)
+- **Seeder & Factory** untuk data awal
+- **PHPUnit** untuk testing
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ✨ Fitur Utama
+- **Dynamic Page Builder** berbasis block (title, text, hero banner, about, services, testimonials, product category, latest news, coming soon, contact, dll).
+- **Drag & Drop block sorting** dengan sinkronisasi urutan ke database (`sort_id`).
+- **Multi-style section** (contoh: Hero Style 1/2/3, nav style variasi).
+- **Media picker integration** untuk pemilihan aset gambar dari library media.
+- **CRUD konten admin** untuk Pages, Products, Categories, Blogs, Contacts, Newsletter, Team, dan Settings.
+- **SEO fields per konten** (meta title, description, keywords).
+- **Configurable navigation system** (navbar/sidebar/footer + menu hierarchy).
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🗂️ Struktur Database & Relasi (Contoh Implementasi)
+Berikut contoh relasi yang digunakan dalam project ini.
+
+### 1) One-to-Many
+**`product_categories` (1) → (N) `products`**
+- Satu kategori produk bisa memiliki banyak produk.
+- Satu produk hanya memiliki satu kategori utama.
+- Implementasi model:
+  - `ProductCategory::products()` → `hasMany(Product::class, 'product_categories_id')`
+  - `Product::category()` → `belongsTo(ProductCategory::class, 'product_categories_id')`
+
+### 2) One-to-Many
+**`pages` (1) → (N) `page_shortcodes`**
+- Satu halaman bisa memiliki banyak block/shortcode.
+- Setiap shortcode dimiliki satu halaman.
+- Implementasi model:
+  - `Page::shortcodes()` → `hasMany(PageShortcode::class, 'pages_id')`
+  - `PageShortcode::page()` → `belongsTo(Page::class, 'pages_id')`
+
+### 3) Many-to-Many (Praktis via JSON IDs)
+Pada builder ini, beberapa relasi blok disimpan sebagai array ID dalam kolom JSON (mis. `section_service_id`, `section_testimoni_id`, `section_brand_id`, `contact_id`) di tabel `page_shortcodes`.
+
+Artinya:
+- satu shortcode dapat mengacu ke banyak entitas section,
+- satu entitas section juga bisa dipakai di banyak shortcode.
+
+> Ini adalah pendekatan many-to-many praktis tanpa pivot table terpisah, dipilih untuk fleksibilitas block builder.
+
+### 4) Self-Relation (Hierarki Menu)
+**`navbar` parent-child**
+- Menu dapat memiliki submenu melalui `parent_id`.
+- Implementasi model:
+  - `Navbar::parent()` → `belongsTo(Navbar::class, 'parent_id')`
+  - `Navbar::children()` → `hasMany(Navbar::class, 'parent_id')`
+
+---
+
+## 🚀 Cara Instalasi
+### 1. Clone repository
+```bash
+git clone https://github.com/Frzz-02/custom_cms_builder-with_laravel.git
+cd custom_cms_builder-with_laravel
+```
+
+### 2. Install dependency
+```bash
+composer install
+npm install
+```
+
+### 3. Setup environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### 4. Konfigurasi database
+- Atur `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` di `.env`
+
+Lalu jalankan:
+```bash
+php artisan migrate --seed
+```
+
+### 5. Jalankan project
+```bash
+# Terminal 1
+php artisan serve
+
+# Terminal 2
+npm run dev
+```
+
+Aplikasi siap diakses di:
+- `http://127.0.0.1:8000`
+
+---
+
+## 📁 Struktur Folder Ringkas
+```bash
+app/
+  Http/Controllers/
+  Models/
+resources/
+  views/
+  js/
+  css/
+public/
+  assets/
+database/
+  migrations/
+  seeders/
+routes/
+  web.php
+```
+
+---
+
+## 🎯 Catatan Portofolio
+Project ini menunjukkan kemampuan pada area:
+- perancangan arsitektur CMS custom,
+- implementasi CRUD kompleks dan relasi data,
+- optimasi UX editor (page builder),
+- integrasi frontend-backend untuk landing page dinamis.
+
+---
+
+## 👤 Penutup & Kontak
+Project ini dikembangkan oleh **[Nama Kamu]**  
+Siswa Rekayasa Perangkat Lunak - **SMK Negeri 1 Bantul**.  
+Fokus pada pengembangan **Back-End** dan optimasi sistem web.
+
+Jika kamu ingin, bagian ini bisa kamu lanjutkan dengan:
+- LinkedIn
+- GitHub
+- Email
+- Website/Portfolio pribadi
+
+---
+
+## 📄 License
+Project ini menggunakan lisensi **MIT**.
