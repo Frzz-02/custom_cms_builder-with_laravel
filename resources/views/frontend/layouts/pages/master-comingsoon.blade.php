@@ -6,8 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Segera Hadir | {{ $settings->site_title ?? 'ApexWorks' }}</title>
-    <meta name="description" content="{{ $settings->site_description ?? 'Website kami akan segera hadir' }}">
+    <title>@yield('page_title', $settings->site_title ?? 'MitraCom - Coming Soon')</title>
+    <meta name="title" content="@yield('meta_title', $settings->site_title ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="description" content="@yield('meta_description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="keywords" content="@yield('meta_keywords', $settings->site_keywords ?? 'MitraCom')">
     <link rel="icon" type="image/png" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
     <!-- Fonts -->

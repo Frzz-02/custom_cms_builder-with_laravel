@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0094e2">
     
     <!-- SEO Meta Tags -->
-    <title>{{ $page->meta_title }}</title>
-    <meta name="title" content="{{ $page->meta_title }}">
-    <meta name="description" content="{{ $page->meta_description }}">
-    <meta name="keywords" content="{{ $page->meta_keywords }}">
+    <title>@yield('page_title', $settings->site_title ?? 'MitraCom - Homepage')</title>
+    <meta name="title" content="@yield('meta_title', $settings->site_title ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="description" content="@yield('meta_description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="keywords" content="@yield('meta_keywords', $settings->site_keywords ?? 'MitraCom')">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -33,7 +33,7 @@
     @endif
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
     <!-- Fonts - Optimized Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -4,32 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="title" content="{{ $page->meta_title }}">
-    <meta name="keywords" content="{{ $page->meta_keywords }}">
+    <title>@yield('page_title', $settings->site_title ?? 'MitraCom - Homepage')</title>
+    <meta name="title" content="@yield('meta_title', $settings->site_title ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="description" content="@yield('meta_description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="keywords" content="@yield('meta_keywords', $settings->site_keywords ?? 'MitraCom')">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#0094e2">
-    <meta name="description" content="{{ $page->meta_description }}">
     <meta name="robots" content="{{ $page->status === 'published' ? 'index,follow' : 'noindex,nofollow' }}">
     <link rel="canonical" href="{{ is_null($page->slug) ? url('/') : url($page->slug) }}">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ is_null($page->slug) ? url('/') : url($page->slug) }}">
-    <meta property="og:title" content="{{ $page->meta_title }}">
-    <meta property="og:description" content="{{ $page->meta_description }}">
     {{-- <meta property="og:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="@yield('meta_title', $settings->site_title ?? 'MitraCom')">
+    <meta property="og:description" content="@yield('meta_description', $settings->site_description)">
+    
+    <!-- Twitter -->
+    <meta name="twitter:title" content="@yield('meta_title', $settings->site_title)">
+    <meta name="twitter:description" content="@yield('meta_description', $settings->site_description)">
+    
 
     {{-- <meta property="twitter:card" content="summary_large_image"> --}}
     {{-- <meta property="twitter:url" content="https://site_url.com"> --}}
-    <meta property="twitter:title" content="{{ $page->meta_title }}">
-    <meta property="twitter:description" content="{{ $page->meta_description }}">
     {{-- <meta property="twitter:image" content="{{ asset('assets/images/thumbnail.webp') }}"> --}}
 
-    <title>{{ $page->meta_title }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
-    <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon) }}">
-
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @stack('styles')

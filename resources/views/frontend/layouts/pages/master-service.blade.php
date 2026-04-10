@@ -17,20 +17,23 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="title"       content="@yield('title', config('app.name'))">
-    <meta name="description" content="@yield('description', '')">
-    <meta name="keywords"    content="@yield('keywords', '')">
+    
+    <title>@yield('page_title', $settings->site_title ?? 'MitraCom - Service')</title>
+    <meta name="title" content="@yield('meta_title', $settings->site_title ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="description" content="@yield('meta_description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="keywords" content="@yield('meta_keywords', $settings->site_keywords ?? 'MitraCom')">
 
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="@yield('title', config('app.name'))">
-    <meta property="og:description" content="@yield('description', '')">
-
-    <meta property="twitter:card"        content="summary_large_image">
-    <meta property="twitter:title"       content="@yield('title', config('app.name'))">
-    <meta property="twitter:description" content="@yield('description', '')">
-
-    <title>@yield('title', config('app.name'))</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('assets/apex favicon.jpeg') }}">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="@yield('meta_title', $settings->site_title ?? 'MitraCom')">
+    <meta property="og:description" content="@yield('meta_description', $settings->site_description)">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('meta_title', $settings->site_title)">
+    <meta name="twitter:description" content="@yield('meta_description', $settings->site_description)">
+    
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

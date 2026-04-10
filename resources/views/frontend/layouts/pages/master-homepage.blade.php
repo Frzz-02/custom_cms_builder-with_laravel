@@ -4,20 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', $settings->site_title ?? 'ApexWorks')</title>
-    <meta name="description" content="@yield('description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
-    <meta name="keywords" content="{{ $settings->site_keywords ?? '' }}">
+    <title>@yield('page_title', $settings->site_title ?? 'MitraCom - Homepage')</title>
+    <meta name="title" content="@yield('meta_title', $settings->site_title ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="description" content="@yield('meta_description', $settings->site_description ?? 'Spesialis lanyard custom berkualitas. Konsultasi, bantuan desain, opsi pengiriman, dan garansi kualitas.')">
+    <meta name="keywords" content="@yield('meta_keywords', $settings->site_keywords ?? 'MitraCom')">
     <link rel="icon" type="image/png" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="@yield('title', $settings->site_title ?? 'ApexWorks')">
-    <meta property="og:description" content="@yield('description', $settings->site_description)">
+    <meta property="og:title" content="@yield('meta_title', $settings->site_title ?? 'MitraCom')">
+    <meta property="og:description" content="@yield('meta_description', $settings->site_description)">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', $settings->site_title)">
-    <meta name="twitter:description" content="@yield('description', $settings->site_description)">
+    <meta name="twitter:title" content="@yield('meta_title', $settings->site_title)">
+    <meta name="twitter:description" content="@yield('meta_description', $settings->site_description)">
 
     <!-- Fonts - Optimized Loading with swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
