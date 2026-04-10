@@ -3,6 +3,27 @@
 @section('title', 'Site Settings')
 
 @section('content')
+@php
+    $resolveMediaUrl = function (?string $value): ?string {
+        if (blank($value)) {
+            return null;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//'])) {
+            return $value;
+        }
+
+        $path = parse_url($value, PHP_URL_PATH) ?: $value;
+        $path = ltrim($path, '/');
+
+        if (\Illuminate\Support\Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return asset('storage/' . $path);
+    };
+@endphp
+
 <div class="p-6">
     <!-- Header -->
     <div class="mb-6">
@@ -30,7 +51,7 @@
     <!-- Form Card -->
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <div class="p-6">
-            <form action="{{ route('backend.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('backend.settings.update') }}" method="POST">
                 @csrf
 
                 <!-- General Settings Section -->
@@ -186,29 +207,24 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Site Logo -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Site Logo
-                            </label>
+                            <div data-media-picker
+                                data-field-name="site_logo"
+                                data-field-id="site_logo"
+                                data-label="Site Logo"
+                                data-placeholder="Select logo from media library"
+                                data-initial-value="{{ old('site_logo') ? $resolveMediaUrl(old('site_logo')) : $resolveMediaUrl($setting->site_logo) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @if($setting->site_logo)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $setting->site_logo) }}" alt="Site Logo" class="h-20 object-contain border border-slate-200 rounded p-2 bg-white">
-                                    <button 
-                                        type="button" 
-                                        onclick="removeImage('site_logo')"
-                                        class="mt-2 text-sm text-red-600 hover:text-red-800"
-                                    >
-                                        Remove Image
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onclick="removeImage('site_logo')"
+                                    class="mt-2 text-sm text-red-600 hover:text-red-800"
+                                >
+                                    Remove Image
+                                </button>
                             @endif
-                            <input 
-                                type="file" 
-                                id="site_logo" 
-                                name="site_logo" 
-                                accept="image/*"
-                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('site_logo') border-red-500 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-slate-500">Recommended: PNG, JPG, SVG (Max: 2MB)</p>
+                            <p class="mt-1 text-xs text-slate-500">Select from Media Library (PNG, JPG, SVG)</p>
                             @error('site_logo')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -216,29 +232,24 @@
 
                         <!-- Site Logo 2 -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Site Logo 2 (Alternative)
-                            </label>
+                            <div data-media-picker
+                                data-field-name="site_logo_2"
+                                data-field-id="site_logo_2"
+                                data-label="Site Logo 2 (Alternative)"
+                                data-placeholder="Select alternative logo"
+                                data-initial-value="{{ old('site_logo_2') ? $resolveMediaUrl(old('site_logo_2')) : $resolveMediaUrl($setting->site_logo_2) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @if($setting->site_logo_2)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $setting->site_logo_2) }}" alt="Site Logo 2" class="h-20 object-contain border border-slate-200 rounded p-2 bg-white">
-                                    <button 
-                                        type="button" 
-                                        onclick="removeImage('site_logo_2')"
-                                        class="mt-2 text-sm text-red-600 hover:text-red-800"
-                                    >
-                                        Remove Image
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onclick="removeImage('site_logo_2')"
+                                    class="mt-2 text-sm text-red-600 hover:text-red-800"
+                                >
+                                    Remove Image
+                                </button>
                             @endif
-                            <input 
-                                type="file" 
-                                id="site_logo_2" 
-                                name="site_logo_2" 
-                                accept="image/*"
-                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('site_logo_2') border-red-500 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-slate-500">Recommended: PNG, JPG, SVG (Max: 2MB)</p>
+                            <p class="mt-1 text-xs text-slate-500">Select from Media Library (PNG, JPG, SVG)</p>
                             @error('site_logo_2')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -246,29 +257,24 @@
 
                         <!-- Favicon -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Favicon
-                            </label>
+                            <div data-media-picker
+                                data-field-name="favicon"
+                                data-field-id="favicon"
+                                data-label="Favicon"
+                                data-placeholder="Select favicon image"
+                                data-initial-value="{{ old('favicon') ? $resolveMediaUrl(old('favicon')) : $resolveMediaUrl($setting->favicon) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @if($setting->favicon)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $setting->favicon) }}" alt="Favicon" class="h-12 object-contain border border-slate-200 rounded p-2 bg-white">
-                                    <button 
-                                        type="button" 
-                                        onclick="removeImage('favicon')"
-                                        class="mt-2 text-sm text-red-600 hover:text-red-800"
-                                    >
-                                        Remove Image
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onclick="removeImage('favicon')"
+                                    class="mt-2 text-sm text-red-600 hover:text-red-800"
+                                >
+                                    Remove Image
+                                </button>
                             @endif
-                            <input 
-                                type="file" 
-                                id="favicon" 
-                                name="favicon" 
-                                accept=".ico,.png"
-                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('favicon') border-red-500 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-slate-500">Recommended: ICO or PNG (Max: 1MB)</p>
+                            <p class="mt-1 text-xs text-slate-500">Select from Media Library (ICO/PNG recommended)</p>
                             @error('favicon')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -276,29 +282,24 @@
 
                         <!-- Preloader -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                Preloader
-                            </label>
+                            <div data-media-picker
+                                data-field-name="preloader"
+                                data-field-id="preloader"
+                                data-label="Preloader"
+                                data-placeholder="Select preloader media"
+                                data-initial-value="{{ old('preloader') ? $resolveMediaUrl(old('preloader')) : $resolveMediaUrl($setting->preloader) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @if($setting->preloader)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $setting->preloader) }}" alt="Preloader" class="h-20 object-contain border border-slate-200 rounded p-2 bg-white">
-                                    <button 
-                                        type="button" 
-                                        onclick="removeImage('preloader')"
-                                        class="mt-2 text-sm text-red-600 hover:text-red-800"
-                                    >
-                                        Remove Image
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onclick="removeImage('preloader')"
+                                    class="mt-2 text-sm text-red-600 hover:text-red-800"
+                                >
+                                    Remove Image
+                                </button>
                             @endif
-                            <input 
-                                type="file" 
-                                id="preloader" 
-                                name="preloader" 
-                                accept=".gif,.svg"
-                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('preloader') border-red-500 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-slate-500">Recommended: GIF or SVG (Max: 2MB)</p>
+                            <p class="mt-1 text-xs text-slate-500">Select from Media Library (GIF/SVG recommended)</p>
                             @error('preloader')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -322,6 +323,8 @@
         </div>
     </div>
 </div>
+
+@include('backend.components.media-picker-modal')
 
 <script>
 async function removeImage(field) {
