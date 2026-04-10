@@ -5,19 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SectionTeam;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class SectionTeamController extends Controller
 {
     public function index()
     {
         $teams = SectionTeam::latest()->paginate(10);
-
-        return view('backend.teams.index', compact('teams'));
+        $settings = Setting::first();
+        return view('backend.teams.index', compact('teams', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.teams.create');
+        $settings = Setting::first();
+        return view('backend.teams.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -41,7 +43,8 @@ class SectionTeamController extends Controller
 
     public function edit(SectionTeam $team)
     {
-        return view('backend.teams.edit', compact('team'));
+        $settings = Setting::first();
+        return view('backend.teams.edit', compact('team', 'settings'));
     }
 
     public function update(Request $request, SectionTeam $team)

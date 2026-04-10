@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Page;
+use App\Models\Setting;
 use App\Models\LoginHistory;
 
 class DashboardController extends Controller
@@ -17,7 +18,8 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+        $settings = Setting::first();
+
         // Get statistics
         $stats = [
             'total_users' => User::count(),
@@ -32,6 +34,6 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('backend.dashboard', compact('user', 'stats', 'loginHistory'));
+        return view('backend.dashboard', compact('user', 'stats', 'loginHistory', 'settings'));
     }
 }

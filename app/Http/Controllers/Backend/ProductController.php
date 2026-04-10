@@ -7,19 +7,22 @@ use App\Models\ProductCategory;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class ProductController extends Controller
 {
     public function index()
     {
         $products = Product::with('category')->latest()->get();
-        return view('backend.products.index', compact('products'));
+        $settings = Setting::first();
+        return view('backend.products.index', compact('products','settings'));
     }
 
     public function create()
     {
         $categories = ProductCategory::where('status', 'active')->orderBy('name')->get();
-        return view('backend.products.create', compact('categories'));
+        $settings = Setting::first();
+        return view('backend.products.create', compact('categories','settings'));
     }
 
     public function store(Request $request)
@@ -63,7 +66,8 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = ProductCategory::where('status', 'active')->orderBy('name')->get();
-        return view('backend.products.edit', compact('product', 'categories'));
+        $settings = Setting::first();
+        return view('backend.products.edit', compact('product', 'categories', 'settings'));
     }
 
     public function update(Request $request, Product $product)

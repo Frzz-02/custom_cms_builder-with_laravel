@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SectionNewsletter;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class SectionNewsletterController extends Controller
 {
@@ -14,7 +15,8 @@ class SectionNewsletterController extends Controller
     public function index()
     {
         $newsletterSettings = SectionNewsletter::first();
-        return view('backend.newsletter.settings', compact('newsletterSettings'));
+        $settings = Setting::first();
+        return view('backend.newsletter.settings', compact('newsletterSettings', 'settings'));
     }
 
     /**

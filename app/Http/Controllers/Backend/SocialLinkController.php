@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SocialLink;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class SocialLinkController extends Controller
 {
     public function index()
     {
         $socialLinks = SocialLink::latest()->get();
-        return view('backend.social-links.index', compact('socialLinks'));
+        $settings = Setting::first();
+        return view('backend.social-links.index', compact('socialLinks', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.social-links.create');
+        $settings = Setting::first();
+        return view('backend.social-links.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -36,7 +39,8 @@ class SocialLinkController extends Controller
 
     public function edit(SocialLink $socialLink)
     {
-        return view('backend.social-links.edit', compact('socialLink'));
+        $settings = Setting::first();
+        return view('backend.social-links.edit', compact('socialLink', 'settings'));
     }
 
     public function update(Request $request, SocialLink $socialLink)

@@ -7,19 +7,23 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\Setting;
+
 
 class UserController extends Controller
 {
     public function index()
     {
         $users = User::with('role')->where('id', '!=', 0)->orderBy('created_at', 'desc')->get();
-        return view('backend.users.index', compact('users'));
+        $settings = Setting::first();
+        return view('backend.users.index', compact('users', 'settings'));
     }
 
     public function create()
     {
         $roles = \App\Models\Role::all();
-        return view('backend.users.create', compact('roles'));
+        $settings = Setting::first();
+        return view('backend.users.create', compact('roles','settings'));
     }
 
     public function store(Request $request)
@@ -46,9 +50,10 @@ class UserController extends Controller
             return redirect()->route('backend.users.index')
                 ->with('error', 'Cannot edit the superadmin user.');
         }
-
+        
+        $settings = Setting::first();
         $roles = \App\Models\Role::all();
-        return view('backend.users.edit', compact('user', 'roles'));
+        return view('backend.users.edit', compact('user', 'roles', 'settings'));
     }
 
     public function update(Request $request, User $user)

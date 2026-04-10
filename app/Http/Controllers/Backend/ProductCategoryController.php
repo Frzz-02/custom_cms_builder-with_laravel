@@ -6,18 +6,21 @@ use App\Models\ProductCategory;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class ProductCategoryController extends Controller
 {
     public function index()
     {
         $categories = ProductCategory::withCount('products')->latest()->get();
-        return view('backend.product-categories.index', compact('categories'));
+        $settings = Setting::first();
+        return view('backend.product-categories.index', compact('categories', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.product-categories.create');
+        $settings = Setting::first();
+        return view('backend.product-categories.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -69,7 +72,8 @@ class ProductCategoryController extends Controller
     
     public function edit(ProductCategory $productCategory)
     {
-        return view('backend.product-categories.edit', compact('productCategory'));
+        $settings = Setting::first();
+        return view('backend.product-categories.edit', compact('productCategory', 'settings'));
     }
 
     

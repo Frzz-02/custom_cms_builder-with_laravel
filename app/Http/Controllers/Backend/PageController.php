@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class PageController extends Controller
 {
@@ -15,7 +16,8 @@ class PageController extends Controller
         $pages = Page::select('id', 'title', 'slug', 'template', 'status', 'meta_title', 'created_at')
             ->orderBy('created_at', 'desc')
             ->paginate(20); // Limit to 20 per page
-        return view('backend.pages.index', compact('pages'));
+        $settings = Setting::first();
+        return view('backend.pages.index', compact('pages', 'settings'));
     }
 
     public function initiate()
@@ -50,7 +52,8 @@ class PageController extends Controller
 
     public function create()
     {
-        return view('backend.pages.create');
+        $settings = Setting::first();
+        return view('backend.pages.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -112,9 +115,10 @@ class PageController extends Controller
             ->with(['hero', 'about']) // Eager load relationships
             ->orderBy('sort_id', 'asc')
             ->get();
-        
+        $settings = Setting::first();
+
         // Pass page dan existing shortcodes ke view
-        return view('backend.pages.edit', compact('page', 'existingShortcodes'));
+        return view('backend.pages.edit', compact('page', 'existingShortcodes', 'settings'));
     }
 
     public function update(Request $request, Page $page)

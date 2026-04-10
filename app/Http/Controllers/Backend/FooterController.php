@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Footer;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class FooterController extends Controller
 {
     public function index()
     {
         $footer = Footer::first();
-        return view('backend.footer.index', compact('footer'));
+        $settings = Setting::first();
+        return view('backend.footer.index', compact('footer', 'settings'));
     }
 
     public function create()
@@ -21,8 +23,8 @@ class FooterController extends Controller
             return redirect()->route('backend.footer.index')
                 ->with('error', 'Footer already exists. Please delete the existing data first.');
         }
-
-        return view('backend.footer.create');
+        $settings = Setting::first();
+        return view('backend.footer.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -145,7 +147,8 @@ class FooterController extends Controller
     
     public function edit(Footer $footer)
     {
-        return view('backend.footer.edit', compact('footer'));
+        $settings = Setting::first();
+        return view('backend.footer.edit', compact('footer', 'settings'));
     }
 
 

@@ -8,13 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class MediaController extends Controller
 {
     public function index()
     {
         $media = Media::latest()->paginate(24);
-        return view('backend.media.index', compact('media'));
+        $settings = Setting::first();
+        return view('backend.media.index', compact('media', 'settings'));
     }
 
     public function store(Request $request)

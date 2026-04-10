@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Setting;
+
 
 class ThemeEditorController extends Controller
 {
@@ -38,8 +40,8 @@ class ThemeEditorController extends Controller
         $this->checkSuperAdmin();
 
         $files = $this->getFileTree($this->basePath);
-        
-        return view('backend.theme-editor.index', compact('files'));
+        $settings = Setting::first();
+        return view('backend.theme-editor.index', compact('files', 'settings'));
     }
 
     /**
@@ -48,7 +50,7 @@ class ThemeEditorController extends Controller
     public function edit(Request $request)
     {
         $this->checkSuperAdmin();
-
+        $settings = Setting::first();
         $relativePath = $request->get('file');
         
         if (!$relativePath) {
@@ -77,7 +79,7 @@ class ThemeEditorController extends Controller
         $content = File::get($filePath);
         $files = $this->getFileTree($this->basePath);
         
-        return view('backend.theme-editor.edit', compact('content', 'relativePath', 'files'));
+        return view('backend.theme-editor.edit', compact('content', 'relativePath', 'files', 'settings'));
     }
 
     /**

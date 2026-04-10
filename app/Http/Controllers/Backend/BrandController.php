@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SectionBrand;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class BrandController extends Controller
 {
     public function index()
     {
         $brands = SectionBrand::latest()->get();
-        return view('backend.brands.index', compact('brands'));
+        $settings = Setting::first();
+        return view('backend.brands.index', compact('brands', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.brands.create');
+        $settings = Setting::first();
+        return view('backend.brands.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -36,7 +39,8 @@ class BrandController extends Controller
 
     public function edit(SectionBrand $brand)
     {
-        return view('backend.brands.edit', compact('brand'));
+        $settings = Setting::first();
+        return view('backend.brands.edit', compact('brand', 'settings'));
     }
 
     public function update(Request $request, SectionBrand $brand)

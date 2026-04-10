@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SectionHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Setting;
 
 class SectionHeroController extends Controller
 {

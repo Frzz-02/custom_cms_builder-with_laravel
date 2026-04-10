@@ -429,9 +429,16 @@ class FrontendController extends Controller
 
 
 
-    public function showProductCategory(ProductCategory $productCategory)
+    public function showProductCategory(?ProductCategory $productCategory = null)
     {
+        $page = Page::whereNull('slug')->where('status', 'published')->first();
+        if (! $page) {
+            $page = Page::where('status', 'published')->first();
+        }
+
         $footer = Footer::where('is_active', true)->first();
+        $settings = Setting::first();
+        $whatsappButton = WhatsappButton::first();
 
         
          // Get navbar items (top navigation)
@@ -452,14 +459,38 @@ class FrontendController extends Controller
                              ->get();
         
         
-        $products = Product::with('category')
-            ->where('product_categories_id', $productCategory->id)
-            ->where('status', 'active')
-            ->latest()
-            ->paginate(8);
+        $categories = ProductCategory::where('status', 'active')
+            ->orderBy('name')
+            ->get();
 
-        return view('frontend.pages.product.category', compact('products', 'productCategory', 'footer', 'navbarItems', 'sidebarItems'));
+        $productsQuery = Product::with('category:id,name,slug')
+            ->where('status', 'active')
+            ->whereHas('category', function ($query) {
+                $query->where('status', 'active');
+            });
+
+        if ($productCategory) {
+            $productsQuery->where('product_categories_id', $productCategory->id);
+        }
+
+        $products = $productsQuery
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        $selectedCategory = $productCategory;
+
+        return view('frontend.pages.product.category', compact(
+            'products',
+            'categories',
+            'selectedCategory',
+            'footer',
+            'navbarItems',
+            'sidebarItems',
+            'settings',
+            'whatsappButton',
+            'page'
+        ));
     }
-    
     
 }

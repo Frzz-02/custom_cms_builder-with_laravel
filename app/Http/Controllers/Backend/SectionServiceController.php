@@ -7,6 +7,7 @@ use App\Models\SectionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class SectionServiceController extends Controller
 {
@@ -16,7 +17,8 @@ class SectionServiceController extends Controller
     public function index()
     {
         $services = SectionService::latest()->paginate(10);
-        return view('backend.services.index', compact('services'));
+        $settings = Setting::first();
+        return view('backend.services.index', compact('services', 'settings'));
     }
 
     /**
@@ -24,7 +26,8 @@ class SectionServiceController extends Controller
      */
     public function create()
     {
-        return view('backend.services.create');
+        $settings = Setting::first();
+        return view('backend.services.create', compact('settings'));
     }
 
     /**
@@ -69,7 +72,8 @@ class SectionServiceController extends Controller
      */
     public function edit(SectionService $service)
     {
-        return view('backend.services.edit', compact('service'));
+        $settings = Setting::first();
+        return view('backend.services.edit', compact('service', 'settings'));
     }
 
     /**

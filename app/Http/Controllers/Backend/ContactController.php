@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class ContactController extends Controller
 {
     public function index()
     {
         $contacts = Contact::orderBy('created_at', 'desc')->paginate(10);
+        $settings = Setting::first();
         return view('backend.contacts.index', compact('contacts'));
     }
 
     public function create()
     {
-        return view('backend.contacts.create');
+        $settings = Setting::first();
+        return view('backend.contacts.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -39,7 +42,8 @@ class ContactController extends Controller
 
     public function edit(Contact $contact)
     {
-        return view('backend.contacts.edit', compact('contact'));
+        $settings = Setting::first();
+        return view('backend.contacts.edit', compact('contact', 'settings'));
     }
 
     public function update(Request $request, Contact $contact)

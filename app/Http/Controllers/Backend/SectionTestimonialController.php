@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SectionTestimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Setting;
 
 class SectionTestimonialController extends Controller
 {
@@ -15,7 +16,8 @@ class SectionTestimonialController extends Controller
     public function index()
     {
         $testimonials = SectionTestimonial::latest()->paginate(10);
-        return view('backend.testimonials.index', compact('testimonials'));
+        $settings = Setting::first();
+        return view('backend.testimonials.index', compact('testimonials', 'settings'));
     }
 
     /**
@@ -23,7 +25,8 @@ class SectionTestimonialController extends Controller
      */
     public function create()
     {
-        return view('backend.testimonials.create');
+        $settings = Setting::first();
+        return view('backend.testimonials.create', compact('settings'));
     }
 
     /**
@@ -56,7 +59,8 @@ class SectionTestimonialController extends Controller
      */
     public function edit(SectionTestimonial $testimonial)
     {
-        return view('backend.testimonials.edit', compact('testimonial'));
+        $settings = Setting::first();
+        return view('backend.testimonials.edit', compact('testimonial', 'settings'));
     }
 
     /**

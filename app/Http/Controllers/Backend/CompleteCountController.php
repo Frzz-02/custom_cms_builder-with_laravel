@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SectionCompletecount;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class CompleteCountController extends Controller
 {
     public function index()
     {
         $completeCounts = SectionCompletecount::latest()->get();
-        return view('backend.complete-count.index', compact('completeCounts'));
+        $settings = Setting::first();
+        return view('backend.complete-count.index', compact('completeCounts', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.complete-count.create');
+        $settings = Setting::first();
+        return view('backend.complete-count.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -36,7 +39,8 @@ class CompleteCountController extends Controller
 
     public function edit(SectionCompletecount $completeCount)
     {
-        return view('backend.complete-count.edit', compact('completeCount'));
+        $settings = Setting::first();
+        return view('backend.complete-count.edit', compact('completeCount', 'settings'));
     }
 
     public function update(Request $request, SectionCompletecount $completeCount)

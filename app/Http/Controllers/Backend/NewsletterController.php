@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Newsletter;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class NewsletterController extends Controller
 {
@@ -14,7 +15,8 @@ class NewsletterController extends Controller
     public function index()
     {
         $subscribers = Newsletter::latest()->paginate(15);
-        return view('backend.newsletter.subscribers', compact('subscribers'));
+        $settings = Setting::first();
+        return view('backend.newsletter.subscribers', compact('subscribers', 'settings'));
     }
 
     /**

@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Navbar;
 use Illuminate\Http\Request;
+use App\Models\Setting;
 
 class HeaderController extends Controller
 {
     public function index()
     {
         $navbars = Navbar::orderBy('menu_order')->get();
-        return view('backend.header.index', compact('navbars'));
+        $settings = Setting::first();
+        return view('backend.header.index', compact('navbars', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.header.create');
+        $settings = Setting::first();
+        return view('backend.header.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -60,7 +63,8 @@ class HeaderController extends Controller
     public function edit(Navbar $header)
     {
         $navbars = Navbar::where('id', '!=', $header->id)->get();
-        return view('backend.header.edit', compact('header', 'navbars'));
+        $settings = Setting::first();
+        return view('backend.header.edit', compact('header', 'navbars', 'settings'));
     }
 
     public function update(Request $request, Navbar $header)

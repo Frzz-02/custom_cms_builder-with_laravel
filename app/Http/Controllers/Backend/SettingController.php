@@ -24,8 +24,8 @@ class SettingController extends Controller
             'site_keywords' => 'keywords, here',
             'site_url' => url('/'),
         ]);
-
-        return view('backend.settings.index', compact('setting'));
+        $settings = Setting::first();
+        return view('backend.settings.index', compact('setting', 'settings'));
     }
 
     /**
@@ -41,10 +41,10 @@ class SettingController extends Controller
             'site_description' => 'nullable|string',
             'site_keywords' => 'nullable|string|max:255',
             'site_url' => 'nullable|url|max:255',
-            'site_logo' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg|max:2048',
-            'site_logo_2' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg|max:2048',
-            'favicon' => 'nullable|image|mimes:ico,png|max:1024',
-            'preloader' => 'nullable|image|mimes:gif,svg|max:2048',
+            'site_logo' => 'nullable|string|max:2048',
+            'site_logo_2' => 'nullable|string|max:2048',
+            'favicon' => 'nullable|string|max:2048',
+            'preloader' => 'nullable|string|max:2048',
         ]);
 
         // Get the first (and only) setting record
@@ -53,44 +53,8 @@ class SettingController extends Controller
         // Prepare data for update
         $data = $request->except(['site_logo', 'site_logo_2', 'favicon', 'preloader']);
 
-        // Handle site_logo upload
-        if ($request->hasFile('site_logo')) {
-            // Delete old logo if exists
-            if ($setting->site_logo && Storage::disk('public')->exists($setting->site_logo)) {
-                Storage::disk('public')->delete($setting->site_logo);
-            }
-            
-            $data['site_logo'] = $request->file('site_logo')->store('settings', 'public');
-        }
-
-        // Handle site_logo_2 upload
-        if ($request->hasFile('site_logo_2')) {
-            // Delete old logo if exists
-            if ($setting->site_logo_2 && Storage::disk('public')->exists($setting->site_logo_2)) {
-                Storage::disk('public')->delete($setting->site_logo_2);
-            }
-            
-            $data['site_logo_2'] = $request->file('site_logo_2')->store('settings', 'public');
-        }
-
-        // Handle favicon upload
-        if ($request->hasFile('favicon')) {
-            // Delete old favicon if exists
-            if ($setting->favicon && Storage::disk('public')->exists($setting->favicon)) {
-                Storage::disk('public')->delete($setting->favicon);
-            }
-            
-            $data['favicon'] = $request->file('favicon')->store('settings', 'public');
-        }
-
-        // Handle preloader upload
-        if ($request->hasFile('preloader')) {
-            // Delete old preloader if exists
-            if ($setting->preloader && Storage::disk('public')->exists($setting->preloader)) {
-                Storage::disk('public')->delete($setting->preloader);
-            }
-            
-            $data['preloader'] = $request->file('preloader')->store('settings', 'public');
+        foreach (['site_logo', 'site_logo_2', 'favicon', 'preloader'] as $field) {
+            $data[$field] = $this->normalizeMediaPath($request->input($field));
         }
 
         // Update the setting
@@ -111,10 +75,11 @@ class SettingController extends Controller
 
         $setting = Setting::firstOrFail();
         $field = $request->input('field');
+        $filePath = $this->normalizeMediaPath($setting->$field);
 
         // Delete the file from storage
-        if ($setting->$field && Storage::disk('public')->exists($setting->$field)) {
-            Storage::disk('public')->delete($setting->$field);
+        if ($filePath && Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
         }
 
         // Update the field to null
@@ -124,5 +89,21 @@ class SettingController extends Controller
             'success' => true,
             'message' => 'Image removed successfully!'
         ]);
+    }
+
+    private function normalizeMediaPath(?string $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $path = parse_url($value, PHP_URL_PATH) ?: $value;
+        $path = ltrim($path, '/');
+
+        if (str_starts_with($path, 'storage/')) {
+            return substr($path, 8);
+        }
+
+        return $path;
     }
 }

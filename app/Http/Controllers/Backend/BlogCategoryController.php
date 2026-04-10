@@ -6,18 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class BlogCategoryController extends Controller
 {
     public function index()
     {
         $categories = BlogCategory::orderBy('created_at', 'desc')->paginate(10);
-        return view('backend.blog-categories.index', compact('categories'));
+        $settings = Setting::first();
+        return view('backend.blog-categories.index', compact('categories', 'settings'));
     }
 
     public function create()
     {
-        return view('backend.blog-categories.create');
+        $settings = Setting::first();
+        return view('backend.blog-categories.create', compact('settings'));
     }
 
     public function store(Request $request)
@@ -45,7 +48,8 @@ class BlogCategoryController extends Controller
 
     public function edit(BlogCategory $blogCategory)
     {
-        return view('backend.blog-categories.edit', compact('blogCategory'));
+        $settings = Setting::first();
+        return view('backend.blog-categories.edit', compact('blogCategory', 'settings'));
     }
 
     public function update(Request $request, BlogCategory $blogCategory)

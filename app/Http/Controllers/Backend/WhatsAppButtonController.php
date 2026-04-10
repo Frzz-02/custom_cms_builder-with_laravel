@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\WhatsappButton;
 use Illuminate\Http\Request;
+use App\Models\Setting;
+
 
 class WhatsAppButtonController extends Controller
 {
     public function index()
     {
         $whatsappButton = WhatsappButton::first();
-        return view('backend.whatsapp-button.index', compact('whatsappButton'));
+        $settings = Setting::first();
+        return view('backend.whatsapp-button.index', compact('whatsappButton', 'settings'));
     }
 
     public function store(Request $request)
