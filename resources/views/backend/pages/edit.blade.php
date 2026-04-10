@@ -335,7 +335,6 @@
                                     <option value="header style 1" {{ old('header_style', $page->header_style) === 'header style 1' ? 'selected' : '' }}>Header Style 1</option>
                                     <option value="header style 2" {{ old('header_style', $page->header_style) === 'header style 2' ? 'selected' : '' }}>Header Style 2</option>
                                     <option value="header style 3" {{ old('header_style', $page->header_style) === 'header style 3' ? 'selected' : '' }}>Header Style 3</option>
-                                    <option value="header style 4" {{ old('header_style', $page->header_style) === 'header style 4' ? 'selected' : '' }}>Header Style 4</option>
                                 </select>
                                 @error('header_style')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
