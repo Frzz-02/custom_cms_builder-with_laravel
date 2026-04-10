@@ -1,5 +1,8 @@
 @extends('frontend.layouts.pages.master-homepage')
-@section('title', $product->meta_title ?? $product->title)
+@section('page_title',  $product->title)
+@section('meta_title', $product->meta_title ?? $product->title)
+@section('meta_description', $product->meta_description ?? Str::limit(strip_tags($product->content), 160))
+@section('meta_keywords', $product->meta_keywords ?? $product->category->name ?? 'product')
 
 @section('content')
     <!-- Breadcrumb -->
