@@ -445,7 +445,7 @@
                     </button>
                     <div class="city-card">
                         <div class="p-3 pb-[10px] flex items-center gap-[9px]">
-                        <img src="{{ asset('img/logo/jogja.jpeg') }}" alt="Jogja" class="w-[30px] h-[30px] object-contain rounded-[4px] shrink-0 block">
+                        <img src="{{ asset('assets/images/logo/jogja.jpeg') }}" alt="Jogja" class="w-[30px] h-[30px] object-contain rounded-[4px] shrink-0 block">
                         <div>
                             <div class="text-[13px] font-bold text-[#202124] leading-[1.2]"> Yogyakarta</div>
                             <span class="text-[11px] text-[#9aa0a6] block mt-[1px]">Mitra Oke</span>
@@ -466,7 +466,7 @@
                     </button>
                     <div class="city-card">
                         <div class="p-3 pb-[10px] flex items-center gap-[9px]">
-                        <img src="{{ asset('img/logo/malang.jpeg') }}" alt="Malang" class="w-[30px] h-[30px] object-contain rounded-[4px] shrink-0 block">
+                        <img src="{{ asset('assets/images/logo/malang.jpeg') }}" alt="Malang" class="w-[30px] h-[30px] object-contain rounded-[4px] shrink-0 block">
                         <div>
                             <div class="text-[13px] font-bold text-[#202124] leading-[1.2]">Cabang Malang</div>
                             <span class="text-[11px] text-[#9aa0a6] block mt-[1px]">Mitra Oke</span>
