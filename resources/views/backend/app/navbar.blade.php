@@ -1,8 +1,38 @@
 <nav class="fixed top-0 left-0 right-0 z-50 bg-indigo-500 text-white shadow-lg">
+    @php
+        $logoValue = $settings->site_logo ?: $settings->favicon;
+        $logoUrl = null;
+
+        if (!blank($logoValue)) {
+            if (\Illuminate\Support\Str::startsWith($logoValue, ['http://', 'https://', '//'])) {
+                $logoUrl = $logoValue;
+            } else {
+                $path = parse_url($logoValue, PHP_URL_PATH) ?: $logoValue;
+                $path = ltrim($path, '/');
+                $logoUrl = \Illuminate\Support\Str::startsWith($path, 'storage/')
+                    ? asset($path)
+                    : asset('storage/' . $path);
+            }
+        }
+    @endphp
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center">
-                <span class="text-2xl font-bold">📊 Admin Panel</span>
+                <a href="{{ route('backend.dashboard') }}" class="inline-flex items-center gap-3 group">
+                    <div class="h-11 rounded-xl bg-white/35 border border-white/45 px-3 flex items-center justify-center overflow-hidden shadow-sm">
+                        @if($logoUrl)
+                            <img
+                                src="{{ $logoUrl }}"
+                                alt="{{ $settings->site_title ?? 'Site Logo' }}"
+                                class="h-8 w-auto max-w-45 object-contain drop-shadow-[0_1px_1px_rgba(0,0,0,0.12)] transition-transform duration-300 group-hover:scale-[1.02]"
+                                style="image-rendering: -webkit-optimize-contrast;"
+                                loading="eager"
+                            >
+                        @else
+                            <span class="text-sm font-semibold tracking-wide text-white">{{ $settings->site_title ?? 'MitraCom' }}</span>
+                        @endif
+                    </div>
+                </a>
             </div>
             
             <div class="flex items-center gap-5">

@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') - Admin Panel</title>
+    <title>{{ $settings->site_title }}{{ $settings->site_subtitle ? ' - ' . $settings->site_subtitle : '' }}</title>
+    <meta name="Description" content="Website">
+    <meta name="Author" content="Website">
+    <meta name="keywords" content="Admin">
+    
     
     <!-- Favicon -->
-    <link rel="icon" type="image/jpeg" href="{{ asset('assets/apex favicon.jpeg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('storage/' . ($settings->favicon ?? 'favicon.png')) }}">
 
     <!-- CDN Font Awesome 6 Free -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
