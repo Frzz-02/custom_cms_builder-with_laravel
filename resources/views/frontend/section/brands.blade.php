@@ -1,12 +1,127 @@
-@if ($shortcode->type == 'brand')
+@if ($shortcode->type == 'brands')
 @php
-    $brandIds = $shortcode->section_brand_id ?? [];
-    $sectionBrands = !empty($brandIds)
-        ? \App\Models\SectionBrand::whereIn('id', $brandIds)->where('status', 'active')->get()
-        : collect();
+    $rawBrandIds = $shortcode->section_brand_id ?? [];
+    // $sectionBrands = !empty($brandIds)
+    //     ? \App\Models\SectionBrand::whereIn('id', $brandIds)->where('status', 'active')->get()
+    //     : collect();
+
+
+
+        if (is_array($rawBrandIds)) {
+            $brandIds = $rawBrandIds;
+        } elseif ($rawBrandIds instanceof \Illuminate\Support\Collection) {
+            $brandIds = $rawBrandIds->all();
+        } elseif (is_string($rawBrandIds)) {
+            $decodedIds = json_decode($rawBrandIds, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedIds)) {
+                $brandIds = $decodedIds;
+            } else {
+                $brandIds = array_map('trim', explode(',', $rawBrandIds));
+            }
+        } elseif (is_numeric($rawBrandIds)) {
+            $brandIds = [(int) $rawBrandIds];
+        } else {
+            $brandIds = [];
+        }
+
+        $brandIds = array_values(array_filter($brandIds, static function ($id) {
+            return is_numeric($id) && (int) $id > 0;
+        }));
+
+        $dbBrands = collect();
+        if (!empty($brandIds)) {
+            $rawBrands = \App\Models\SectionBrand::whereIn('id', $brandIds)
+                ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['active', 'aktif'])
+                ->get()
+                ->keyBy('id');
+
+            $dbBrands = collect($brandIds)
+                ->map(static function ($id) use ($rawBrands) {
+                    return $rawBrands->get((int) $id);
+                })
+                ->filter()
+                ->values();
+        }
+        
+        
+        $brandData = $dbBrands->map(function ($t, $i) {
+            return [
+                'name'    => $t->name,
+                'logo'    => $t->logo,
+                'url'    => $t->url,
+            ];
+        })->values()->toArray();
+        // dd($brandData[0]->logo);
+        
 @endphp
 
-    <!-- Solusi Mitra Jogja Section - Mediterranean Style -->
+        <style>
+            @keyframes scroll {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(-50%);
+                }
+            }
+            .animate-scroll {
+                animation: scroll 30s linear infinite;
+            }
+            .animate-scroll:hover {
+                animation-play-state: paused;
+            }
+        </style>
+
+
+
+
+        <!-- Sponsor Section - Infinite Scroll -->
+        <section class="py-12 bg-white border-y border-gray-100 overflow-hidden">
+            <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24">
+                <p data-reveal class="text-center text-sm text-gray-500 mb-8 tracking-wider uppercase">Dipercaya oleh berbagai perusahaan & institusi</p>
+            </div>
+
+            <!-- Infinite Scroll Container -->
+            <div class="relative">
+                <div class="flex animate-scroll">
+                    <!-- First Set of Sponsors -->
+                    <div class="flex items-center gap-16 px-8">
+                        @forelse($brandData as $brand)
+                            <div class="flex-shrink-0 w-32 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
+                                <img src="{{ asset('storage/' . $brand['logo']) }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
+                            </div>
+                        @empty
+                            <div class="col-span-3 text-center text-gray-400 py-8">Belum ada brand partner</div>
+                        @endforelse
+                    </div>
+                    <!-- Duplicate Set for Seamless Loop -->
+                    <div class="flex items-center gap-16 px-8">
+                        @forelse($brandData as $brand)
+                            <div class="flex-shrink-0 w-32 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
+                                <img src="{{ asset('storage/' . $brand['logo']) }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
+                            </div>
+                        @empty
+                            <div class="col-span-3 text-center text-gray-400 py-8">Belum ada brand partner</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {{-- <!-- Solusi Mitra Jogja Section - Mediterranean Style -->
     <section class="py-20 bg-white relative" data-reveal>
         <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24">
             <div class="grid lg:grid-cols-2 gap-16 items-start">
@@ -38,17 +153,17 @@
                 <div>
                     <h3 class="text-center text-xl tracking-[0.3em] text-gray-400 font-light mb-12">BRAND PARTNER</h3>
                     <div class="grid grid-cols-3 gap-6">
-                        @forelse($sectionBrands as $brand)
+                        @forelse($brandData as $brand)
                         <div class="flex items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-gray-400 transition-colors">
-                            @if($brand->url)
-                            <a href="{{ $brand->url }}" target="_blank" rel="noopener noreferrer" title="{{ $brand->name }}">
-                                <img src="{{ asset('storage/' . $brand->logo) }}"
-                                    alt="{{ $brand->name }}"
+                            @if($brand['url'])
+                            <a href="{{ $brand['url'] }}" target="_blank" rel="noopener noreferrer" title="{{ $brand['name'] }}">
+                                <img src="{{ asset('storage/' . $brand['logo']) }}"
+                                    alt="{{ $brand['name'] }}"
                                     class="max-h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all">
                             </a>
                             @else
-                            <img src="{{ asset('storage/' . $brand->logo) }}"
-                                alt="{{ $brand->name }}"
+                            <img src="{{ asset('storage/' . $brand['logo']) }}"
+                                alt="{{ $brand['name'] }}"
                                 class="max-h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all">
                             @endif
                         </div>
@@ -59,7 +174,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
     
 @endif
 
