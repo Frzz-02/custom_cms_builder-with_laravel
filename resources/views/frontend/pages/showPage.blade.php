@@ -1,7 +1,10 @@
 {{-- @extends('frontend.layouts.master') --}}
 
 @extends($layout)
-
+@section('page_title', $page->title ?? $settings->site_title ?? 'MitraCom')
+@section('meta_title', $page->meta_title ?? $page->title)
+@section('meta_description', $page->meta_description ?? Str::limit(strip_tags($page->content), 160))
+@section('meta_keywords', $page->meta_keywords ?? 'page')
 
 
 @push('styles')
