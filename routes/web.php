@@ -39,8 +39,11 @@ Route::get('/mitra-jogja', function () {
 })->name('mitraJogja');
 
 
+Route::get('/products/category/{productCategory:slug?}', [FrontendController::class, 'showProductCategory'])->name('product.category');
 Route::get('/products/{slug}', [FrontendController::class, 'showProduct'])->name('products.detail');
-Route::get('/products/category/{ProductCategory:id,slug}', [FrontendController::class, 'showProductCategory'])->name('product.category');
+Route::get('/products', function(){
+    return route('product.category', ['productCategory' => 'all']);
+})->name('products.detail');
 Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blogs.show');
 Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
