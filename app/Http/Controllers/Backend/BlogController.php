@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Models\Setting;
 
 class BlogController extends Controller
@@ -37,8 +37,8 @@ class BlogController extends Controller
             'status' => 'required|in:draft,published',
             'is_featured' => 'nullable|in:0,1',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'image_featured' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|string|max:2048',
+            'image_featured' => 'nullable|string|max:2048',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string|max:255',
@@ -57,15 +57,8 @@ class BlogController extends Controller
             $validated['publish_date'] = now();
         }
 
-        // Handle image upload and convert to WebP
-        if ($request->hasFile('image')) {
-            $validated['image'] = $this->convertToWebP($request->file('image'), 'blogs');
-        }
-
-        // Handle featured image upload and convert to WebP
-        if ($request->hasFile('image_featured')) {
-            $validated['image_featured'] = $this->convertToWebP($request->file('image_featured'), 'blogs/featured');
-        }
+        $validated['image'] = $this->normalizeImageInput($validated['image'] ?? null);
+        $validated['image_featured'] = $this->normalizeImageInput($validated['image_featured'] ?? null);
 
         Blog::create($validated);
 
@@ -91,8 +84,8 @@ class BlogController extends Controller
             'status' => 'required|in:draft,published',
             'is_featured' => 'nullable|in:0,1',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'image_featured' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|string|max:2048',
+            'image_featured' => 'nullable|string|max:2048',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string|max:255',
@@ -111,22 +104,18 @@ class BlogController extends Controller
             $validated['publish_date'] = now();
         }
 
-        // Handle image upload and convert to WebP
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($blog->image) {
-                Storage::disk('public')->delete($blog->image);
-            }
-            $validated['image'] = $this->convertToWebP($request->file('image'), 'blogs');
+        $oldImage = $blog->image;
+        $oldFeaturedImage = $blog->image_featured;
+
+        $validated['image'] = $this->normalizeImageInput($validated['image'] ?? null);
+        $validated['image_featured'] = $this->normalizeImageInput($validated['image_featured'] ?? null);
+
+        if ($oldImage !== $validated['image'] && $this->isLocalImagePath($oldImage)) {
+            Storage::disk('public')->delete($oldImage);
         }
 
-        // Handle featured image upload and convert to WebP
-        if ($request->hasFile('image_featured')) {
-            // Delete old featured image
-            if ($blog->image_featured) {
-                Storage::disk('public')->delete($blog->image_featured);
-            }
-            $validated['image_featured'] = $this->convertToWebP($request->file('image_featured'), 'blogs/featured');
+        if ($oldFeaturedImage !== $validated['image_featured'] && $this->isLocalImagePath($oldFeaturedImage)) {
+            Storage::disk('public')->delete($oldFeaturedImage);
         }
 
         $blog->update($validated);
@@ -138,10 +127,10 @@ class BlogController extends Controller
     public function destroy(Blog $blog)
     {
         // Delete images
-        if ($blog->image) {
+        if ($this->isLocalImagePath($blog->image)) {
             Storage::disk('public')->delete($blog->image);
         }
-        if ($blog->image_featured) {
+        if ($this->isLocalImagePath($blog->image_featured)) {
             Storage::disk('public')->delete($blog->image_featured);
         }
 
@@ -149,6 +138,48 @@ class BlogController extends Controller
 
         return redirect()->route('backend.blogs.index')
             ->with('success', 'Blog post deleted successfully!');
+    }
+
+    private function normalizeImageInput(?string $image): ?string
+    {
+        $value = trim((string) $image);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^data:image/i', $value)) {
+            return $value;
+        }
+
+        if (preg_match('/^https?:\/\//i', $value)) {
+            $path = parse_url($value, PHP_URL_PATH) ?: '';
+
+            if (Str::startsWith($path, '/storage/')) {
+                return ltrim(preg_replace('#^/storage/#', '', $path), '/');
+            }
+
+            return $value;
+        }
+
+        if (Str::startsWith($value, '/storage/')) {
+            return ltrim(preg_replace('#^/storage/#', '', $value), '/');
+        }
+
+        if (Str::startsWith($value, 'storage/')) {
+            return ltrim(preg_replace('#^storage/#', '', $value), '/');
+        }
+
+        return ltrim($value, '/');
+    }
+
+    private function isLocalImagePath(?string $value): bool
+    {
+        if (!$value) {
+            return false;
+        }
+
+        return !preg_match('/^(https?:\/\/|data:image)/i', $value);
     }
 
     /**

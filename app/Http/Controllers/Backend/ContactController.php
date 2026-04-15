@@ -13,7 +13,7 @@ class ContactController extends Controller
     {
         $contacts = Contact::orderBy('created_at', 'desc')->paginate(10);
         $settings = Setting::first();
-        return view('backend.contacts.index', compact('contacts'));
+        return view('backend.contacts.index', compact('contacts', 'settings'));
     }
 
     public function create()
