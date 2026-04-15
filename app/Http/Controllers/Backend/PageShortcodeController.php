@@ -355,11 +355,11 @@ class PageShortcodeController extends Controller
             if ($sectionHero) {
                 // Delete semua images dari storage
                 $imageFields = ['image', 'image_2', 'image_3', 'image_4', 'image_5', 'image_6', 'image_7', 'image_8', 'image_9', 'image_10', 'image_11', 'image_12', 'image_13'];
-                foreach ($imageFields as $field) {
-                    if ($sectionHero->$field) {
-                        Storage::disk('public')->delete($sectionHero->$field);
-                    }
-                }
+                // foreach ($imageFields as $field) {
+                //     if ($sectionHero->$field) {
+                //         Storage::disk('public')->delete($sectionHero->$field);
+                //     }
+                // }
                 
                 $sectionHero->delete();
             }
@@ -556,10 +556,13 @@ class PageShortcodeController extends Controller
                 $normalized = trim((string) $base64Image);
 
                 if (preg_match('/^https?:\/\//', $normalized)) {
-                    $path = parse_url($normalized, PHP_URL_PATH);
-                    if (!empty($path)) {
-                        $normalized = $path;
+                    $path = parse_url($normalized, PHP_URL_PATH) ?: '';
+
+                    if (str_starts_with($path, '/storage/')) {
+                        return ltrim(preg_replace('#^/storage/#', '', $path), '/');
                     }
+
+                    return $normalized;
                 }
 
                 $normalized = preg_replace('#^/storage/#', '', $normalized);

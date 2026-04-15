@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SectionBrand;
 use Illuminate\Http\Request;
 use App\Models\Setting;
+use Illuminate\Support\Str;
 
 class BrandController extends Controller
 {
@@ -26,10 +27,12 @@ class BrandController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'logo' => 'nullable|url|max:500',
+            'logo' => 'nullable|string|max:2048',
             'url' => 'nullable|url|max:500',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $validated['logo'] = $this->normalizeLogoPath($validated['logo'] ?? null);
 
         SectionBrand::create($validated);
 
@@ -47,10 +50,12 @@ class BrandController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'logo' => 'nullable|url|max:500',
+            'logo' => 'nullable|string|max:2048',
             'url' => 'nullable|url|max:500',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $validated['logo'] = $this->normalizeLogoPath($validated['logo'] ?? null);
         
         $brand->update($validated);
 
@@ -64,5 +69,30 @@ class BrandController extends Controller
 
         return redirect()->route('backend.brands.index')
             ->with('success', 'Brand deleted successfully.');
+    }
+
+    private function normalizeLogoPath(?string $logo): ?string
+    {
+        $value = trim((string) $logo);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^https?:\/\//i', $value)) {
+            $path = parse_url($value, PHP_URL_PATH) ?: '';
+
+            if (Str::startsWith($path, '/storage/')) {
+                return $path;
+            }
+
+            return $value;
+        }
+
+        if (Str::startsWith($value, 'storage/')) {
+            return '/' . $value;
+        }
+
+        return $value;
     }
 }

@@ -78,9 +78,9 @@ class SettingController extends Controller
         $filePath = $this->normalizeMediaPath($setting->$field);
 
         // Delete the file from storage
-        if ($filePath && Storage::disk('public')->exists($filePath)) {
-            Storage::disk('public')->delete($filePath);
-        }
+        // if ($filePath && Storage::disk('public')->exists($filePath)) {
+        //     Storage::disk('public')->delete($filePath);
+        // }
 
         // Update the field to null
         $setting->update([$field => null]);

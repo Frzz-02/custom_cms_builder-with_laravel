@@ -43,14 +43,8 @@ class ProductCategoryController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
-        // Handle image upload
-        if ($request->image_type === 'upload' && $request->hasFile('image_file')) {
-            $validated['image_type'] = 'upload';
-            $validated['image_source'] = $this->handleImageUpload($request->file('image_file'));
-        } elseif ($request->image_type === 'url' && $request->image_url) {
-            $validated['image_type'] = 'url';
-            $validated['image_source'] = $request->image_url;
-        }
+        // Handle image source (media picker URL, direct URL, or file upload fallback)
+        $this->applyImageSource($request, $validated);
 
         // Convert HEX color to Tailwind class
         if ($request->background_color) {
@@ -61,7 +55,6 @@ class ProductCategoryController extends Controller
         unset($validated['image_file'], $validated['image_url']);
 
         ProductCategory::create($validated);
-
         return redirect()->route('backend.product-categories.index')
             ->with('success', 'Product category created successfully.');
     }
@@ -101,24 +94,8 @@ class ProductCategoryController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
-        // Handle image upload
-        if ($request->image_type === 'upload' && $request->hasFile('image_file')) {
-            // Delete old image if exists and is local upload
-            if ($productCategory->image_type === 'upload' && $productCategory->image_source) {
-                $this->deleteImage($productCategory->image_source);
-            }
-            
-            $validated['image_type'] = 'upload';
-            $validated['image_source'] = $this->handleImageUpload($request->file('image_file'));
-        } elseif ($request->image_type === 'url' && $request->image_url) {
-            // Delete old image if exists and is local upload
-            if ($productCategory->image_type === 'upload' && $productCategory->image_source) {
-                $this->deleteImage($productCategory->image_source);
-            }
-            
-            $validated['image_type'] = 'url';
-            $validated['image_source'] = $request->image_url;
-        }
+        // Handle image source and keep current image if no new image selected
+        $this->applyImageSource($request, $validated, $productCategory);
 
         // Convert HEX color to Tailwind class
         if ($request->background_color) {
@@ -208,6 +185,42 @@ class ProductCategoryController extends Controller
         if (file_exists($fullPath)) {
             unlink($fullPath);
         }
+    }
+
+    /**
+     * Resolve image source from request for create/update flow.
+     * Priority: media picker URL > direct file upload fallback.
+     */
+    private function applyImageSource(Request $request, array &$validated, ?ProductCategory $existingCategory = null): void
+    {
+        $imageUrl = trim((string) $request->input('image_url', ''));
+
+        if ($imageUrl !== '') {
+            $validated['image_source'] = $imageUrl;
+            $validated['image_type'] = $this->isLocalMediaPath($imageUrl) ? 'upload' : 'url';
+            return;
+        }
+
+        if ($request->hasFile('image_file')) {
+            $validated['image_type'] = 'upload';
+            $validated['image_source'] = $this->handleImageUpload($request->file('image_file'));
+            return;
+        }
+
+        if ($existingCategory) {
+            $validated['image_type'] = $existingCategory->image_type;
+            $validated['image_source'] = $existingCategory->image_source;
+        }
+    }
+
+    /**
+     * Check if URL/path points to local media storage (selected via media picker).
+     */
+    private function isLocalMediaPath(string $url): bool
+    {
+        $path = parse_url($url, PHP_URL_PATH) ?: $url;
+
+        return Str::startsWith($path, ['/storage/uploads/', 'storage/uploads/']);
     }
 
     /**
