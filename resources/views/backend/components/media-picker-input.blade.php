@@ -8,6 +8,8 @@
                :name="fieldName" 
                :id="fieldId" 
                x-model="selectedUrl"
+             @input="handleManualUrlInput()"
+             @change="handleManualUrlInput()"
                :readonly="readonly"
                :class="inputClass"
                :placeholder="placeholder">
@@ -37,6 +39,7 @@ function mediaPickerInput() {
         inputClass: 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
         readonly: false,
         selectedUrl: '',
+        lastDispatchedUrl: null,
 
         init() {
             const container = this.$el.closest('[data-media-picker]');
@@ -46,6 +49,10 @@ function mediaPickerInput() {
                 this.label = container.dataset.label || this.label;
                 this.placeholder = container.dataset.placeholder || this.placeholder;
                 this.selectedUrl = container.dataset.initialValue || this.selectedUrl;
+
+                if (/media\s*library/i.test(this.placeholder) && !/external\s*image\s*url/i.test(this.placeholder)) {
+                    this.placeholder = 'Select from media library or paste external image URL';
+                }
             }
 
             // Listen for media selection event
@@ -54,6 +61,27 @@ function mediaPickerInput() {
                     this.selectedUrl = event.detail.url;
                 }
             });
+        },
+
+        handleManualUrlInput() {
+            const value = (this.selectedUrl || '').trim();
+
+            if (!this.fieldId) {
+                return;
+            }
+
+            if (this.lastDispatchedUrl === value) {
+                return;
+            }
+
+            this.lastDispatchedUrl = value;
+
+            window.dispatchEvent(new CustomEvent('media-selected', {
+                detail: {
+                    fieldId: this.fieldId,
+                    url: value
+                }
+            }));
         },
 
         openMediaPicker() {

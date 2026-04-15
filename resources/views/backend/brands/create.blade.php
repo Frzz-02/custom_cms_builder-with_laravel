@@ -18,7 +18,7 @@
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-6">
-        <form action="{{ route('backend.brands.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('backend.brands.store') }}" method="POST">
             @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -41,27 +41,19 @@
                     @enderror
                 </div>
 
-                <!-- Logo URL -->
+                <!-- Brand Logo -->
                 <div class="col-span-2">
-                    <label for="logo" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Logo URL
-                    </label>
-                    <input 
-                        type="url" 
-                        id="logo" 
-                        name="logo" 
-                        value="{{ old('logo') }}"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('logo') border-red-500 @enderror"
-                        placeholder="https://example.com/logo.png"
-                        onchange="previewImageFromUrl(event)"
-                    >
-                    @error('logo')
-                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-                    @enderror
-                    <p class="mt-1 text-xs text-gray-500">Enter the URL of the brand logo image</p>
-                    <div id="imagePreview" class="mt-3 hidden">
-                        <p class="text-xs text-gray-600 mb-2">Logo Preview:</p>
-                        <img id="preview" src="" alt="Preview" class="h-32 w-auto object-contain border border-gray-200 rounded p-2">
+                    <div data-media-picker
+                         data-field-name="logo"
+                         data-field-id="brand_logo"
+                         data-label="Brand Logo"
+                         data-placeholder="https://example.com/logo.webp"
+                         data-initial-value="{{ old('logo') }}">
+                        @include('backend.components.media-picker-input')
+                        @error('logo')
+                            <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500">Select from media library or enter custom image URL.</p>
                     </div>
                 </div>
 
@@ -121,28 +113,5 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-function previewImageFromUrl(event) {
-    const preview = document.getElementById('preview');
-    const previewContainer = document.getElementById('imagePreview');
-    const url = event.target.value;
-    
-    if (url) {
-        // Test if URL is valid image
-        const img = new Image();
-        img.onload = function() {
-            preview.src = url;
-            previewContainer.classList.remove('hidden');
-        };
-        img.onerror = function() {
-            previewContainer.classList.add('hidden');
-        };
-        img.src = url;
-    } else {
-        previewContainer.classList.add('hidden');
-    }
-}
-</script>
-@endpush
+@include('backend.components.media-picker-modal')
 @endsection
