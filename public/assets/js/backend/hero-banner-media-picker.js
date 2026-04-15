@@ -51,6 +51,20 @@ window.addEventListener('media-selected', (event) => {
 });
 
 /**
+ * Support manual URL input pada field heroImage1..heroImage6
+ */
+document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (!input.id || !input.id.startsWith('heroImage')) return;
+
+    const tabNumber = input.id.replace('heroImage', '');
+    if (!tabNumber) return;
+
+    window.heroBannerImages[`tab${tabNumber}`] = (input.value || '').trim();
+});
+
+/**
  * Setup media picker untuk hero banner form saat form dibuka
  * Ini memastikan initial value di-set dengan benar saat form di-populate
  */

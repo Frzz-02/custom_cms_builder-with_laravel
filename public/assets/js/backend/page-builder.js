@@ -2022,7 +2022,13 @@ function normalizeHeroImageForStorage(imageUrl) {
     if (value.startsWith('http://') || value.startsWith('https://')) {
         try {
             const parsed = new URL(value);
-            value = parsed.pathname || value;
+            const parsedPath = parsed.pathname || '';
+
+            if (parsedPath.startsWith('/storage/')) {
+                return parsedPath.replace(/^\/storage\//, '');
+            }
+
+            return raw;
         } catch (e) {
             return raw;
         }
@@ -2636,6 +2642,7 @@ async function deleteHeroBannerBlock() {
  */
 async function handleHeroStyle2ImageUpload(imageNumber, input) {
     const file = input.files[0];
+    console.log(`Selected file for image ${imageNumber}:`, file);
     if (!file) return;
     
     // Validasi tipe file
@@ -3010,6 +3017,7 @@ async function saveHeroBannerStyle2Block() {
         const actionLabel2 = document.getElementById('heroStyle2ActionLabel2')?.value.trim() || '';
         const actionUrl1 = document.getElementById('heroStyle2ActionUrl1')?.value.trim() || '';
         const actionUrl2 = document.getElementById('heroStyle2ActionUrl2')?.value.trim() || '';
+        console.log(window.heroBannerStyle2Images?.image1 || document.getElementById('heroStyle2Image1')?.value || '');
         
         // Collect images
         const image1 = normalizeHeroImageForStorage(
@@ -3024,7 +3032,6 @@ async function saveHeroBannerStyle2Block() {
         const image4 = normalizeHeroImageForStorage(
             window.heroBannerStyle2Images?.image4 || document.getElementById('heroStyle2Image4')?.value || ''
         );
-        
         // Collect selected services
         const checkboxes = document.querySelectorAll('.hero-style2-service-checkbox:checked');
         const serviceIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
