@@ -60,12 +60,33 @@
 
             <!-- Category Image -->
             <div class="mb-6">
+                @php
+                    $initialCategoryImage = old('image_url');
+
+                    if ($initialCategoryImage === null) {
+                        $storedImageSource = trim((string) ($productCategory->image_source ?? ''));
+
+                        if ($storedImageSource !== '') {
+                            if (preg_match('/^(https?:\/\/|data:image)/i', $storedImageSource)) {
+                                $initialCategoryImage = $storedImageSource;
+                            } elseif (str_starts_with($storedImageSource, '/storage/')) {
+                                $initialCategoryImage = $storedImageSource;
+                            } elseif (str_starts_with($storedImageSource, 'storage/')) {
+                                $initialCategoryImage = '/' . $storedImageSource;
+                            } else {
+                                $initialCategoryImage = '/storage/' . ltrim($storedImageSource, '/');
+                            }
+                        } else {
+                            $initialCategoryImage = '';
+                        }
+                    }
+                @endphp
                 <div data-media-picker 
                      data-field-name="image_url" 
                      data-field-id="image_url"
                      data-label="Category Image"
                      data-placeholder="https://example.com/image.jpg"
-                     data-initial-value="{{ old('image_url', $productCategory->image_type === 'url' ? $productCategory->image_source : '') }}">
+                     data-initial-value="{{ $initialCategoryImage }}">
                     @include('backend.components.media-picker-input')
                     @error('image_url')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

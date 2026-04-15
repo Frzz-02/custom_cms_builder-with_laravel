@@ -40,7 +40,7 @@
                              data-initial-value="">
                             @include('backend.components.media-picker-input')
                         </div>
-                        <p class="text-xs text-slate-500">Select an image from existing media library</p>
+                        <p class="text-xs text-slate-500">Select from media library or paste an external image URL</p>
                     </div>
 
                     <div class="space-y-2">
