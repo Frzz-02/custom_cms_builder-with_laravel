@@ -26,19 +26,59 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 ---
 
 ## 🖼️ Showcase
-> Tempat screenshot kamu nanti (disiapkan untuk portofolio)
+
 
 ### 1) Dashboard Admin
-![Dashboard Placeholder](./docs/showcase/dashboard.png)
+![Dashboard Placeholder](screenshoot/dashboard%20admin.png)
 
 ### 2) Page Builder (Drag & Drop Blocks)
-![Page Builder Placeholder](./docs/showcase/page-builder.png)
+
+<table>
+  <tr>
+    <td><img src="/screenshoot/edit page.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot/ui block library.png" alt="UI Block"></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img src="/screenshoot/page builder (ui block).png" alt="Page Builder UI Block">
+    </td>
+  </tr>
+</table>
+
 
 ### 3) Frontend Landing Page
-![Frontend Placeholder](./docs/showcase/frontend-landing.png)
+<table>
+  <tr>
+    <td><img src="/screenshoot/landing page 1.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot//landing page 2.png" alt="UI Block"></td>
+  </tr>
+</table>
 
-### 4) Product & Category Module
-![Product Placeholder](./docs/showcase/product-module.png)
+### 4) Product & Category Form Input
+<table>
+  <tr>
+    <td><img src="/screenshoot/products.png" alt="Page Builder"></td>
+  </tr>
+  <tr>
+    <td><img src="/screenshoot/product%20categories.png" alt="Page Builder"></td>
+  </tr>
+</table>
+
+
+### 5) Theme File Editor
+<table>
+  <tr>
+    <td><img src="/screenshoot/theme%20file%20editor.png" alt="Page Builder"></td>
+  </tr>
+</table>
+
+### 6) Site Setting
+<table>
+  <tr>
+    <td><img src="/screenshoot/site%20setting.png" alt="Page Builder"></td>
+  </tr>
+</table>
+
 
 ---
 

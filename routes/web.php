@@ -162,6 +162,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Media Routes
         Route::get('media/list', [MediaController::class, 'getList'])->name('media.list');
+        Route::put('media/{id}/alt-text', [MediaController::class, 'updateAltText'])->name('media.update-alt-text');
         Route::resource('media', MediaController::class)->only(['index', 'store', 'destroy']);
         
         // Theme Editor Routes (Only for Superadmin)
