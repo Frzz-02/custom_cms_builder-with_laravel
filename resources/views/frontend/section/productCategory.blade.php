@@ -38,12 +38,12 @@
                         @forelse($pcCategories as $cat)
                         @php
                             $catBg = $cat->background_color ?: '#F5C842';
-                            $catImg = $cat->image_type === 'url' ? $cat->image_source : asset('storage/' . $cat->image_source);
+                            $catImg = $cat->image_type === 'url' ? $cat->image_source : asset($cat->image_source);
                         @endphp
                         <a href=""
                         class="card-hover relative overflow-hidden h-60 md:h-72 cursor-pointer block shrink-0 flex-none"
                         :style="`width: calc(100% / ${visible} - ${(visible-1)*16/visible}px)`"
-                        style="background: {{ $catBg }};">
+                        >
                             @if($cat->image_source)
                             <img src="{{ $catImg }}"
                                 alt="{{ $cat->name }}" class="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-80">

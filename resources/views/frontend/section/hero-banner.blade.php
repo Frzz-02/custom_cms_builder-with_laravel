@@ -37,7 +37,7 @@
             if (empty($heroSlides)) {
                 foreach (['image', 'image_2', 'image_3', 'image_4'] as $imgF) {
                     if ($heroSection->$imgF) {
-                        $heroSlides[] = asset('storage/' . $heroSection->$imgF);
+                        $heroSlides[] = asset($heroSection->$imgF);
                     }
                 }
             }

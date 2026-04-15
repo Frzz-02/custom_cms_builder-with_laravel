@@ -88,7 +88,7 @@
                     <div class="flex items-center gap-16 px-8">
                         @forelse($brandData as $brand)
                             <div class="flex-shrink-0 w-32 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
-                                <img src="{{ asset('storage/' . $brand['logo']) }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
+                                <img src="{{ $brand['logo'] }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
                             </div>
                         @empty
                             <div class="col-span-3 text-center text-gray-400 py-8">Belum ada brand partner</div>
@@ -98,7 +98,7 @@
                     <div class="flex items-center gap-16 px-8">
                         @forelse($brandData as $brand)
                             <div class="flex-shrink-0 w-32 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
-                                <img src="{{ asset('storage/' . $brand['logo']) }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
+                                <img src="{{ $brand['logo'] }}" alt="{{ $brand['name'] }}" class="max-h-10 w-auto object-contain">
                             </div>
                         @empty
                             <div class="col-span-3 text-center text-gray-400 py-8">Belum ada brand partner</div>
