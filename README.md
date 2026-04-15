@@ -36,11 +36,11 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 <table>
   <tr>
     <td><img src="/screenshoot/edit page.png" alt="Page Builder"></td>
-    <td><img src="/screenshoot/ui block library.png" alt="UI Block"></td>
+    <td><img src="/screenshoot/ui block library.png" alt="UI Block library"></td>
   </tr>
   <tr>
     <td colspan="2" align="center">
-      <img src="/screenshoot/page builder (ui block).png" alt="Page Builder UI Block">
+      <img src="/screenshoot/page builder (ui block).png" alt="ui block">
     </td>
   </tr>
 </table>
@@ -49,18 +49,18 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 ### 3) Frontend Landing Page
 <table>
   <tr>
-    <td><img src="/screenshoot/landing page 1.png" alt="Page Builder"></td>
-    <td><img src="/screenshoot//landing page 2.png" alt="UI Block"></td>
+    <td><img src="/screenshoot/landing page 1.png" alt="landing page 1"></td>
+    <td><img src="/screenshoot//landing page 2.png" alt="landing page 2"></td>
   </tr>
 </table>
 
 ### 4) Product & Category Form Input
 <table>
   <tr>
-    <td><img src="/screenshoot/products.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot/products.png" alt="Product"></td>
   </tr>
   <tr>
-    <td><img src="/screenshoot/product%20categories.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot/product%20categories.png" alt="Product category"></td>
   </tr>
 </table>
 
@@ -68,14 +68,14 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 ### 5) Theme File Editor
 <table>
   <tr>
-    <td><img src="/screenshoot/theme%20file%20editor.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot/theme%20file%20editor.png" alt="Theme file editor"></td>
   </tr>
 </table>
 
 ### 6) Site Setting
 <table>
   <tr>
-    <td><img src="/screenshoot/site%20setting.png" alt="Page Builder"></td>
+    <td><img src="/screenshoot/site%20setting.png" alt="Site setting"></td>
   </tr>
 </table>
 
