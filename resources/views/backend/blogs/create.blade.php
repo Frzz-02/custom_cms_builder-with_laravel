@@ -29,7 +29,7 @@
     </div>
 
     <!-- Form -->
-    <form action="{{ route('backend.blogs.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('backend.blogs.store') }}" method="POST">
         @csrf
         
         <div class="grid grid-cols-12 gap-6">
@@ -112,42 +112,34 @@
                     <div class="grid grid-cols-2 gap-6">
                         <!-- Regular Image -->
                         <div>
-                            <label for="image" class="block text-sm font-semibold text-slate-700 mb-2">
-                                Blog Image
-                            </label>
-                            <input type="file" 
-                                   id="image" 
-                                   name="image" 
-                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image') border-red-500 @enderror"
-                                   onchange="previewImage(this, 'imagePreview')">
-                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp)</p>
+                            <div data-media-picker
+                                 data-field-name="image"
+                                 data-field-id="blog_image"
+                                 data-label="Blog Image"
+                                 data-placeholder="https://example.com/image.webp"
+                                 data-initial-value="{{ old('image') }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @error('image')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                            <div id="imagePreview" class="mt-2 hidden">
-                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
-                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom image URL.</p>
                         </div>
 
                         <!-- Featured Image -->
                         <div>
-                            <label for="image_featured" class="block text-sm font-semibold text-slate-700 mb-2">
-                                Featured Image
-                            </label>
-                            <input type="file" 
-                                   id="image_featured" 
-                                   name="image_featured" 
-                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image_featured') border-red-500 @enderror"
-                                   onchange="previewImage(this, 'featuredImagePreview')">
-                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp)</p>
+                            <div data-media-picker
+                                 data-field-name="image_featured"
+                                 data-field-id="blog_image_featured"
+                                 data-label="Featured Image"
+                                 data-placeholder="https://example.com/featured-image.webp"
+                                 data-initial-value="{{ old('image_featured') }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @error('image_featured')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                            <div id="featuredImagePreview" class="mt-2 hidden">
-                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
-                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom image URL.</p>
                         </div>
                     </div>
 
@@ -265,25 +257,10 @@
         </div>
     </form>
 </div>
+
+@include('backend.components.media-picker-modal')
 @endsection
 
 @push('scripts')
 <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
-<script>
-function previewImage(input, previewId) {
-    const preview = document.getElementById(previewId);
-    const file = input.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.querySelector('img').src = e.target.result;
-            preview.classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
-    } else {
-        preview.classList.add('hidden');
-    }
-}
-</script>
 @endpush

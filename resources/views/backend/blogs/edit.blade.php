@@ -12,6 +12,33 @@
 
 @section('content')
 <div class="p-6">
+    @php
+        $resolveBlogImageUrl = static function (?string $value): ?string {
+            $value = trim((string) $value);
+
+            if ($value === '') {
+                return null;
+            }
+
+            if (preg_match('/^(https?:\/\/|data:image)/i', $value)) {
+                return $value;
+            }
+
+            if (str_starts_with($value, '/storage/')) {
+                return $value;
+            }
+
+            if (str_starts_with($value, 'storage/')) {
+                return '/' . $value;
+            }
+
+            return asset('storage/' . ltrim($value, '/'));
+        };
+
+        $currentImageUrl = $resolveBlogImageUrl($blog->image);
+        $currentFeaturedImageUrl = $resolveBlogImageUrl($blog->image_featured);
+    @endphp
+
     <!-- Header -->
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
         <div class="flex items-center gap-4">
@@ -29,7 +56,7 @@
     </div>
 
     <!-- Form -->
-    <form action="{{ route('backend.blogs.update', $blog) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('backend.blogs.update', $blog) }}" method="POST">
         @csrf
         @method('PUT')
         
@@ -113,62 +140,58 @@
                     <div class="grid grid-cols-2 gap-6">
                         <!-- Regular Image -->
                         <div>
-                            <label for="image" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {{-- <label for="image" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Blog Image
-                            </label>
-                            @if($blog->image)
+                            </label> --}}
+                            @if($currentImageUrl)
                             <div class="mb-3">
-                                <p class="text-sm text-slate-600 mb-2">Current Image:</p>
-                                <img src="{{ asset('storage/' . $blog->image) }}" 
+                                {{-- <p class="text-sm text-slate-600 mb-2">Current Image:</p> --}}
+                                {{-- <img src="{{ $currentImageUrl }}" 
                                      alt="Current" 
                                      class="w-full h-48 object-cover rounded-lg border border-slate-200"
-                                     loading="lazy">
+                                     loading="lazy"> --}}
                             </div>
                             @endif
-                            <input type="file" 
-                                   id="image" 
-                                   name="image" 
-                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image') border-red-500 @enderror"
-                                   onchange="previewImage(this, 'imagePreview')">
-                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp) - Leave empty to keep current</p>
+                            <div data-media-picker
+                                 data-field-name="image"
+                                 data-field-id="blog_image"
+                                 data-label="Blog Image"
+                                 data-placeholder="https://example.com/image.webp"
+                                 data-initial-value="{{ old('image', $currentImageUrl) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @error('image')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                            <div id="imagePreview" class="mt-2 hidden">
-                                <p class="text-sm text-slate-600 mb-2">New Image Preview:</p>
-                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
-                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom image URL.</p>
                         </div>
 
                         <!-- Featured Image -->
                         <div>
-                            <label for="image_featured" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {{-- <label for="image_featured" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Featured Image
-                            </label>
-                            @if($blog->image_featured)
+                            </label> --}}
+                            @if($currentFeaturedImageUrl)
                             <div class="mb-3">
-                                <p class="text-sm text-slate-600 mb-2">Current Featured Image:</p>
-                                <img src="{{ asset('storage/' . $blog->image_featured) }}" 
+                                {{-- <p class="text-sm text-slate-600 mb-2">Current Featured Image:</p>
+                                <img src="{{ $currentFeaturedImageUrl }}" 
                                      alt="Current Featured" 
                                      class="w-full h-48 object-cover rounded-lg border border-slate-200"
-                                     loading="lazy">
+                                     loading="lazy"> --}}
                             </div>
                             @endif
-                            <input type="file" 
-                                   id="image_featured" 
-                                   name="image_featured" 
-                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('image_featured') border-red-500 @enderror"
-                                   onchange="previewImage(this, 'featuredImagePreview')">
-                            <p class="mt-1 text-xs text-slate-500">Max 2MB (jpeg, png, jpg, gif, webp) - Leave empty to keep current</p>
+                            <div data-media-picker
+                                 data-field-name="image_featured"
+                                 data-field-id="blog_image_featured"
+                                 data-label="Featured Image"
+                                 data-placeholder="https://example.com/featured-image.webp"
+                                 data-initial-value="{{ old('image_featured', $currentFeaturedImageUrl) }}">
+                                @include('backend.components.media-picker-input')
+                            </div>
                             @error('image_featured')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                            <div id="featuredImagePreview" class="mt-2 hidden">
-                                <p class="text-sm text-slate-600 mb-2">New Featured Image Preview:</p>
-                                <img src="" alt="Preview" class="w-full h-48 object-cover rounded-lg" loading="lazy">
-                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Select from media library or enter custom image URL.</p>
                         </div>
                     </div>
 
@@ -286,25 +309,10 @@
         </div>
     </form>
 </div>
+
+@include('backend.components.media-picker-modal')
 @endsection
 
 @push('scripts')
 <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
-<script>
-function previewImage(input, previewId) {
-    const preview = document.getElementById(previewId);
-    const file = input.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.querySelector('img').src = e.target.result;
-            preview.classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
-    } else {
-        preview.classList.add('hidden');
-    }
-}
-</script>
 @endpush
