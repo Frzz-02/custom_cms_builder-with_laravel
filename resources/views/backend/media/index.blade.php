@@ -40,7 +40,7 @@
         @if($media->count() > 0)
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($media as $item)
-                    <div class="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-indigo-500 transition-all duration-300 cursor-pointer" @click="viewImage('{{ asset('storage/uploads/' . $item->file_encrypt) }}', '{{ $item->filename }}', '{{ $item->alternative_text }}', {{ $item->id }})">
+                    <div class="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-indigo-500 transition-all duration-300 cursor-pointer" @click="viewImage(@js(asset('storage/uploads/' . $item->file_encrypt)), @js($item->filename), @js($item->alternative_text), {{ $item->id }})">
                         <div class="aspect-square overflow-hidden bg-white relative">
                             <!-- Loading placeholder -->
                             <div class="absolute inset-0 bg-gray-200 animate-pulse lazy-placeholder"></div>
@@ -240,7 +240,6 @@
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <h3 class="text-lg font-medium text-gray-900" x-text="viewingFilename"></h3>
-                            <p class="text-sm text-gray-500" x-text="viewingAlt"></p>
                             <p class="text-xs text-indigo-600 mt-1 flex items-center">
                                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -268,6 +267,21 @@
                              class="w-full h-auto max-h-96 object-contain bg-gray-50 rounded-lg"
                              :class="{ 'opacity-0': imageLoading, 'opacity-100': !imageLoading }"
                              style="transition: opacity 0.3s;">
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Text</label>
+                        <div class="flex gap-2">
+                            <input type="text"
+                                   x-model="editingAlt"
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="Describe this image">
+                            <button @click="saveAltText"
+                                    :disabled="savingAlt || deleting"
+                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!savingAlt">Save Alt</span>
+                                <span x-show="savingAlt">Saving...</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
@@ -331,6 +345,7 @@ function mediaManager() {
         openViewModal: false,
         uploading: false,
         deleting: false,
+        savingAlt: false,
         imageLoading: false,
         fileName: '',
         alternativeText: '',
@@ -338,6 +353,7 @@ function mediaManager() {
         viewingUrl: '',
         viewingFilename: '',
         viewingAlt: '',
+        editingAlt: '',
         viewingId: null,
 
         init() {
@@ -463,9 +479,46 @@ function mediaManager() {
             this.imageLoading = true;
             this.viewingUrl = url;
             this.viewingFilename = filename;
-            this.viewingAlt = alt;
+            this.viewingAlt = alt || '';
+            this.editingAlt = alt || '';
             this.viewingId = id;
             this.openViewModal = true;
+        },
+
+        async saveAltText() {
+            if (!this.viewingId) {
+                return;
+            }
+
+            this.savingAlt = true;
+
+            try {
+                const response = await fetch(`{{ route('backend.media.index') }}/${this.viewingId}/alt-text`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        alternative_text: this.editingAlt,
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to update alternative text');
+                }
+
+                this.viewingAlt = this.editingAlt || '';
+                alert('Alternative text updated successfully!');
+            } catch (error) {
+                console.error('Error updating alt text:', error);
+                alert(error.message || 'Failed to update alternative text');
+            } finally {
+                this.savingAlt = false;
+            }
         },
 
         async deleteImage(id) {

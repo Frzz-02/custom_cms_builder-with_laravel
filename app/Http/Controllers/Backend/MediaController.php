@@ -181,6 +181,31 @@ class MediaController extends Controller
                        ->with('success', 'Image deleted successfully!');
     }
 
+    public function updateAltText(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'alternative_text' => 'nullable|string|max:255',
+        ]);
+
+        $media = Media::findOrFail($id);
+        $media->alternative_text = $validated['alternative_text'] ?? null;
+        $media->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Alternative text updated successfully!',
+                'data' => [
+                    'id' => $media->id,
+                    'alternative_text' => $media->alternative_text,
+                ],
+            ]);
+        }
+
+        return redirect()->route('backend.media.index')
+            ->with('success', 'Alternative text updated successfully!');
+    }
+
     public function getList(Request $request)
     {
         $query = Media::latest();
