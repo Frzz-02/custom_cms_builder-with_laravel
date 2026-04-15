@@ -27,6 +27,10 @@ Cocok untuk company profile, product showcase, campaign page, dan website konten
 
 ## 🖼️ Showcase
 
+### Link Google Drive
+
+- **Video Demo dan Tampilan Aplikasi**: [Lihat selengkapnya](https://drive.google.com/drive/folders/1fMB315B1B8XoK69DMSQH9W9Ym0SAztm6?usp=sharing)
+
 
 ### 1) Dashboard Admin
 ![Dashboard Placeholder](screenshoot/dashboard%20admin.png)
