@@ -111,13 +111,13 @@
         <div class="fade-in fade-in-delay-3 mt-12 pt-8 border-t border-gray-200">
             <p class="text-sm text-gray-500 mb-4">Atau kunjungi halaman populer lainnya:</p>
             <div class="flex flex-wrap justify-center gap-4 text-sm">
-                <a href="/" class="text-gray-600 hover:text-gray-900 transition-colors">Beranda</a>
+                <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Beranda</a>
                 <span class="text-gray-300">•</span>
-                <a href="/tentang-kami" class="text-gray-600 hover:text-gray-900 transition-colors">Tentang Kami</a>
+                <a href="#about" class="text-gray-600 hover:text-gray-900 transition-colors">Tentang Kami</a>
                 <span class="text-gray-300">•</span>
-                <a href="/produk" class="text-gray-600 hover:text-gray-900 transition-colors">Produk</a>
+                <a href="{{ route('products') }}" class="text-gray-600 hover:text-gray-900 transition-colors">Produk</a>
                 <span class="text-gray-300">•</span>
-                <a href="/kontak" class="text-gray-600 hover:text-gray-900 transition-colors">Kontak</a>
+                <a href="#contact" class="text-gray-600 hover:text-gray-900 transition-colors">Kontak</a>
             </div>
         </div>
     </div>

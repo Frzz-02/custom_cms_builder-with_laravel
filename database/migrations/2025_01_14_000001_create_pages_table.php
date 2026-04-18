@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique()->nullable();
+            $table->boolean('is_homepage')->default(false);
             $table->string('status')->default('draft');
             $table->string('title');
             $table->enum('template', ['default', 'homepage', 'sidebar', 'page detail', 'coming soon'])->default('default');

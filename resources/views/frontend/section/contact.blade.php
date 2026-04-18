@@ -38,7 +38,7 @@
 
 
     <!-- CTA Section -->
-    <section class="py-24 bg-[#e8e4df] relative overflow-hidden" data-reveal>
+    <section class="py-24 bg-[#e8e4df] relative overflow-hidden" data-reveal id="contact">
         <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24 relative z-10">
             <div class="text-center">
                 <p class="text-xs tracking-[0.2em] text-gray-500 uppercase mb-4" data-reveal data-reveal-delay="1">🎯 MULAI SEKARANG</p>

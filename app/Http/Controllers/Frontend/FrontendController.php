@@ -24,13 +24,7 @@ class FrontendController extends Controller
     public function index()
     {   
         
-        try {
-            // Get the page by slug and check for 'active' status
-            $page = Page::whereNull('slug')->where('status', 'published')->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // If no page is found, return a 404 error
-            abort(404);
-        }
+        $page = Page::where('is_homepage', true)->where('status', 'published')->firstOrFail();
 
         $footer = Footer::first();
         $settings = Setting::first();
@@ -49,9 +43,17 @@ class FrontendController extends Controller
             ->get();
         $media = Media::latest()->get();
         $whatsappButton = WhatsappButton::first();
-        $menus = Page::where('status', 'active')->get();
         $socialLinks = SocialLink::where('status', 'active')->latest()->get();
 
+
+        $shortcodes = collect();
+
+        if ($page) {
+            $shortcodes = PageShortcode::where('pages_id', $page->id)
+                ->orderBy('sort_id', 'asc')
+                ->get();
+        }
+        
         $shortcodes = PageShortcode::where('pages_id', $page->id)
             ->orderBy('sort_id', 'asc')
             ->get();
@@ -122,13 +124,8 @@ class FrontendController extends Controller
     public function show($slug = null)
     {   
         
-        try {
-            // Get the page by slug and check for 'active' status
-            $page = Page::where('slug', $slug)->where('status', 'published')->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // If no page is found, return a 404 error
-            abort(404);
-        }
+        $page = Page::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        
 
         $footer = Footer::first();
         $settings = Setting::first();
@@ -147,15 +144,19 @@ class FrontendController extends Controller
             ->get();
         $media = Media::latest()->get();
         $whatsappButton = WhatsappButton::first();
-        $menus = Page::where('status', 'active')->get();
         $socialLinks = SocialLink::where('status', 'active')->latest()->get();
+        
+        
+        $shortcodes = collect();
 
-        $shortcodes = PageShortcode::where('pages_id', $page->id)
-            ->orderBy('sort_id', 'asc')
-            ->get();
+        if ($page) {
+            $shortcodes = PageShortcode::where('pages_id', $page->id)
+                ->orderBy('sort_id', 'asc')
+                ->get();
+        }
 
-        $blogLimit =
-            PageShortcode::where('pages_id', $page->id)
+        
+        $blogLimit = PageShortcode::where('pages_id', $page->id)
                 ->where('type', 'latestnews')
                 ->orderBy('sort_id', 'asc')
                 ->value('blog_limit') ?? 0;
@@ -431,7 +432,7 @@ class FrontendController extends Controller
 
     public function showProductCategory(?ProductCategory $productCategory = null)
     {
-        $page = Page::whereNull('slug')->where('status', 'published')->first();
+        $page = Page::where('is_homepage', true)->where('status', 'published')->first();
         if (! $page) {
             $page = Page::where('status', 'published')->first();
         }
@@ -469,7 +470,7 @@ class FrontendController extends Controller
                 $query->where('status', 'active');
             });
 
-        if ($productCategory) {
+        if ($productCategory ) {
             $productsQuery->where('product_categories_id', $productCategory->id);
         }
 

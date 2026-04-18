@@ -9,7 +9,7 @@
         };
     @endphp
         
-        <section class="py-20 bg-gray-100">
+        <section class="py-20 bg-gray-100" id="about">
             <div class="w-full max-w-[1920px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-24" data-reveal>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 

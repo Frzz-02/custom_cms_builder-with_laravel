@@ -28,31 +28,21 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
-Route::get('/mitraoke', function () {
-    return view('frontend.pages.mitraoke');
-})->name('mitraoke');
-Route::get('/mitra-malang', function () {
-    return view('frontend.pages.mitramalang');
-})->name('mitramalang');
-Route::get('/mitra-jogja', function () {
-    return view('frontend.pages.mitrajogja');
-})->name('mitraJogja');
-
+Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
 
 Route::get('/products/category/{productCategory:slug?}', [FrontendController::class, 'showProductCategory'])->name('product.category');
 Route::get('/products/{slug}', [FrontendController::class, 'showProduct'])->name('products.detail');
 Route::get('/products', function(){
-    return route('product.category', ['productCategory' => 'all']);
-})->name('products.detail');
+    return redirect()->route('product.category');
+})->name('products');
+
 Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blogs.show');
-Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
 
 Route::group(['prefix' => 'cabang' , 'as' => 'cabang.'], function () {
     Route::get('/jogja', function () {
         return view('frontend.pages.cabang.jogja');
     })->name('jogja');
-
 
     Route::get('/malang', function () {
         return view('frontend.pages.cabang.malang');

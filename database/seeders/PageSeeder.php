@@ -14,6 +14,7 @@ class PageSeeder extends Seeder
     {
         \App\Models\Page::create([
             'slug' => null,
+            'is_homepage' => true,
             'status' => 'published',
             'title' => 'Home',
             'template' => 'homepage',
