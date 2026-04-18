@@ -12,6 +12,7 @@ class Page extends Model
     protected $fillable = [
         'slug',
         'status',
+        'is_homepage',
         'title',
         'template',
         'header_style',
