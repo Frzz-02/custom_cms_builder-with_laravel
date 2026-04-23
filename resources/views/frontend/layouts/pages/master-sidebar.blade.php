@@ -157,7 +157,7 @@
                                                 str_replace('/storage/', '', $blog->image_featured),
                                             );
                                         @endphp
-                                        <img src="{{ asset($blog->image_featured) }}"
+                                        <img src="{{ asset('storage/'. $blog->image_featured) }}"
                                             alt="{{ $mediaItem->alternative_text ?? $blog->title }}"
                                             loading="lazy"
                                             decoding="async"
@@ -235,7 +235,7 @@
                                                 );
                                             @endphp
                                             <a href="{{ route('blogs.show', $post->slug) }}">
-                                                <img src="{{ asset($post->image_featured) }}"
+                                                <img src="{{ asset('storage/' . $post->image_featured) }}"
                                                     alt="{{ $mediaItem->alternative_text ?? $post->title }}"
                                                     loading="lazy"
                                                     decoding="async"
