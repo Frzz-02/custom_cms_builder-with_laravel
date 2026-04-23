@@ -28,31 +28,31 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Frontend\FrontendController;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
-Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
+Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
+Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blogs.show');
 
 Route::get('/products/category/{productCategory:slug?}', [FrontendController::class, 'showProductCategory'])->name('product.category');
 Route::get('/products/{slug}', [FrontendController::class, 'showProduct'])->name('products.detail');
 Route::get('/products', function(){
     return redirect()->route('product.category');
-})->name('products');
+    })->name('products');
+    
+    
+    Route::group(['prefix' => 'cabang' , 'as' => 'cabang.'], function () {
+        Route::get('/jogja', function () {
+            return view('frontend.pages.cabang.jogja');
+            })->name('jogja');
+            
+            Route::get('/malang', function () {
+                return view('frontend.pages.cabang.malang');
+                })->name('malang');
+                });
 
-Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
-Route::get('/blog/{slug}', [FrontendController::class, 'showBlog'])->name('blogs.show');
-
-Route::group(['prefix' => 'cabang' , 'as' => 'cabang.'], function () {
-    Route::get('/jogja', function () {
-        return view('frontend.pages.cabang.jogja');
-    })->name('jogja');
-
-    Route::get('/malang', function () {
-        return view('frontend.pages.cabang.malang');
-    })->name('malang');
-});
-
-
-
-Route::group(['prefix' => 'cihuy'], function () {
-
+                
+                Route::get('/{slug}', [FrontendController::class, 'show'])->name('pages.show');
+                
+                Route::group(['prefix' => 'cihuy'], function () {
+                    
     // Authentication Routes
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
