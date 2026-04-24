@@ -247,6 +247,9 @@
                     $heroSection?->image ? asset('storage/' . $heroSection->image) : null,
                     $heroSection?->image_2 ? asset('storage/' . $heroSection->image_2) : null,
                     $heroSection?->image_3 ? asset('storage/' . $heroSection->image_3) : null,
+                    $heroSection?->image_4 ? asset('storage/' . $heroSection->image_4) : null,
+                    $heroSection?->image_5 ? asset('storage/' . $heroSection->image_5) : null,
+                    $heroSection?->image_6 ? asset('storage/' . $heroSection->image_6) : null,
                 ])),
             ];
 
@@ -254,6 +257,9 @@
                 $heroStyle3['slides'] = [
                     'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
                     'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=900&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=900&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=900&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=900&auto=format&fit=crop&q=80',
                     'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=900&auto=format&fit=crop&q=80',
                 ];
             }

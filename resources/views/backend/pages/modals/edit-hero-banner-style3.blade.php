@@ -6,7 +6,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h3 class="text-2xl font-bold mb-1">Hero Banner Style 3</h3>
-                    <p class="text-rose-100 text-sm">2 Titles • 1 Description • 3 Images • 2 Action Buttons</p>
+                    <p class="text-rose-100 text-sm">2 Titles • 1 Description • 6 Images • 2 Action Buttons</p>
                 </div>
                 <button 
                     onclick="closeEditHeroBannerStyle3Modal()" 
@@ -80,10 +80,10 @@
                         class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all resize-none"></textarea>
                 </div>
 
-                {{-- 3 Images Upload (in Grid) --}}
+                {{-- 6 Images Upload (in Grid) --}}
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-3">
-                        Images <span class="text-red-500">* (3 images required)</span>
+                        Images <span class="text-red-500">* (6 images required)</span>
                     </label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div data-media-picker
@@ -108,6 +108,33 @@
                              data-field-name="heroStyle3Image3"
                              data-field-id="heroStyle3Image3"
                              data-label="Image 3"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                        </div>
+
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image4"
+                             data-field-id="heroStyle3Image4"
+                             data-label="Image 4"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                        </div>
+
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image5"
+                             data-field-id="heroStyle3Image5"
+                             data-label="Image 5"
+                             data-placeholder="Select from media library"
+                             data-initial-value="">
+                            @include('backend.components.media-picker-input')
+                        </div>
+
+                        <div data-media-picker
+                             data-field-name="heroStyle3Image6"
+                             data-field-id="heroStyle3Image6"
+                             data-label="Image 6"
                              data-placeholder="Select from media library"
                              data-initial-value="">
                             @include('backend.components.media-picker-input')

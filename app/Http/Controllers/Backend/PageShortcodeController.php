@@ -508,8 +508,8 @@ class PageShortcodeController extends Controller
                 $data['image_4'] = $this->saveBase64Image($heroData['image_4'], 'hero');
             }
         } elseif ($heroStyle === '3') {
-            // Style 3: 1 form dengan 2 titles, description, 3 images, 2 action buttons
-            // Map to: title, title_2, description, action_label, action_label_2, action_url, action_url_2, image, image_2, image_3
+            // Style 3: 1 form dengan 2 titles, description, 6 images, 2 action buttons
+            // Map to: title, title_2, description, action_label, action_label_2, action_url, action_url_2, image, image_2, image_3, image_4, image_5, image_6
             $data['title'] = $heroData['title'] ?? null;                    // Title 1
             $data['title_2'] = $heroData['title_2'] ?? null;                // Title 2
             $data['description'] = $heroData['description'] ?? null;
@@ -518,7 +518,7 @@ class PageShortcodeController extends Controller
             $data['action_url'] = $heroData['action_url'] ?? null;          // Action URL 1
             $data['action_url_2'] = $heroData['action_url_2'] ?? null;      // Action URL 2
             
-            // Save 3 images to image, image_2, image_3 (sequential order)
+            // Save 6 images to image, image_2, image_3, image_4, image_5, image_6 (sequential order)
             if (!empty($heroData['image'])) {
                 $data['image'] = $this->saveBase64Image($heroData['image'], 'hero');
             }
@@ -527,6 +527,15 @@ class PageShortcodeController extends Controller
             }
             if (!empty($heroData['image_3'])) {
                 $data['image_3'] = $this->saveBase64Image($heroData['image_3'], 'hero');
+            }
+            if (!empty($heroData['image_4'])) {
+                $data['image_4'] = $this->saveBase64Image($heroData['image_4'], 'hero');
+            }
+            if (!empty($heroData['image_5'])) {
+                $data['image_5'] = $this->saveBase64Image($heroData['image_5'], 'hero');
+            }
+            if (!empty($heroData['image_6'])) {
+                $data['image_6'] = $this->saveBase64Image($heroData['image_6'], 'hero');
             }
         }
         

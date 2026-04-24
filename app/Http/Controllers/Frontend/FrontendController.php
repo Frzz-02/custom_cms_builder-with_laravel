@@ -291,7 +291,7 @@ class FrontendController extends Controller
     public function blog()
     {
         $page = Page::where('slug', 'blog')->where('status', 'published')->first();
-
+        
         if (! $page) {
             $page = Page::whereNull('slug')->where('status', 'published')->firstOrFail();
         }

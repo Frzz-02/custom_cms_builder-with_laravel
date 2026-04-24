@@ -3227,7 +3227,7 @@ async function deleteHeroBannerStyle2Block() {
 // ===================================================================
 
 /**
- * Handle image upload untuk hero banner style 3 (3 images)
+ * Handle image upload untuk hero banner style 3 (6 images)
  */
 async function handleHeroStyle3ImageUpload(imageNumber, input) {
     if (!input.files || !input.files[0]) return;
@@ -3342,38 +3342,25 @@ async function openEditHeroBannerStyle3Modal() {
             console.log('✅ Set action URL 2:', heroData.action_url_2);
         }
         
-        // Set images (cache keys: image, image_2, image_3)
+        // Set images (cache keys: image, image_2, ..., image_6)
         if (!window.heroBannerStyle3Images) {
             window.heroBannerStyle3Images = {};
         }
-        
-        // Image 1
-        if (heroData.image) {
-            const normalizedPreview = normalizeHeroImageForPreview(heroData.image);
-            const normalizedStorage = normalizeHeroImageForStorage(heroData.image);
-            window.heroBannerStyle3Images['image1'] = normalizedStorage;
+
+        for (let i = 1; i <= 6; i++) {
+            const heroImageKey = i === 1 ? 'image' : `image_${i}`;
+            const heroImage = heroData[heroImageKey];
+
+            if (!heroImage) {
+                continue;
+            }
+
+            const normalizedPreview = normalizeHeroImageForPreview(heroImage);
+            const normalizedStorage = normalizeHeroImageForStorage(heroImage);
+
+            window.heroBannerStyle3Images[`image${i}`] = normalizedStorage;
             window.dispatchEvent(new CustomEvent('media-selected', {
-                detail: { fieldId: 'heroStyle3Image1', url: normalizedPreview }
-            }));
-        }
-        
-        // Image 2
-        if (heroData.image_2) {
-            const normalizedPreview = normalizeHeroImageForPreview(heroData.image_2);
-            const normalizedStorage = normalizeHeroImageForStorage(heroData.image_2);
-            window.heroBannerStyle3Images['image2'] = normalizedStorage;
-            window.dispatchEvent(new CustomEvent('media-selected', {
-                detail: { fieldId: 'heroStyle3Image2', url: normalizedPreview }
-            }));
-        }
-        
-        // Image 3
-        if (heroData.image_3) {
-            const normalizedPreview = normalizeHeroImageForPreview(heroData.image_3);
-            const normalizedStorage = normalizeHeroImageForStorage(heroData.image_3);
-            window.heroBannerStyle3Images['image3'] = normalizedStorage;
-            window.dispatchEvent(new CustomEvent('media-selected', {
-                detail: { fieldId: 'heroStyle3Image3', url: normalizedPreview }
+                detail: { fieldId: `heroStyle3Image${i}`, url: normalizedPreview }
             }));
         }
         
@@ -3436,7 +3423,7 @@ function closeEditHeroBannerStyle3Modal() {
         if (actionUrl2) actionUrl2.value = '';
         
         // Reset images
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= 6; i++) {
             const imageInput = document.getElementById(`heroStyle3Image${i}`);
             
             if (imageInput) imageInput.value = '';
@@ -3504,6 +3491,15 @@ async function saveHeroBannerStyle3Block() {
         const image3 = normalizeHeroImageForStorage(
             window.heroBannerStyle3Images?.image3 || document.getElementById('heroStyle3Image3')?.value || ''
         );
+        const image4 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image4 || document.getElementById('heroStyle3Image4')?.value || ''
+        );
+        const image5 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image5 || document.getElementById('heroStyle3Image5')?.value || ''
+        );
+        const image6 = normalizeHeroImageForStorage(
+            window.heroBannerStyle3Images?.image6 || document.getElementById('heroStyle3Image6')?.value || ''
+        );
         
         // Validation: ALL fields required
         const missingFields = [];
@@ -3514,6 +3510,9 @@ async function saveHeroBannerStyle3Block() {
         if (!image1) missingFields.push('Image 1');
         if (!image2) missingFields.push('Image 2');
         if (!image3) missingFields.push('Image 3');
+        if (!image4) missingFields.push('Image 4');
+        if (!image5) missingFields.push('Image 5');
+        if (!image6) missingFields.push('Image 6');
         if (!actionLabel1) missingFields.push('Action Label 1');
         if (!actionUrl1) missingFields.push('Action URL 1');
         if (!actionLabel2) missingFields.push('Action Label 2');
@@ -3545,7 +3544,10 @@ async function saveHeroBannerStyle3Block() {
                 action_url_2: actionUrl2,
                 image: image1,
                 image_2: image2,
-                image_3: image3
+                image_3: image3,
+                image_4: image4,
+                image_5: image5,
+                image_6: image6
             }
         };
         
@@ -3588,7 +3590,10 @@ async function saveHeroBannerStyle3Block() {
                     action_url_2: actionUrl2,     // Action URL 2
                     image: image1,                // Image 1
                     image_2: image2,              // Image 2
-                    image_3: image3               // Image 3
+                    image_3: image3,              // Image 3
+                    image_4: image4,              // Image 4
+                    image_5: image5,              // Image 5
+                    image_6: image6               // Image 6
                 },
                 type: 'hero-banner'
             };
