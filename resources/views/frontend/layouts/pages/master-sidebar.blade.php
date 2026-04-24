@@ -187,6 +187,8 @@
                     <div class="text-center mt-8 md:mt-10">
                         {{ $blogss->links('pagination::bootstrap-5') }}
                     </div>
+                    @else
+                    @yield('content')
                     @endif
                 </main>
 
@@ -258,7 +260,7 @@
         </div>
     </section>
 
-    @if (!($isBlogPage ?? false) || ($blogDetail ?? false))
+    @if (!($isBlogPage ?? false) && !($blogDetail ?? false))
         @yield('content')
     @endif
 
